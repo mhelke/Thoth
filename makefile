@@ -1,4 +1,14 @@
+# Compiler to use
+C ?= gcc
+
+# src directory path
+SRC_PATH = src
+
+# Extension of source files to compile
+INCLUDE_EXT = c
+
+# Output file 
+OUTPUT = thoth.exe
+
 all: 
-	gcc -oFast *.c -o thoth.exe
-debug:
-	gcc *.c -o thoth.exe
+	$(C) -oFast $(SRC_PATH)/*.$(INCLUDE_EXT) -o $(OUTPUT)
