@@ -6,17 +6,10 @@
 #include <stdio.h>
 
 #include "bitboard.h"
+#include "attack_tables.h"
 
-int main()
-{
-    U64 bitboard = 0ULL;
-
-    set_bit(bitboard, e1);    
-
-    print_bitboard(bitboard);
-
-    pop_bit(bitboard, e1);
-    print_bitboard(bitboard);
-
+int main() {
+    // Initialize move tables
+    init_tables();
     return 0;
 }
