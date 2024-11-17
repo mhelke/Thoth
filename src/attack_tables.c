@@ -142,6 +142,38 @@ U64 mask_king_attacks(int square) {
     return attacks;
 }
 
+U64 mask_bishop_attacks(int square) {
+    // Attack bitboard
+    U64 attacks = 0ULL;
+
+    int rank, file;
+    int target_rank = square / 8;
+    int target_file = square % 8;
+
+    // relevent bishop occupancy bits
+    for (rank = target_rank + 1, file = target_file + 1; rank <= 6 && file <= 6; rank++, file++) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+
+    for (rank = target_rank - 1, file = target_file + 1; rank >= 1 && file <= 6; rank--, file++) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+
+    for (rank = target_rank + 1, file = target_file - 1; rank <= 6 && file >= 1; rank++, file--) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+
+     for (rank = target_rank - 1, file = target_file - 1; rank >= 1 && file >= 1; rank--, file--) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+
+    return attacks;
+
+
+    // Set piece on board
+    // set_bit(bitboard, square);
+}
+
 // Generate attack tables
 void init_tables() {
     for (int square = 0; square < 64; square++) {
