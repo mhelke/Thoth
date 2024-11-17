@@ -13,6 +13,8 @@ const U64 NOT_AB_FILE = 18229723555195321596ULL;
 // Pawn attacks table
 U64 pawn_attacks[2][64];
 
+// Knight attacks table
+U64 knight_attacks[64];
 
 // Pawn attacks
 U64 mask_pawn_attacks(int side, int square) {
@@ -49,18 +51,62 @@ U64 mask_pawn_attacks(int side, int square) {
 
     // return attack table
     return attacks;
-
 }
 
-// Generate pawn attacks
-void init_pawn_attacks() {
+// Knight attacks
+
+U64 mask_knight_attacks(int square) {
+    // Attack bitboard
+    U64 attacks = 0ULL;
+
+    // Piece bitboard
+    U64 bitboard = 0ULL;
+
+    // Set piece on board
+    set_bit(bitboard, square);
+
+    // Generate kngiht moves.
+    // Offsets 6, 10, 15, 17
+    // Knights on A or B file should not jump to the H or G file 
+    if ((bitboard >> 17) & NOT_H_FILE) {
+        attacks |= (bitboard >> 17);
+    }
+    if ((bitboard >> 10) & NOT_HG_FILE) {
+        attacks |= (bitboard >> 10);
+    }
+    // Knights on G or H file should not jump to the A or B
+    if ((bitboard >> 15) & NOT_A_FILE) {
+        attacks |= (bitboard >> 15);
+    }
+    if ((bitboard >> 6) & NOT_AB_FILE) {
+        attacks |= (bitboard >> 6);
+    }
+
+    // Other direction
+    if ((bitboard << 17) & NOT_A_FILE) {
+        attacks |= (bitboard << 17);
+    }
+    if ((bitboard << 10) & NOT_AB_FILE) {
+        attacks |= (bitboard << 10);
+    }
+    if ((bitboard << 15) & NOT_H_FILE) {
+        attacks |= (bitboard << 15);
+    }
+    if ((bitboard << 6) & NOT_HG_FILE) {
+        attacks |= (bitboard << 6);
+    }
+
+    return attacks;
+}
+
+// Generate attack tables
+void init_tables() {
     for (int square = 0; square < 64; square++) {
         // Pawn attacks
         pawn_attacks[white][square] = mask_pawn_attacks(white, square);
         pawn_attacks[black][square] = mask_pawn_attacks(black, square);
-    }
-}
 
-void init_tables() {
-    init_pawn_attacks();
+        // Kinght attacks
+        knight_attacks[square] = mask_knight_attacks(square);
+    }
 }
