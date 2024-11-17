@@ -16,6 +16,10 @@ U64 pawn_attacks[2][64];
 // Knight attacks table
 U64 knight_attacks[64];
 
+// King attacks table
+U64 king_attacks[64];
+
+
 // Pawn attacks
 U64 mask_pawn_attacks(int side, int square) {
     // Attack bitboard
@@ -99,6 +103,45 @@ U64 mask_knight_attacks(int square) {
     return attacks;
 }
 
+U64 mask_king_attacks(int square) {
+    // Attack bitboard
+    U64 attacks = 0ULL;
+
+    // Piece bitboard
+    U64 bitboard = 0ULL;
+
+    // Set piece on board
+    set_bit(bitboard, square);
+
+    // Generate king moves.
+    if (bitboard >> 8) {
+        attacks |= (bitboard >> 8);   
+    }
+    if (bitboard >> 9 & NOT_H_FILE) {
+        attacks |= (bitboard >> 9);   
+    }
+    if (bitboard >> 7 & NOT_A_FILE) {
+        attacks |= (bitboard >> 7);   
+    }
+    if (bitboard >> 1 & NOT_H_FILE) {
+        attacks |= (bitboard >> 1);   
+    }
+    if (bitboard << 8) {
+        attacks |= (bitboard << 8);   
+    }
+    if (bitboard << 9 & NOT_A_FILE) {
+        attacks |= (bitboard << 9);   
+    }
+    if (bitboard << 7 & NOT_H_FILE) {
+        attacks |= (bitboard << 7);   
+    }
+    if (bitboard << 1 & NOT_A_FILE) {
+        attacks |= (bitboard << 1);   
+    }
+
+    return attacks;
+}
+
 // Generate attack tables
 void init_tables() {
     for (int square = 0; square < 64; square++) {
@@ -108,5 +151,8 @@ void init_tables() {
 
         // Kinght attacks
         knight_attacks[square] = mask_knight_attacks(square);
+
+        // King attacks
+        king_attacks[square] = mask_king_attacks(square);
     }
 }
