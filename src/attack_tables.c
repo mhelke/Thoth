@@ -138,6 +138,7 @@ U64 mask_king_attacks(int square) {
     return attacks;
 }
 
+// Relevant occupancy bit for bishop (last squares not included)
 U64 mask_bishop_attacks(int square) {
     U64 attacks = 0ULL;
 
@@ -204,6 +205,7 @@ U64 generate_bishop_attacks(int square, U64 block) {
     return attacks;
 }
 
+// Relevant occupancy bit for rook (last squares not included)
 U64 mask_rook_attacks(int square) {
     U64 attacks = 0ULL;
     
