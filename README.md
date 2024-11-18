@@ -1,5 +1,8 @@
 # Thoth
-Thoth is a chess engine created in C.
+Thoth is a chess engine written in C and UCI compatible.
+
+## Performance
+  * Elo:
 
 ## Features
   * Bitboards
