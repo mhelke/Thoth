@@ -3,7 +3,7 @@
 #include "bitboard.h"
 
 // print bitboard
-void print_bitboard(U64 bitboard) {
+void print_bitboard(Bitboard bitboard) {
 
     printf("\n");
 

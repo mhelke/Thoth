@@ -1,32 +1,32 @@
 #include "bitboard.h"
 
-// U64 board representation of all squares not on the A file
-const U64 NOT_A_FILE = 18374403900871474942ULL;
+// Bitboard board representation of all squares not on the A file
+const Bitboard NOT_A_FILE = 18374403900871474942ULL;
 
-// U64 board representation of all squares not on the H file
-const U64 NOT_H_FILE = 9187201950435737471ULL;
+// Bitboard board representation of all squares not on the H file
+const Bitboard NOT_H_FILE = 9187201950435737471ULL;
 
-const U64 NOT_HG_FILE = 4557430888798830399ULL;
+const Bitboard NOT_HG_FILE = 4557430888798830399ULL;
 
-const U64 NOT_AB_FILE = 18229723555195321596ULL;
+const Bitboard NOT_AB_FILE = 18229723555195321596ULL;
 
 // Pawn attacks table
-U64 pawn_attacks[2][64];
+Bitboard pawn_attacks[2][64];
 
 // Knight attacks table
-U64 knight_attacks[64];
+Bitboard knight_attacks[64];
 
 // King attacks table
-U64 king_attacks[64];
+Bitboard king_attacks[64];
 
 
 // Pawn attacks
-U64 mask_pawn_attacks(int side, int square) {
+Bitboard mask_pawn_attacks(int side, int square) {
     // Attack bitboard
-    U64 attacks = 0ULL;
+    Bitboard attacks = 0ULL;
 
     // Piece bitboard
-    U64 bitboard = 0ULL;
+    Bitboard bitboard = 0ULL;
 
     // Set piece on board
     set_bit(bitboard, square);
@@ -57,12 +57,12 @@ U64 mask_pawn_attacks(int side, int square) {
 
 // Knight attacks
 
-U64 mask_knight_attacks(int square) {
+Bitboard mask_knight_attacks(int square) {
     // Attack bitboard
-    U64 attacks = 0ULL;
+    Bitboard attacks = 0ULL;
 
     // Piece bitboard
-    U64 bitboard = 0ULL;
+    Bitboard bitboard = 0ULL;
 
     // Set piece on board
     set_bit(bitboard, square);
@@ -100,12 +100,12 @@ U64 mask_knight_attacks(int square) {
     return attacks;
 }
 
-U64 mask_king_attacks(int square) {
+Bitboard mask_king_attacks(int square) {
     // Attack bitboard
-    U64 attacks = 0ULL;
+    Bitboard attacks = 0ULL;
 
     // Piece bitboard
-    U64 bitboard = 0ULL;
+    Bitboard bitboard = 0ULL;
 
     // Set piece on board
     set_bit(bitboard, square);
@@ -139,8 +139,8 @@ U64 mask_king_attacks(int square) {
 }
 
 // Relevant occupancy bit for bishop (last squares not included)
-U64 mask_bishop_attacks(int square) {
-    U64 attacks = 0ULL;
+Bitboard mask_bishop_attacks(int square) {
+    Bitboard attacks = 0ULL;
 
     int rank, file;
     int target_rank = square / 8;
@@ -165,8 +165,8 @@ U64 mask_bishop_attacks(int square) {
     return attacks;
 }
 
-U64 generate_bishop_attacks(int square, U64 block) {
-    U64 attacks = 0ULL;
+Bitboard generate_bishop_attacks(int square, Bitboard block) {
+    Bitboard attacks = 0ULL;
 
     int rank, file;
     int target_rank = square / 8;
@@ -206,8 +206,8 @@ U64 generate_bishop_attacks(int square, U64 block) {
 }
 
 // Relevant occupancy bit for rook (last squares not included)
-U64 mask_rook_attacks(int square) {
-    U64 attacks = 0ULL;
+Bitboard mask_rook_attacks(int square) {
+    Bitboard attacks = 0ULL;
     
     int rank, file;
     
@@ -230,8 +230,8 @@ U64 mask_rook_attacks(int square) {
     return attacks;
 }
 
-U64 generate_rook_attacks(int square, U64 block) {
-    U64 attacks = 0ULL;
+Bitboard generate_rook_attacks(int square, Bitboard block) {
+    Bitboard attacks = 0ULL;
     
     int rank, file;
     
@@ -275,8 +275,8 @@ U64 generate_rook_attacks(int square, U64 block) {
 
  Essentially, this method returns all possible combinations of occupancies in the path of the piece's attack mask (pieces in the way of the masked piece's moves). 
 */
-U64 set_occupancy(int index, int bits_mask, U64 attack_mask) {
-    U64 occupancy = 0ULL;
+Bitboard set_occupancy(int index, int bits_mask, Bitboard attack_mask) {
+    Bitboard occupancy = 0ULL;
 
     // Loop over the bits within the mask
     for (int i = 0; i < bits_mask; i++) {

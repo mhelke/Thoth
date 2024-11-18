@@ -1,7 +1,7 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
-#define U64 unsigned long long
+typedef unsigned long long Bitboard;
 
 // set
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
@@ -13,7 +13,7 @@
 #define pop_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
 
 // count total bits in the bitboard  
-static inline int count_bits(U64 bitboard) {
+static inline int count_bits(Bitboard bitboard) {
     // bit counter
     int count = 0;
 
@@ -26,7 +26,7 @@ static inline int count_bits(U64 bitboard) {
 }
 
 // get least significant 1st bit index
-static inline int get_least_sig_bit_index(U64 bitboard) {
+static inline int get_least_sig_bit_index(Bitboard bitboard) {
     // (block_board & -block_board) - 1
     if (!bitboard) {
         return -1; // illegal index
@@ -47,7 +47,7 @@ static const char *square[] = {
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 };
 
-void print_bitboard(U64 bitboard);
+void print_bitboard(Bitboard bitboard);
 
 // Board representation
 enum {
