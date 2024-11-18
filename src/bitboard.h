@@ -12,6 +12,29 @@
 // pop
 #define pop_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
 
+// count total bits in the bitboard  
+static inline int count_bits(U64 bitboard) {
+    // bit counter
+    int count = 0;
+
+    while (bitboard > 0) {
+        count++;
+        // reset least significant 1st bit
+        bitboard &= bitboard - 1;
+    }
+    return count;
+}
+
+// get least significant 1st bit index
+static inline int get_least_sig_bit_index(U64 bitboard) {
+    // (block_board & -block_board) - 1
+    if (!bitboard) {
+        return -1; // illegal index
+    }
+    return count_bits((bitboard & -bitboard) - 1);
+}
+
+
 void print_bitboard(U64 bitboard);
 
 // Board representation
