@@ -1,5 +1,5 @@
 # Thoth
-Thoth is a chess engine written in C and UCI compatible.
+Thoth is a UCI compatible chess engine written in C.
 
 ## Performance
   * Elo:
