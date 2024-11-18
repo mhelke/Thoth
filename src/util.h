@@ -1,0 +1,1 @@
+unsigned int generate_random_number();
