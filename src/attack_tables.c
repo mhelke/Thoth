@@ -265,6 +265,31 @@ U64 generate_rook_attacks(int square, U64 block) {
     }    
     return attacks;
 }
+/* 
+ index is the range of occupancy in bits (eg 1 = a8, 2 = a7, 3 = a8 + a7, etc)
+ bits_mask is the count of bits in the attack mask provided
+ returns a bitboard with the occupancy along with given the range of bits in the mask (piece available moves) 
+ The occupancies are calculated based on the mask (theoretically available moves)
+
+ Essentially, this method returns all possible combinations of occupancies in the path of the piece's attack mask (pieces in the way of the masked piece's moves). 
+*/
+U64 set_occupancy(int index, int bits_mask, U64 attack_mask) {
+    U64 occupancy = 0ULL;
+
+    // Loop over the bits within the mask
+    for (int i = 0; i < bits_mask; i++) {
+        // Get least significant 1st bit index of attack mask and pop it
+        int square = get_least_sig_bit_index(attack_mask);
+        pop_bit(attack_mask, square);
+
+        // Ensure occupancy is on board, then populate map
+        if (index & (1 << i)) {
+            occupancy |= (1ULL << square);
+        }
+    }
+
+    return occupancy;
+}
 
 // Generate attack tables
 void init_tables() {
