@@ -6,7 +6,7 @@
 #include "util.h"
 
 // https://www.chessprogramming.org/Looking_for_Magics
-Bitboard _find_magic_number(int square, int relevant_bits, int is_bishop) {
+Bitboard _find_magic_bitboard(int square, int relevant_bits, int is_bishop) {
     Bitboard occupancies[4096];
     Bitboard attacks_table[4096];
     Bitboard used_attacks[4096]; 
@@ -20,14 +20,14 @@ Bitboard _find_magic_number(int square, int relevant_bits, int is_bishop) {
         attacks_table[i] = is_bishop ? generate_bishop_attacks(square, occupancies[i]) : generate_rook_attacks(square, occupancies[i]);
     }
 
-    // test generated magic numbers
+    // test generated magic bitboard
     for (int i = 0; i < 100000000; i++) {
 
-        // Magic number candidate
-        Bitboard magic_number = generate_magic_number();
+        // Random magic bitboard candidate
+        Bitboard magic_bitboard = generate_magic_bitboard();
 
         // Skip known bad magic numbers
-        if (count_bits((attack_mask * magic_number) & 0xFF00000000000000) < 6) {
+        if (count_bits((attack_mask * magic_bitboard) & 0xFF00000000000000) < 6) {
             continue;
         }
 
@@ -36,9 +36,9 @@ Bitboard _find_magic_number(int square, int relevant_bits, int is_bishop) {
         
         int index, fail;
 
-        // test magic number
+        // test magic bitboard
         for (index = 0, fail = 0; !fail && index < occupancy_indicies; index++) {
-            int magic_index = (int)((occupancies[index] * magic_number) >> (64 - relevant_bits));
+            int magic_index = (int)((occupancies[index] * magic_bitboard) >> (64 - relevant_bits));
 
             // Magic index works, not used
             if (used_attacks[magic_index] == 0ULL) {
@@ -53,10 +53,10 @@ Bitboard _find_magic_number(int square, int relevant_bits, int is_bishop) {
             continue;
         }
 
-        return magic_number;
+        return magic_bitboard;
     }
-        // Magic number doesn't work
-        printf("Magic number failed");
+        // Magic bitboard doesn't work
+        printf("Magic bitboard failed");
         return 0ULL;
 }
 
@@ -64,18 +64,18 @@ Bitboard _rook_magics[64];
 Bitboard _bishop_magics[64];
 
 
-void _init_magic_numbers() {
-    // Loops over board and check magic number for each square
+void _init_magic_bitboards() {
+    // Loops over board and check magic bitboard for each square
     // Rook
     for (int square = 0; square < 64; square++) {
-        _rook_magics[square] = _find_magic_number(square, rook_relevant_bits[square], ROOK);
-        // printf(" 0x%llxULL\n", find_magic_number(square, rook_relevant_bits[square], ROOK));
+        _rook_magics[square] = _find_magic_bitboard(square, rook_relevant_bits[square], ROOK);
+        // printf(" 0x%llxULL\n", _find_magic_bitboard(square, rook_relevant_bits[square], ROOK));
     }
 
     // Bishop
     for (int square = 0; square < 64; square++) {
         // Bishop
-        _bishop_magics[square] = _find_magic_number(square, bishop_relevant_bits[square], BISHOP);
-        // printf(" 0x%llxULL\n", find_magic_number(square, bishop_relevant_bits[square], BISHOP));
+        _bishop_magics[square] = _find_magic_bitboard(square, bishop_relevant_bits[square], BISHOP);
+        // printf(" 0x%llxULL\n", _find_magic_bitboard(square, bishop_relevant_bits[square], BISHOP));
     }
 }
