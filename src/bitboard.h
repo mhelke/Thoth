@@ -26,6 +26,9 @@ Bitboard get_rook_attacks(int, Bitboard);
 void init_siders(int);
 void init_tables();
 
+void print_bitboard(Bitboard);
+void print_board();
+
 // count total bits in the bitboard  
 static inline int count_bits(Bitboard bitboard) {
     // bit counter
@@ -63,8 +66,6 @@ static const char *square[] = {
 
 extern char ascii_pieces[12];
 extern int char_pieces[];
-
-void print_bitboard(Bitboard bitboard);
 
 // Board representation
 enum {
