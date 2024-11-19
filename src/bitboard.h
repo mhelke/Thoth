@@ -65,4 +65,7 @@ enum {
 enum { WHITE, BLACK };
 enum { ROOK, BISHOP };
 
+extern const Bitboard bishop_magics[64];
+extern const Bitboard rook_magics[64];
+
 #endif
