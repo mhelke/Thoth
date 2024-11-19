@@ -83,6 +83,39 @@ const int rook_relevant_bits[64] = {
     12, 11, 11, 11, 11, 11, 11, 12,
 };
 
+char ascii_pieces[12] = "PNBRQKpnbrqk";
+
+// convert ASCII character pieces to encoded constants
+int char_pieces[] = {
+    ['P'] = P,
+    ['N'] = N,
+    ['B'] = B,
+    ['R'] = R,
+    ['Q'] = Q,
+    ['K'] = K,
+    ['p'] = p,
+    ['n'] = n,
+    ['b'] = b,
+    ['r'] = r,
+    ['q'] = q,
+    ['k'] = k
+};
+
+// Piece bitboards
+Bitboard bitboards[12];
+
+// Occupancy bitboards (white, black, all)
+Bitboard occupancies[2];
+
+// Side to move
+int side = -1;
+
+// En passant square 
+int enpassant = na;
+
+// Castling rights
+int castle = 0;
+
 // Pawn attacks table
 Bitboard pawn_attacks[2][64];
 

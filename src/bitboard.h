@@ -3,16 +3,14 @@
 
 typedef unsigned long long Bitboard;
 
-
-
 // set
-#define set_bit(bitboard, square) (bitboard |= (1ULL << square))
+#define set_bit(bitboard, square) ((bitboard |= (1ULL << square)))
 
 // get
-#define get_bit(bitboard, square) (bitboard & (1ULL <<  square))
+#define get_bit(bitboard, square) ((bitboard & (1ULL <<  square)))
 
 // pop
-#define pop_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
+#define pop_bit(bitboard, square) ((get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0))
 
 Bitboard mask_pawn_attacks(int, int);
 Bitboard mask_knight_attacks(int);
@@ -63,6 +61,9 @@ static const char *square[] = {
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 };
 
+extern char ascii_pieces[12];
+extern int char_pieces[];
+
 void print_bitboard(Bitboard bitboard);
 
 // Board representation
@@ -74,11 +75,18 @@ enum {
     a4, b4, c4, d4, e4, f4, g4, h4,
     a3, b3, c3, d3, e3, f3, g3, h3,
     a2, b2, c2, d2, e2, f2, g2, h2,
-    a1, b1, c1, d1, e1, f1, g1, h1,
+    a1, b1, c1, d1, e1, f1, g1, h1, 
+    na,
 };
 
+// Castling
+enum { WK = 1, WQ = 2, BK = 4, BQ = 8 };
+
+// Pieces
+enum { P, N, B, R, Q, K, p, n, b, r, q, k };
+
 // Side to move
-enum { WHITE, BLACK };
+enum { WHITE, BLACK, BOTH };
 enum { ROOK, BISHOP };
 
 extern const Bitboard bishop_magics[64];
@@ -88,5 +96,20 @@ extern const int rook_relevant_bits[64];
 extern Bitboard pawn_attacks[2][64];
 extern Bitboard knight_attacks[64];
 extern Bitboard king_attacks[64];
+
+// Piece bitboards
+extern Bitboard bitboards[12];
+
+// Occupancy bitboards (white, black, all)
+extern Bitboard occupancies[2];
+
+// Side to move
+extern int side;
+
+// En passant square 
+extern int enpassant;
+
+// Castling rights
+extern int castle;
 
 #endif
