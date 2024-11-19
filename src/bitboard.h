@@ -62,5 +62,7 @@ enum {
 };
 
 // Side to move
-enum { white, black };
+enum { WHITE, BLACK };
+enum { ROOK, BISHOP };
+
 #endif

@@ -297,8 +297,8 @@ Bitboard set_occupancy(int index, int bits_mask, Bitboard attack_mask) {
 void init_tables() {
     for (int square = 0; square < 64; square++) {
         // Pawn attacks
-        pawn_attacks[white][square] = mask_pawn_attacks(white, square);
-        pawn_attacks[black][square] = mask_pawn_attacks(black, square);
+        pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, square);
+        pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, square);
 
         // Kinght attacks
         knight_attacks[square] = mask_knight_attacks(square);
