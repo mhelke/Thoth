@@ -2,8 +2,6 @@
 #include <stdio.h>
 
 #include "bitboard.h"
-#include "attack_tables.h"
-
 /* 
 This approach attempts to find magic numbers by trying random numbers with a low number of non-zero bits by brute force.
 This code is not run with the engine, but was used to generate the magic numbers seen in [bitboard.c].

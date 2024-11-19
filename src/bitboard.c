@@ -92,6 +92,17 @@ Bitboard knight_attacks[64];
 // King attacks table
 Bitboard king_attacks[64];
 
+// Bishop attacks table
+Bitboard bishop_attacks[64][512];
+
+// Rook attacks table
+Bitboard rook_attacks[64][4096];
+
+// Bishop attack masks
+Bitboard bishop_masks[64];
+
+// Rook attack masks
+Bitboard rook_masks[64];
 
 // Pawn attacks
 Bitboard mask_pawn_attacks(int side, int square) {
@@ -129,7 +140,6 @@ Bitboard mask_pawn_attacks(int side, int square) {
 }
 
 // Knight attacks
-
 Bitboard mask_knight_attacks(int square) {
     // Attack bitboard
     Bitboard attacks = 0ULL;
@@ -173,6 +183,7 @@ Bitboard mask_knight_attacks(int square) {
     return attacks;
 }
 
+// King attacks
 Bitboard mask_king_attacks(int square) {
     // Attack bitboard
     Bitboard attacks = 0ULL;
@@ -340,6 +351,48 @@ Bitboard generate_rook_attacks(int square, Bitboard block) {
     }    
     return attacks;
 }
+
+void init_siders(int is_bishop) {
+    for (int s = 0; s < 64; s++) {
+        bishop_masks[s] = mask_bishop_attacks(s);
+        rook_masks[s] = mask_rook_attacks(s);
+
+        Bitboard attack_mask = is_bishop ? bishop_masks[s] : rook_masks[s];
+
+        // Relevant occupany bit
+        int relevant_bit_count = count_bits(attack_mask);
+
+        // Slider occupancy
+         int occupancy_indicies = (1 << relevant_bit_count);
+
+         for (int i = 0; i < occupancy_indicies; i++) {
+            Bitboard occupancy = set_occupancy(i, relevant_bit_count, attack_mask);
+            if (is_bishop) {
+                int magic_index = (occupancy * bishop_magics[s]) >> (64 - bishop_relevant_bits[s]);
+                bishop_attacks[s][magic_index] = generate_bishop_attacks(s, occupancy);
+            } else {
+                int magic_index = (occupancy * rook_magics[s]) >> (64 - rook_relevant_bits[s]);
+                rook_attacks[s][magic_index] = generate_rook_attacks(s, occupancy);
+            }
+         }
+    }
+}
+
+Bitboard get_bishop_attacks(int square, Bitboard occupancy) {
+    occupancy &= bishop_masks[square];
+    occupancy *= bishop_magics[square];
+    occupancy >>= 64 - bishop_relevant_bits[square];
+    return bishop_attacks[square][occupancy];
+}
+
+Bitboard get_rook_attacks(int square, Bitboard occupancy) {
+    occupancy &= rook_masks[square];
+    occupancy *= rook_magics[square];
+    occupancy >>= 64 - rook_relevant_bits[square];
+    return rook_attacks[square][occupancy];
+}
+
+
 /* 
  index is the range of occupancy in bits (eg 1 = a8, 2 = a7, 3 = a8 + a7, etc)
  bits_mask is the count of bits in the attack mask provided
@@ -379,6 +432,9 @@ void init_tables() {
         // King attacks
         king_attacks[square] = mask_king_attacks(square);
     }
+
+    init_siders(BISHOP);
+    init_siders(ROOK);
 }
 
 // print bitboard

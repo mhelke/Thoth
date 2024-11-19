@@ -22,7 +22,10 @@ Bitboard mask_rook_attacks(int);
 Bitboard generate_bishop_attacks(int, Bitboard);
 Bitboard generate_rook_attacks(int, Bitboard);
 Bitboard set_occupancy(int, int, Bitboard);
+Bitboard get_bishop_attacks(int, Bitboard); 
+Bitboard get_rook_attacks(int, Bitboard); 
 
+void init_siders(int);
 void init_tables();
 
 // count total bits in the bitboard  
