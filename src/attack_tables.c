@@ -1,5 +1,31 @@
 #include "bitboard.h"
 
+// The number of relevant occupancy squares within the path of the bishop's attack mask.
+// See [gen.c] for how this was calculated.
+const int bishop_relevant_bits[64] = {
+    6, 5, 5, 5, 5, 5, 5, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 5, 5, 5, 5, 5, 5, 6,
+};
+
+// The number of relevant occupancy squares within the path of the rook's attack mask.
+// See [gen.c] for how this was calculated.
+const int rook_relevant_bits[64] = {
+    12, 11, 11, 11, 11, 11, 11, 12,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    12, 11, 11, 11, 11, 11, 11, 12,
+};
+
 // Bitboard board representation of all squares not on the A file
 const Bitboard NOT_A_FILE = 18374403900871474942ULL;
 

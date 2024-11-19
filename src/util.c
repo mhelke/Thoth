@@ -30,6 +30,6 @@ unsigned int generate_random_U32_number() {
     return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
  }
 
- Bitboard generate_magic_number() {
+ Bitboard generate_magic_bitboard() {
     return generate_random_U64_number() & generate_random_U64_number() & generate_random_U64_number();
  }
