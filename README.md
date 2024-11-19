@@ -1,11 +1,11 @@
 # Thoth
-Thoth is a UCI compatible chess engine written in C.
+Thoth is a UCI-compatible chess engine written in C.
 
 ## Performance
   * Elo:
 
 ## Features
-  * Bitboards
+  * Bitboards and magic bitboards to represent the chessboard and allow for super fast and efficient move generation.
   
 ## Running the Engine
 
@@ -21,7 +21,7 @@ Matthew Helke
 
 ## Contributing
 
-Issues, and feature requests are welcome!
+Issues and feature requests are welcome!
 Please add your request to the [issues page](https://github.com/mhelke/Thoth/issues)
 
 ## License
