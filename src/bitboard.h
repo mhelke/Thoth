@@ -3,6 +3,8 @@
 
 typedef unsigned long long Bitboard;
 
+
+
 // set
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 
@@ -11,6 +13,17 @@ typedef unsigned long long Bitboard;
 
 // pop
 #define pop_bit(bitboard, square) (get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0)
+
+Bitboard mask_pawn_attacks(int, int);
+Bitboard mask_knight_attacks(int);
+Bitboard mask_king_attacks(int);
+Bitboard mask_bishop_attacks(int);
+Bitboard mask_rook_attacks(int);
+Bitboard generate_bishop_attacks(int, Bitboard);
+Bitboard generate_rook_attacks(int, Bitboard);
+Bitboard set_occupancy(int, int, Bitboard);
+
+void init_tables();
 
 // count total bits in the bitboard  
 static inline int count_bits(Bitboard bitboard) {
@@ -67,5 +80,10 @@ enum { ROOK, BISHOP };
 
 extern const Bitboard bishop_magics[64];
 extern const Bitboard rook_magics[64];
+extern const int bishop_relevant_bits[64];
+extern const int rook_relevant_bits[64];
+extern Bitboard pawn_attacks[2][64];
+extern Bitboard knight_attacks[64];
+extern Bitboard king_attacks[64];
 
 #endif

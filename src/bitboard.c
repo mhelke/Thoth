@@ -2,6 +2,11 @@
 
 #include "bitboard.h"
 
+const Bitboard NOT_A_FILE = 18374403900871474942ULL;
+const Bitboard NOT_H_FILE = 9187201950435737471ULL;
+const Bitboard NOT_HG_FILE = 4557430888798830399ULL;
+const Bitboard NOT_AB_FILE = 18229723555195321596ULL;
+
 const Bitboard rook_magics[64] = {
     0x8a80104000800020ULL, 0x140002000100040ULL, 0x2801880a0017001ULL,
     0x100081001000420ULL, 0x200020010080420ULL, 0x3001c0002010008ULL,
@@ -51,6 +56,330 @@ const Bitboard bishop_magics[64] = {
     0x28000010020204ULL, 0x6000020202d0240ULL, 0x8918844842082200ULL,
     0x4010011029020020ULL
 };
+
+// The number of relevant occupancy squares within the path of the bishop's attack mask.
+// See [gen.c] for how this was calculated.
+const int bishop_relevant_bits[64] = {
+    6, 5, 5, 5, 5, 5, 5, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 5, 5, 5, 5, 5, 5, 6,
+};
+
+// The number of relevant occupancy squares within the path of the rook's attack mask.
+// See [gen.c] for how this was calculated.
+const int rook_relevant_bits[64] = {
+    12, 11, 11, 11, 11, 11, 11, 12,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    12, 11, 11, 11, 11, 11, 11, 12,
+};
+
+// Pawn attacks table
+Bitboard pawn_attacks[2][64];
+
+// Knight attacks table
+Bitboard knight_attacks[64];
+
+// King attacks table
+Bitboard king_attacks[64];
+
+
+// Pawn attacks
+Bitboard mask_pawn_attacks(int side, int square) {
+    // Attack bitboard
+    Bitboard attacks = 0ULL;
+
+    // Piece bitboard
+    Bitboard bitboard = 0ULL;
+
+    // Set piece on board
+    set_bit(bitboard, square);
+
+    // white = 0, black = 1
+    // pawn captures offset of 7 & 9
+    if (!side) {
+        // Pawns on a-file can only capture on the b-file 
+        if((bitboard >> 7) & NOT_A_FILE) {
+            attacks |= (bitboard >> 7);
+        }
+        // Pawns on h-file can only capture on the g-file
+        if((bitboard >> 9) & NOT_H_FILE) {
+            attacks |= (bitboard >> 9);
+        }
+    } else {
+        // Pawns on a-file can only capture on the b-file 
+        if((bitboard << 7) & NOT_H_FILE) {
+            attacks |= (bitboard << 7);
+        }
+        // Pawns on h-file can only capture on the g-file
+        if((bitboard << 9) & NOT_A_FILE) {
+            attacks |= (bitboard << 9);
+        }
+    }
+    return attacks;
+}
+
+// Knight attacks
+
+Bitboard mask_knight_attacks(int square) {
+    // Attack bitboard
+    Bitboard attacks = 0ULL;
+
+    // Piece bitboard
+    Bitboard bitboard = 0ULL;
+
+    // Set piece on board
+    set_bit(bitboard, square);
+
+    // Generate kngiht moves.
+    // Offsets 6, 10, 15, 17
+    // Knights on A or B file should not jump to the H or G file 
+    if ((bitboard >> 17) & NOT_H_FILE) {
+        attacks |= (bitboard >> 17);
+    }
+    if ((bitboard >> 10) & NOT_HG_FILE) {
+        attacks |= (bitboard >> 10);
+    }
+    // Knights on G or H file should not jump to the A or B
+    if ((bitboard >> 15) & NOT_A_FILE) {
+        attacks |= (bitboard >> 15);
+    }
+    if ((bitboard >> 6) & NOT_AB_FILE) {
+        attacks |= (bitboard >> 6);
+    }
+
+    // Other direction
+    if ((bitboard << 17) & NOT_A_FILE) {
+        attacks |= (bitboard << 17);
+    }
+    if ((bitboard << 10) & NOT_AB_FILE) {
+        attacks |= (bitboard << 10);
+    }
+    if ((bitboard << 15) & NOT_H_FILE) {
+        attacks |= (bitboard << 15);
+    }
+    if ((bitboard << 6) & NOT_HG_FILE) {
+        attacks |= (bitboard << 6);
+    }
+    return attacks;
+}
+
+Bitboard mask_king_attacks(int square) {
+    // Attack bitboard
+    Bitboard attacks = 0ULL;
+
+    // Piece bitboard
+    Bitboard bitboard = 0ULL;
+
+    // Set piece on board
+    set_bit(bitboard, square);
+
+    // Generate king moves.
+    if (bitboard >> 8) {
+        attacks |= (bitboard >> 8);   
+    }
+    if (bitboard >> 9 & NOT_H_FILE) {
+        attacks |= (bitboard >> 9);   
+    }
+    if (bitboard >> 7 & NOT_A_FILE) {
+        attacks |= (bitboard >> 7);   
+    }
+    if (bitboard >> 1 & NOT_H_FILE) {
+        attacks |= (bitboard >> 1);   
+    }
+    if (bitboard << 8) {
+        attacks |= (bitboard << 8);   
+    }
+    if (bitboard << 9 & NOT_A_FILE) {
+        attacks |= (bitboard << 9);   
+    }
+    if (bitboard << 7 & NOT_H_FILE) {
+        attacks |= (bitboard << 7);   
+    }
+    if (bitboard << 1 & NOT_A_FILE) {
+        attacks |= (bitboard << 1);   
+    }
+    return attacks;
+}
+
+// Relevant occupancy bit for bishop (last squares not included)
+Bitboard mask_bishop_attacks(int square) {
+    Bitboard attacks = 0ULL;
+
+    int rank, file;
+    int target_rank = square / 8;
+    int target_file = square % 8;
+
+    // relevent bishop occupancy bits
+    for (rank = target_rank + 1, file = target_file + 1; rank <= 6 && file <= 6; rank++, file++) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+
+    for (rank = target_rank - 1, file = target_file + 1; rank >= 1 && file <= 6; rank--, file++) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+
+    for (rank = target_rank + 1, file = target_file - 1; rank <= 6 && file >= 1; rank++, file--) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+
+     for (rank = target_rank - 1, file = target_file - 1; rank >= 1 && file >= 1; rank--, file--) {
+        attacks |= (1ULL << (rank * 8 + file));
+    }
+    return attacks;
+}
+
+Bitboard generate_bishop_attacks(int square, Bitboard block) {
+    Bitboard attacks = 0ULL;
+
+    int rank, file;
+    int target_rank = square / 8;
+    int target_file = square % 8;
+
+    // generate attacks
+    for (rank = target_rank + 1, file = target_file + 1; rank <= 7 && file <= 7; rank++, file++) {
+        attacks |= (1ULL << (rank * 8 + file));
+        // If the piece runs into another piece, the squares after that are unreachable, so the piece cannot move any further. Break the loop.
+        // This function assumes the "blocking" piece can be captured. This will be decided by the move generator.
+        if ((1ULL << (rank * 8 + file)) & block) {
+            break;
+        }
+    }
+
+    for (rank = target_rank - 1, file = target_file + 1; rank >= 0 && file <= 7; rank--, file++) {
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block) {
+            break;
+        }
+    }
+
+    for (rank = target_rank + 1, file = target_file - 1; rank <= 7 && file >= 0; rank++, file--) {
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block) {
+            break;
+        }
+    }
+
+     for (rank = target_rank - 1, file = target_file - 1; rank >= 0 && file >= 0; rank--, file--) {
+        attacks |= (1ULL << (rank * 8 + file));
+        if ((1ULL << (rank * 8 + file)) & block) {
+            break;
+        }
+    }
+    return attacks;
+}
+
+// Relevant occupancy bit for rook (last squares not included)
+Bitboard mask_rook_attacks(int square) {
+    Bitboard attacks = 0ULL;
+    
+    int rank, file;
+    
+    int target_rank = square / 8;
+    int target_file = square % 8;
+    
+    // relevent rook occupancy bits
+    for (rank = target_rank + 1; rank <= 6; rank++) {
+        attacks |= (1ULL << (rank * 8 + target_file));
+    }
+    for (rank = target_rank - 1; rank >= 1; rank--) {
+        attacks |= (1ULL << (rank * 8 + target_file));
+    }
+    for (file = target_file + 1; file <= 6; file++) {
+        attacks |= (1ULL << (target_rank * 8 + file));
+    }
+    for (file = target_file - 1; file >= 1; file--) {
+        attacks |= (1ULL << (target_rank * 8 + file));
+    }    
+    return attacks;
+}
+
+Bitboard generate_rook_attacks(int square, Bitboard block) {
+    Bitboard attacks = 0ULL;
+    
+    int rank, file;
+    
+    int target_rank = square / 8;
+    int target_file = square % 8;
+    
+    //generate attacks
+    for (rank = target_rank + 1; rank <= 7; rank++) {
+        attacks |= (1ULL << (rank * 8 + target_file));
+        // If the piece runs into another piece, the squares after that are unreachable, so the piece cannot move any further. Break the loop.
+        // This function assumes the "blocking" piece can be captured. This will be decided by the move generator.
+        if ((1ULL << (rank * 8 + target_file)) & block) {
+            break;
+        }
+    }
+    for (rank = target_rank - 1; rank >= 0; rank--) {
+        attacks |= (1ULL << (rank * 8 + target_file));
+         if ((1ULL << (rank * 8 + target_file)) & block) {
+            break;
+        }
+    }
+    for (file = target_file + 1; file <= 7; file++) {
+        attacks |= (1ULL << (target_rank * 8 + file));
+         if ((1ULL << (target_rank * 8 + file)) & block) {
+            break;
+        }
+    }
+    for (file = target_file - 1; file >= 0; file--) {
+        attacks |= (1ULL << (target_rank * 8 + file));
+         if ((1ULL << (target_rank * 8 + file)) & block) {
+            break;
+        }
+    }    
+    return attacks;
+}
+/* 
+ index is the range of occupancy in bits (eg 1 = a8, 2 = a7, 3 = a8 + a7, etc)
+ bits_mask is the count of bits in the attack mask provided
+ returns a bitboard with the occupancy along with given the range of bits in the mask (piece available moves) 
+ The occupancies are calculated based on the mask (theoretically available moves)
+
+ Essentially, this method returns all possible combinations of occupancies in the path of the piece's attack mask (pieces in the way of the masked piece's moves). 
+*/
+Bitboard set_occupancy(int index, int bits_mask, Bitboard attack_mask) {
+    Bitboard occupancy = 0ULL;
+
+    // Loop over the bits within the mask
+    for (int i = 0; i < bits_mask; i++) {
+        // Get least significant 1st bit index of attack mask and pop it
+        int square = get_least_sig_bit_index(attack_mask);
+        pop_bit(attack_mask, square);
+
+        // Ensure occupancy is on board, then populate map
+        if (index & (1 << i)) {
+            occupancy |= (1ULL << square);
+        }
+    }
+
+    return occupancy;
+}
+
+// Generate attack tables
+void init_tables() {
+    for (int square = 0; square < 64; square++) {
+        // Pawn attacks
+        pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, square);
+        pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, square);
+
+        // Kinght attacks
+        knight_attacks[square] = mask_knight_attacks(square);
+
+        // King attacks
+        king_attacks[square] = mask_king_attacks(square);
+    }
+}
 
 // print bitboard
 void print_bitboard(Bitboard bitboard) {
