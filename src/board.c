@@ -23,18 +23,18 @@ void load_fen(char* fen) {
     for (; i < n; i++) {
         int done = 0;
         switch (fen[i]) {
-            case 'P': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'N': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'B': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'R': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'Q': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'K': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'p': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'n': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'b': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'r': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'q': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
-            case 'k': set_bit(bitboards[char_pieces[fen[i]]], (rank * 8 + file++)); break;
+            case 'P': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'N': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'B': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'R': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'Q': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'K': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'p': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'n': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'b': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'r': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'q': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'k': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
             case '/': file = 0; rank--; break;
             case '1': file += 1; break;
             case '2': file += 2; break;
@@ -90,7 +90,7 @@ void load_fen(char* fen) {
         i++;
         if (fen[i] >= '1' && fen[i] <= '8') {
             int ep_rank = 8 - (fen[i] - '0');
-            enpassant = ep_rank * 8 + ep_file;
+            enpassant = SQUARE_INDEX(ep_rank, ep_file);;
             i++;
         }
     } else {
@@ -104,7 +104,7 @@ void print_board() {
 
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
-            int square = rank * 8 + file;
+            int square = SQUARE_INDEX(rank, file);;
             
             if (!file) {
                 printf("  %d ", 8 - rank);

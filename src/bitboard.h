@@ -3,14 +3,10 @@
 
 typedef unsigned long long Bitboard;
 
-// set
 #define set_bit(bitboard, square) ((bitboard |= (1ULL << square)))
-
-// get
 #define get_bit(bitboard, square) ((bitboard & (1ULL <<  square)))
-
-// pop
 #define pop_bit(bitboard, square) ((get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0))
+#define SQUARE_INDEX(rank, file) ((rank) * 8 + (file))
 
 Bitboard mask_pawn_attacks(int, int);
 Bitboard mask_knight_attacks(int);
