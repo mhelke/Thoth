@@ -17,7 +17,7 @@ void load_fen(char* fen) {
 
     int i = 0;
     int n = strlen(fen);
-    int rank = 7;
+    int rank = 0;
     int file = 0;
     for (; i < n; i++) {
         int done = 0;
@@ -34,7 +34,7 @@ void load_fen(char* fen) {
             case 'r': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
             case 'q': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
             case 'k': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case '/': file = 0; rank--; break;
+            case '/': file = 0; rank++; break;
             case '1': file += 1; break;
             case '2': file += 2; break;
             case '3': file += 3; break;
