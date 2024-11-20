@@ -20,10 +20,13 @@ Bitboard get_bishop_attacks(int, Bitboard);
 Bitboard get_rook_attacks(int, Bitboard); 
 Bitboard get_queen_attacks(int, Bitboard); 
 
+int is_square_attacked(int, int);
+
 void init_siders(int);
 void init_tables();
 
 void print_bitboard(Bitboard);
+void print_attacked_squares(int);
 
 // count total bits in the bitboard  
 static inline int count_bits(Bitboard bitboard) {
