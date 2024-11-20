@@ -95,6 +95,16 @@ void load_fen(char* fen) {
     } else {
         enpassant = na;
     }
+
+    for (int piece = P; piece <= K; piece++) {
+        occupancies[WHITE] |= bitboards[piece];
+    }
+
+    for (int piece = p; piece <= k; piece++) {
+        occupancies[BLACK] |= bitboards[piece];
+    }
+    occupancies[BOTH] |= occupancies[WHITE];
+    occupancies[BOTH] |= occupancies[BLACK];
     i++;
 }
 
