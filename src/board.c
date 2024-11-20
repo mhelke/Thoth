@@ -43,11 +43,11 @@ void load_fen(char* fen) {
             case '6': file += 6; break;
             case '7': file += 7; break;
             case '8': file += 8; break;
-            case ' ': done = 1; break;
+            case ' ': rank += 1; done = 1; break;
             default: return;
         }
         if (done) {
-            if (rank != 0 || file != 8) {
+            if (rank != 8 || file != 8) {
                 return;
             }
             break;
