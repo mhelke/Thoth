@@ -425,6 +425,10 @@ Bitboard get_rook_attacks(int square, Bitboard occupancy) {
     return rook_attacks[square][occupancy];
 }
 
+Bitboard get_queen_attacks(int square, Bitboard occupancy) {
+    return (get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy));
+}
+
 
 /* 
  index is the range of occupancy in bits (eg 1 = a8, 2 = a7, 3 = a8 + a7, etc)

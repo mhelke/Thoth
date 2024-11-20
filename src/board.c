@@ -10,7 +10,6 @@ void reset_board() {
     side = 0;
     enpassant = na;
     castle = 0;
-
 }
 
 void load_fen(char* fen) {
