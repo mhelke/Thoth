@@ -6,3 +6,4 @@ void generate_black_moves();
 
 void generate_pawn_moves(int);
 void generate_castling_moves(int);
+void generate_knight_moves(int);

@@ -10,11 +10,14 @@ void generate_moves() {
 void generate_white_moves() {
     generate_pawn_moves(WHITE);
     generate_castling_moves(WHITE);
+    generate_knight_moves(WHITE);
+
 }
 
 void generate_black_moves() {
     generate_pawn_moves(BLACK);
     generate_castling_moves(BLACK);
+    generate_knight_moves(BLACK);
 }
 
 void generate_pawn_moves(int side) {
@@ -113,4 +116,35 @@ void generate_castling_moves(int side) {
         }
     }
 }
+
+void generate_knight_moves(int side) {
+    int src, target;
+    int opponent = 1 - side;
+    const char *side_name = (side == WHITE) ? "White" : "Black";
+
+    Bitboard bitboard = (side == WHITE) ? bitboards[N] : bitboards[n];
+
+    while (bitboard) {
+        src = get_least_sig_bit_index(bitboard);
+
+        Bitboard attacks = knight_attacks[src] & (~occupancies[side]);
+
+        while (attacks) {
+            target = get_least_sig_bit_index(attacks);
+
+            if (get_bit(occupancies[opponent], target)) {
+                // capture
+                printf("%s N capture: %sx%s\n", side_name, square[src], square[target]);
+            } else {
+                // normal
+                printf("%s N: %s %s\n", side_name, square[src], square[target]);
+            }
+
+            pop_bit(attacks, target);
+        }
+        pop_bit(bitboard, src);
+    }
+}
+
+
 
