@@ -104,7 +104,7 @@ int char_pieces[] = {
 Bitboard bitboards[12];
 
 // Occupancy bitboards (white, black, all)
-Bitboard occupancies[2];
+Bitboard occupancies[3];
 
 // Side to move
 int side = -1;

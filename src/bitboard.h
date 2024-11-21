@@ -98,7 +98,7 @@ extern Bitboard king_attacks[64];
 extern Bitboard bitboards[12];
 
 // Occupancy bitboards (white, black, all)
-extern Bitboard occupancies[2];
+extern Bitboard occupancies[3];
 
 // Side to move
 extern int side;
