@@ -9,3 +9,4 @@ void generate_castling_moves(int);
 void generate_knight_moves(int);
 void generate_bishop_moves(int);
 void generate_rook_moves(int);
+void generate_queen_moves(int);
