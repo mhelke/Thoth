@@ -12,7 +12,7 @@ void generate_white_moves() {
     generate_castling_moves(WHITE);
     generate_knight_moves(WHITE);
     generate_bishop_moves(WHITE);
-
+    generate_rook_moves(WHITE);
 }
 
 void generate_black_moves() {
@@ -20,6 +20,7 @@ void generate_black_moves() {
     generate_castling_moves(BLACK);
     generate_knight_moves(BLACK);
     generate_bishop_moves(BLACK);
+    generate_rook_moves(BLACK);
 }
 
 void generate_pawn_moves(int side) {
@@ -177,4 +178,32 @@ void generate_bishop_moves(int side) {
     }
 }
 
+void generate_rook_moves(int side) {
+    int src, target;
+    int opponent = 1 - side;
+    const char *side_name = (side == WHITE) ? "White" : "Black";
+
+    Bitboard bitboard = (side == WHITE) ? bitboards[R] : bitboards[r];
+
+    while (bitboard) {
+        src = get_least_sig_bit_index(bitboard);
+
+        Bitboard attacks = get_rook_attacks(src, occupancies[BOTH]) & (~occupancies[side]);
+
+        while (attacks) {
+            target = get_least_sig_bit_index(attacks);
+
+            if (get_bit(occupancies[opponent], target)) {
+                // capture
+                printf("%s R capture: %sx%s\n", side_name, square[src], square[target]);
+            } else {
+                // normal
+                printf("%s R: %s %s\n", side_name, square[src], square[target]);
+            }
+
+            pop_bit(attacks, target);
+        }
+        pop_bit(bitboard, src);
+    }
+}
 
