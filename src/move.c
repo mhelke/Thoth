@@ -1,5 +1,7 @@
-#include "move.h"
 #include <stdio.h>
+
+#include "move.h"
+#include "gen.h"
 
 void generate_moves() {
     side ? generate_black_moves() : generate_white_moves();
@@ -7,10 +9,12 @@ void generate_moves() {
 
 void generate_white_moves() {
     generate_pawn_moves(WHITE);
+    generate_castling_moves(WHITE);
 }
 
 void generate_black_moves() {
     generate_pawn_moves(BLACK);
+    generate_castling_moves(BLACK);
 }
 
 void generate_pawn_moves(int side) {
@@ -80,3 +84,33 @@ void generate_pawn_moves(int side) {
         pop_bit(bitboard, src);
     }
 }
+
+void generate_castling_moves(int side) {
+    const char *side_name = (side == WHITE) ? "White" : "Black";
+    int src = (side == WHITE) ? e1 : e8;
+    int k_target = (side == WHITE) ? g1 : g8;
+    int q_target = (side == WHITE) ? c1 : c8;
+    int q_pass = (side == WHITE) ? d1 : d8;
+    int q_pass_second = (side == WHITE) ? b1 : b8;
+    int k_pass = (side == WHITE) ? f1 : f8;
+    int opponent = 1 - side;
+
+    // King-side
+    if ((side == WHITE && (castle & WK)) || (side == BLACK && (castle & BK))) {
+        if (!get_bit(occupancies[BOTH], k_pass) && !get_bit(occupancies[BOTH], k_target)) {
+            if (!is_square_attacked(src, opponent) && !is_square_attacked(k_pass, opponent) && !is_square_attacked(k_target, opponent)) {
+                printf("%s O-O: %s %s\n", side_name, square[src], square[k_target]);
+            }
+        }
+    }
+
+    // Queen-side
+    if ((side == WHITE && (castle & WQ)) || (side == BLACK && (castle & BQ))) {
+        if (!get_bit(occupancies[BOTH], q_pass) && !get_bit(occupancies[BOTH], q_target) && !get_bit(occupancies[BOTH], q_pass_second)) {
+            if (!is_square_attacked(src, opponent) && !is_square_attacked(q_pass, opponent) && !is_square_attacked(q_target, opponent)) {
+                printf("%s O-O-O: %s %s\n", side_name, square[src], square[q_target]);
+            }
+        }
+    }
+}
+
