@@ -6,3 +6,4 @@ void generate_black_moves();
 void generate_white_pawn_moves();
 void generate_black_pawn_moves();
 
+void generate_pawn_moves(int);

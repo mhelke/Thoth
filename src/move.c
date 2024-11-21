@@ -58,16 +58,24 @@ void generate_pawn_moves(int side) {
                     printf("%s Pawn Promotion Capture: %sx%s=%s\n", side_name, square[src], square[target], pieces[i]);
                 }
             } else {
-                // one square
-                printf("Black Pawn Move: %s %s\n", square[src], square[target]);
+                // Regular capture
+                printf("%s Pawn Capture: %sx%s\n", side_name, square[src], square[target]);
+            }
 
-                // pawn jump
-                if ((src >= a7 && src <= h7) && !get_bit(occupancies[BOTH], target + 8)) {
-                    printf("Black Pawn Jump: %s %s\n", square[src], square[target + 8]);
+            pop_bit(attacks, target);
+        }
+
+        // En Passant
+        if (enpassant != na) {
+            int enpassant_file = enpassant % 8;
+            if (src >= enpassant_rank && src <= enpassant_rank + 7 &&
+                (src % 8 == enpassant_file - 1 || src % 8 == enpassant_file + 1)) {
+                Bitboard enpassant_attacks = pawn_attacks[side][src] & (1ULL << enpassant);
+                if (enpassant_attacks) {
+                    int ep_target = get_least_sig_bit_index(enpassant_attacks);
+                    printf("%s En Passant Capture: %sx%sep\n", side_name, square[src], square[ep_target]);
                 }
             }
-        } else {
-            printf("Cannot Move: %s\n", square[src]);
         }
         pop_bit(bitboard, src);
     }
