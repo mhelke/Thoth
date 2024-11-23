@@ -10,3 +10,4 @@ void generate_knight_moves(int);
 void generate_bishop_moves(int);
 void generate_rook_moves(int);
 void generate_queen_moves(int);
+void generate_king_moves(int);
