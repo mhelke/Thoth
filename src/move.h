@@ -30,14 +30,12 @@ void print_move(int);
 void print_move_list(Moves*);
 void add_move(Moves*, int);
 
-void generate_moves();
-void generate_white_moves();
-void generate_black_moves();
+void generate_moves(Moves*);
 
-void generate_pawn_moves(int);
-void generate_castling_moves(int);
-void generate_knight_moves(int);
-void generate_bishop_moves(int);
-void generate_rook_moves(int);
-void generate_queen_moves(int);
-void generate_king_moves(int);
+void generate_pawn_moves(int, Moves*);
+void generate_castling_moves(int, Moves*);
+void generate_knight_moves(int, Moves*);
+void generate_bishop_moves(int, Moves*);
+void generate_rook_moves(int, Moves*);
+void generate_queen_moves(int, Moves*);
+void generate_king_moves(int, Moves*);
