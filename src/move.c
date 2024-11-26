@@ -269,3 +269,42 @@ void generate_king_moves(int side) {
     }
 }
 
+char promoted_pieces[] = {
+    [Q] = 'q',
+    [R] = 'r',
+    [B] = 'b',
+    [N] = 'n',
+    [q] = 'q',
+    [r] = 'r',
+    [b] = 'b',
+    [n] = 'n',
+};
+
+void add_move(Moves *move_list, int move) {
+    move_list->moves[move_list->count] = move;
+    move_list->count++;
+}
+
+void print_move(int move) {
+    int src = MOVE_SRC(move);
+    int target = MOVE_TARGET(move);
+    int promoted = MOVE_PROMOTED(move);
+
+    printf("%s%s%c\n", square[src], square[target], promoted_pieces[promoted]);
+}
+
+void print_move_list(Moves *move_list) {
+    printf("\n\tPiece\tMove   Capture\tDouble\tEP\tCastling\n");
+    for (int i = 0; i < move_list->count; i++) {
+        int move = move_list->moves[i];
+        int src = MOVE_SRC(move);
+        int target = MOVE_TARGET(move);
+        int promoted = MOVE_PROMOTED(move);
+        int piece = MOVE_PIECE(move);
+        int capture = MOVE_CAPTURE(move);
+        int d_push = MOVE_DOUBLE(move);
+        int ep = MOVE_ENPASSANT(move);
+        int castling = MOVE_CASTLE(move);
+    printf("%d.\t%c\t%s%s%c\t%d\t%d\t%d\t%d\n", i+1, ascii_pieces[piece], square[src], square[target], promoted_pieces[promoted], capture, d_push, ep, castling);
+    }
+}

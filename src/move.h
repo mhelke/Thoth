@@ -21,6 +21,15 @@
 #define MOVE_ENPASSANT(move) ((move & ENPASSANT) >> 22);
 #define MOVE_CASTLE(move) ((move & CASTLE) >> 23);
 
+typedef struct {
+    int moves[256];
+    int count;
+} Moves;
+
+void print_move(int);
+void print_move_list(Moves*);
+void add_move(Moves*, int);
+
 void generate_moves();
 void generate_white_moves();
 void generate_black_moves();
