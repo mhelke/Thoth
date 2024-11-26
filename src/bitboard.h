@@ -8,6 +8,18 @@ typedef unsigned long long Bitboard;
 #define pop_bit(bitboard, square) ((get_bit(bitboard, square) ? bitboard ^= (1ULL << square) : 0))
 #define SQUARE_INDEX(rank, file) ((rank) * 8 + (file))
 
+#define COPY_BOARD()                                                    \
+    Bitboard bitboards_copy[12], occupancies_copy[3];                   \
+    int side_copy, enpassant_copy, castle_copy;                         \
+    memcpy(bitboards_copy, bitboards, sizeof(bitboards));               \
+    memcpy(occupancies_copy, occupancies, sizeof(occupancies));         \
+    side_copy = side, enpassant_copy = enpassant, castle_copy = castle; \
+
+#define UNDO()                                                          \
+    memcpy(bitboards, bitboards_copy, 96);                              \
+    memcpy(occupancies, occupancies_copy, 24);                          \
+    side = side_copy, enpassant = enpassant_copy, castle = castle_copy; \
+
 Bitboard mask_pawn_attacks(int, int);
 Bitboard mask_knight_attacks(int);
 Bitboard mask_king_attacks(int);

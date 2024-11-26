@@ -3,7 +3,6 @@
 
 #include "bitboard.h"
 
-
 void reset_board() {
     memset(bitboards, 0ULL, sizeof(bitboards));
     memset(occupancies, 0ULL, sizeof(occupancies));
