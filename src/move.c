@@ -22,6 +22,8 @@ void generate_pawn_moves(int side, Moves *moves) {
     int promotion_rank_start = (side == WHITE) ? a7 : a2;
     int promotion_rank_end = (side == WHITE) ? h7 : h2;
     int enpassant_rank = (side == WHITE) ? a5 : a4;
+    int double_move_rank_start = (side == WHITE) ? a2 : a7;
+    int double_move_rank_end = (side == WHITE) ? h2 : h7;
     const char *side_name = (side == WHITE) ? "White" : "Black";
 
     const int *pieces;
@@ -52,8 +54,8 @@ void generate_pawn_moves(int side, Moves *moves) {
                     add_move(moves, move);
 
                     // Pawn jump
-                    if ((src >= a2 && src <= h2) && !get_bit(occupancies[BOTH], target + direction)) {
-                        int move = encode_move(src, (target + direction), piece, 0, 0, 1, 0, 0);
+                    if (src >= double_move_rank_start && src <= double_move_rank_end && !get_bit(occupancies[BOTH], target + direction)) {
+                        move = encode_move(src, target + direction, piece, 0, 0, 1, 0, 0);
                         add_move(moves, move);
                     }
                 }
