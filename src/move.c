@@ -360,7 +360,23 @@ int make_move(int move, int move_type) {
 
             // Set promoted piece
             set_bit(bitboards[promoted], target);
+        }
 
+        // En passant
+        if (ep) {
+            // Remove captured pawn
+            int pawn_bb = (side == WHITE) ? p : P;
+            int target_adj = (side == WHITE) ? 8 : -8;
+            pop_bit(bitboards[pawn_bb], target + target_adj);
+        }
+
+        // Reset En Passant Square
+        enpassant = na;
+
+        // Double Push - set en passant square
+        if (double_pawn) {
+            int target_adj = (side == WHITE) ? 8 : -8;
+            enpassant = target + target_adj;
         }
 
     } else {
