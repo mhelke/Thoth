@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include "move.h"
-#include "gen.h"
 
 void generate_moves(Moves *moves) {
     moves->count = 0;
@@ -300,9 +299,66 @@ char promoted_pieces[] = {
     [n] = 'n',
 };
 
+int is_square_attacked(int square, int side) {
+    int opponent = (side == WHITE) ? BLACK : WHITE;
+    int offset = (side == WHITE) ? 0 : 6;
+    
+    if (pawn_attacks[opponent][square] & bitboards[P + offset]) return 1;
+    if (knight_attacks[square] & bitboards[N + offset]) return 1;
+    if (get_bishop_attacks(square, occupancies[BOTH]) & bitboards[B + offset]) return 1;
+    if (get_rook_attacks(square, occupancies[BOTH]) & bitboards[R + offset]) return 1;    
+    if (get_queen_attacks(square, occupancies[BOTH]) & bitboards[Q + offset]) return 1;
+    if (king_attacks[square] & bitboards[K + offset]) return 1;
+    
+    return 0;
+}
+
 void add_move(Moves *move_list, int move) {
     move_list->moves[move_list->count] = move;
     move_list->count++;
+}
+
+int make_move(int move, int move_type) {
+    if (move_type == ALL_MOVES) {
+        COPY_BOARD();
+        
+        int src = MOVE_SRC(move);
+        int target = MOVE_TARGET(move);
+        int piece = MOVE_PIECE(move);
+        int promoted = MOVE_PROMOTED(move);
+        int capture = MOVE_CAPTURE(move);
+        int double_pawn = MOVE_DOUBLE(move);
+        int ep = MOVE_ENPASSANT(move);
+        int castle = MOVE_CASTLE(move);
+
+        // Regular moves
+
+        // Move piece from source to target
+        pop_bit(bitboards[piece], src);
+        set_bit(bitboards[piece], target);
+
+        // Capture moves
+        if (capture) {
+            int start = (side == WHITE) ? p : P; 
+            int end = (side == WHITE) ? k : K;
+
+            for (int i = start; i <= end; i++) {
+                // Get piece on target square and remove
+                if (get_bit(bitboards[i], target)) {
+                    pop_bit(bitboards[i], target);
+                    break; // Piece found
+                }
+            }
+        }
+
+    } else {
+        // Only return capture moves
+        int capture = MOVE_CAPTURE(move);
+        if (!capture) {
+            return 0;
+        }
+        make_move(move, ALL_MOVES);
+    }
 }
 
 void print_move(int move) {

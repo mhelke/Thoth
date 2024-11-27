@@ -1,6 +1,8 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
+#include <string.h>
+
 typedef unsigned long long Bitboard;
 
 #define set_bit(bitboard, square) ((bitboard |= (1ULL << square)))
