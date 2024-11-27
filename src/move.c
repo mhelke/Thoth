@@ -331,7 +331,7 @@ int make_move(int move, int move_type) {
         int ep = MOVE_ENPASSANT(move);
         int castle = MOVE_CASTLE(move);
 
-        // Regular moves
+        print_move(move);
 
         // Move piece from source to target
         pop_bit(bitboards[piece], src);
@@ -349,6 +349,16 @@ int make_move(int move, int move_type) {
                     break; // Piece found
                 }
             }
+        }
+
+        // Promotion Move
+        if (promoted) {
+            // Remove pawn
+            pop_bit(bitboards[(side == WHITE) ? P : p], target);
+
+            // Set promoted piece
+            set_bit(bitboards[promoted], target);
+
         }
 
     } else {
