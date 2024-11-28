@@ -2,6 +2,31 @@
 
 #include "move.h"
 
+/*
+Used to determine whether castling rights have changed.
+These values are used to check if a move was made 
+from or captured on square.
+These values are created by taking the castling right & encoded move. 
+
+No change:              15
+White king moved:       12
+White king rook moved:  14
+White queen rook moved: 13    
+Black king moved:       3
+Black king rook moved:  11
+Black queen rook moved: 7
+ */
+const int castling_rights[64] = {
+     7, 15, 15, 15,  3, 15, 15, 11,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    13, 15, 15, 15, 12, 15, 15, 14
+};
+
 void generate_moves(Moves *moves) {
     moves->count = 0;
     generate_pawn_moves(side, moves);
@@ -331,7 +356,7 @@ int make_move(int move, int move_type) {
         int capture = MOVE_CAPTURE(move);
         int double_pawn = MOVE_DOUBLE(move);
         int ep = MOVE_ENPASSANT(move);
-        int castle = MOVE_CASTLE(move);
+        int castled = MOVE_CASTLE(move);
 
         print_move(move);
 
@@ -379,6 +404,26 @@ int make_move(int move, int move_type) {
             enpassant = target + target_adj;
         }
 
+        // Castling
+        if (castled) {
+            int rook_src[4] = {h1, a1, h8, a8};
+            int rook_target[4] = {f1, d1, f8, d8};
+            int rook_pieces[4] = {R, R, r, r};
+            int targets[4] = {g1, c1, g8, c8};
+
+            for (int i = 0; i < 4; i++) {
+                if (target == targets[i]) {
+                    pop_bit(bitboards[rook_pieces[i]], rook_src[i]);
+                    set_bit(bitboards[rook_pieces[i]], rook_target[i]);
+                    break;
+                }
+            }
+        }
+
+        // Castling rights
+        castle &= castling_rights[src];
+        castle &= castling_rights[target];
+        
     } else {
         // Only return capture moves
         int capture = MOVE_CAPTURE(move);
