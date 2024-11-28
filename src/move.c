@@ -348,7 +348,7 @@ void add_move(Moves *move_list, int move) {
 int make_move(int move, int move_type) {
     if (move_type == ALL_MOVES) {
         COPY_BOARD();
-        
+
         int src = MOVE_SRC(move);
         int target = MOVE_TARGET(move);
         int piece = MOVE_PIECE(move);
@@ -364,35 +364,39 @@ int make_move(int move, int move_type) {
         pop_bit(bitboards[piece], src);
         set_bit(bitboards[piece], target);
 
+        // Update occupancy tables
+        pop_bit(occupancies[side], src);
+        set_bit(occupancies[side], target);
+
         // Capture moves
         if (capture) {
-            int start = (side == WHITE) ? p : P; 
+            int captured_piece;
+            int start = (side == WHITE) ? p : P;
             int end = (side == WHITE) ? k : K;
 
-            for (int i = start; i <= end; i++) {
-                // Get piece on target square and remove
-                if (get_bit(bitboards[i], target)) {
-                    pop_bit(bitboards[i], target);
-                    break; // Piece found
+            for (captured_piece = start; captured_piece <= end; captured_piece++) {
+                if (get_bit(bitboards[captured_piece], target)) {
+                    pop_bit(bitboards[captured_piece], target);
+                    break;
                 }
             }
+            pop_bit(occupancies[!side], target);
         }
 
         // Promotion Move
         if (promoted) {
-            // Remove pawn
-            pop_bit(bitboards[(side == WHITE) ? P : p], target);
-
-            // Set promoted piece
+            int pawn_bb = (side == WHITE) ? P : p;
+            pop_bit(bitboards[pawn_bb], target);
             set_bit(bitboards[promoted], target);
+            set_bit(occupancies[side], target);
         }
 
         // En passant
         if (ep) {
-            // Remove captured pawn
             int pawn_bb = (side == WHITE) ? p : P;
             int target_adj = (side == WHITE) ? 8 : -8;
             pop_bit(bitboards[pawn_bb], target + target_adj);
+            pop_bit(occupancies[!side], target + target_adj);
         }
 
         // Reset En Passant Square
@@ -415,6 +419,8 @@ int make_move(int move, int move_type) {
                 if (target == targets[i]) {
                     pop_bit(bitboards[rook_pieces[i]], rook_src[i]);
                     set_bit(bitboards[rook_pieces[i]], rook_target[i]);
+                    pop_bit(occupancies[side], rook_src[i]);
+                    set_bit(occupancies[side], rook_target[i]);
                     break;
                 }
             }
@@ -423,7 +429,11 @@ int make_move(int move, int move_type) {
         // Castling rights
         castle &= castling_rights[src];
         castle &= castling_rights[target];
-        
+
+        // Update overall occupancy table
+        occupancies[BOTH] = occupancies[WHITE] | occupancies[BLACK];
+
+
     } else {
         // Only return capture moves
         int capture = MOVE_CAPTURE(move);
