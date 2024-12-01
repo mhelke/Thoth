@@ -433,7 +433,13 @@ int make_move(int move, int move_type) {
         // Update overall occupancy table
         occupancies[BOTH] = occupancies[WHITE] | occupancies[BLACK];
 
-
+        // Ensure King is not in Check
+        side ^= 1; // change side
+        if (is_square_attacked(get_least_sig_bit_index((side == WHITE) ? bitboards[k] : bitboards[K]), side)) {
+            UNDO();
+            return 0;
+        }
+        return 1;
     } else {
         // Only return capture moves
         int capture = MOVE_CAPTURE(move);
