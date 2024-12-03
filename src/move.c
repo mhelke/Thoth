@@ -347,8 +347,6 @@ int make_move(int move, int move_type) {
         int ep = MOVE_ENPASSANT(move);
         int castled = MOVE_CASTLE(move);
 
-        print_move(move);
-
         // Move piece from source to target
         pop_bit(bitboards[piece], src);
         set_bit(bitboards[piece], target);
@@ -393,8 +391,7 @@ int make_move(int move, int move_type) {
 
         // Double Push - set en passant square
         if (double_pawn) {
-            int target_adj = (side == WHITE) ? 8 : -8;
-            enpassant = target + target_adj;
+            enpassant = target + ((side == WHITE) ? 8 : -8);
         }
 
         // Castling
@@ -422,8 +419,10 @@ int make_move(int move, int move_type) {
         // Update overall occupancy table
         occupancies[BOTH] = occupancies[WHITE] | occupancies[BLACK];
 
+        // Change side
+        side ^= 1;
+
         // Ensure King is not in Check
-        side ^= 1; // change side
         if (is_square_attacked(get_least_sig_bit_index((side == WHITE) ? bitboards[k] : bitboards[K]), side)) {
             UNDO();
             return 0;
@@ -435,9 +434,11 @@ int make_move(int move, int move_type) {
         if (!capture) {
             return 0;
         }
-        make_move(move, ALL_MOVES);
+        return make_move(move, ALL_MOVES);
     }
+    return 0;
 }
+
 
 void print_move(int move) {
     int src = MOVE_SRC(move);
