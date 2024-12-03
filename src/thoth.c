@@ -6,10 +6,12 @@
 #include <stdio.h>
 
 #include "bitboard.h"
-#include "attack_tables.h"
+#include "perft.h"
+
 
 int main() {
     // Initialize move tables
     init_tables();
-    return 0;
+    perft_tests();
+    
 }
