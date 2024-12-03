@@ -11,4 +11,4 @@ INCLUDE_EXT = c
 OUTPUT = thoth.exe
 
 all: 
-	$(C) -oFast $(SRC_PATH)/*.$(INCLUDE_EXT) -o $(OUTPUT)
+	$(C) -O2 $(SRC_PATH)/*.$(INCLUDE_EXT) -o $(OUTPUT)
