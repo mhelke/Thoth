@@ -21,6 +21,17 @@
 #define MOVE_ENPASSANT(move) ((move & ENPASSANT) >> 22);
 #define MOVE_CASTLE(move) ((move & CASTLE) >> 23);
 
+static const char promoted_pieces[] = {
+    [Q] = 'q',
+    [R] = 'r',
+    [B] = 'b',
+    [N] = 'n',
+    [q] = 'q',
+    [r] = 'r',
+    [b] = 'b',
+    [n] = 'n',
+};
+
 typedef struct {
     int moves[256];
     int count;

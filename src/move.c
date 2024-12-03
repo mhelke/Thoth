@@ -315,17 +315,6 @@ void generate_king_moves(int side, Moves *moves) {
     }
 }
 
-char promoted_pieces[] = {
-    [Q] = 'q',
-    [R] = 'r',
-    [B] = 'b',
-    [N] = 'n',
-    [q] = 'q',
-    [r] = 'r',
-    [b] = 'b',
-    [n] = 'n',
-};
-
 int is_square_attacked(int square, int side) {
     int opponent = (side == WHITE) ? BLACK : WHITE;
     int offset = (side == WHITE) ? 0 : 6;
