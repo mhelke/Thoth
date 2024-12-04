@@ -1,4 +1,13 @@
+/*
+Universal Chess Interface (UCI) is the standard communication protocol which GUIs use to communicate with chess engines.
+More info on UCI: https://www.chessprogramming.org/UCI
+*/
+
+#include <string.h>
+#include <stdlib.h>
+
 #include "move.h"
+#include "board.h"
 
 // Parse move string from UCI
 // Example move from UCI protocol: "e7e8q"
@@ -28,4 +37,58 @@ int parse_move(const char *str) {
         }
     }
     return 0;
+}
+
+// Parse position command from UCI
+// Example commands: `position startpos`, `position fen <FEN_STRING>`
+// The command can also include moves: `position startpos moves e2e4 e7e5`
+void parse_position(char *command) {
+    command += 9; // shift pointer to position argument
+    char *current = command;
+
+    // Parse startpos command and init board to start position
+    if (strncmp(command, "startpos", 8) == 0) {
+        load_fen(start_position);
+    } else {
+        current = strstr(command, "fen");
+
+        if (current == NULL) {
+            load_fen(start_position);
+        } else {
+            current += 4; // shift pointer to start of FEN string
+            load_fen(current);
+        }
+    }
+
+    current = strstr(command, "moves");
+
+    // Parse moves
+    if (current != NULL) {
+         current += 6; // shift pointer to start of given moves token
+         while (*current) {
+            int move = parse_move(current);
+            if (move == 0) {
+                break;
+            }
+            make_move(move, ALL_MOVES);
+
+            // Move pointer to next move
+            while (*current && *current != ' ') {
+                current++;   
+            }
+            current++;
+         }
+    }
+}
+
+// Parse the go command from UCI
+// Example command: go depth 6
+void parse_go(char * command) {
+    int depth = -1;
+    char *current = NULL;
+    if (strstr(command, "depth")) {
+        depth = atoi(current + 6); // shift pointer to start of depth
+    } else {
+        depth = 5; // TODO: placeholder
+    }
 }
