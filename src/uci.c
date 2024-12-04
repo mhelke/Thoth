@@ -5,6 +5,7 @@ More info on UCI: https://www.chessprogramming.org/UCI
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "move.h"
 #include "board.h"
@@ -79,6 +80,12 @@ void parse_position(char *command) {
             current++;
          }
     }
+    print_board(); // remove
+}
+
+// TODO: Placeholder for testing UCI. Move when search is implemented.
+void search_position(int depth) {
+    printf("bestmove e7e5\n");
 }
 
 // Parse the go command from UCI
@@ -91,4 +98,56 @@ void parse_go(char * command) {
     } else {
         depth = 5; // TODO: placeholder
     }
+    search_position(depth);
+}
+
+void set_info() {
+    printf("id name Thoth\n");
+    printf("id author Matthew Helke\n");
+    printf("uciok\n");
+}
+
+void handle_uci_ready() {
+    printf("readyok\n");
+}
+
+int parse_line() {
+    fflush(stdout); // needed?
+    char input[2000];
+    memset(input, 0, sizeof(input));
+    if (fgets(input, 2000, stdin) == NULL) {
+        return 0;
+    }
+    if (input[0] == '\n') {
+        return 0;
+    }
+    if (strncmp(input, "isready", 7) == 0) {
+        handle_uci_ready();
+        return 1;
+    }
+    if (strncmp(input, "position", 8) == 0) {
+        parse_position(input);
+        return 1;
+    }
+    if (strncmp(input, "ucinewgame", 10) == 0) {
+        parse_position("position startpos");
+        return 1;
+    }
+    if (strncmp(input, "go", 2) == 0) {
+        parse_go("input");
+        return 1;
+    }
+    if (strncmp(input, "quit", 4) == 0) {
+        return 0;
+    }
+    if (strncmp(input, "uci", 3) == 0) {
+        set_info();
+        return 1;
+    }
+}
+
+void uci_main() {
+    setbuf(stdin, NULL);
+    setbuf(stdout, NULL);
+    while (parse_line());
 }
