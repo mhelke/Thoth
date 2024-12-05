@@ -9,6 +9,7 @@ More info on UCI: https://www.chessprogramming.org/UCI
 
 #include "move.h"
 #include "board.h"
+#include "search.h"
 
 // Parse move string from UCI
 // Example move from UCI protocol: "e7e8q"
@@ -80,11 +81,6 @@ void parse_position(char *command) {
     print_board(); // remove
 }
 
-// TODO: Placeholder for testing UCI. Move when search is implemented.
-void search_position(int depth) {
-    printf("bestmove e7e5\n");
-}
-
 // Parse the go command from UCI
 // Example command: go depth 6
 void parse_go(char * command) {
@@ -95,7 +91,7 @@ void parse_go(char * command) {
     } else {
         depth = 5; // TODO: placeholder
     }
-    search_position(depth);
+    search(depth);
 }
 
 void set_info() {

@@ -435,7 +435,7 @@ int make_move(int move, int move_type) {
 
 
 void print_move(int move) {
-    printf("%s%s%c\n", square[MOVE_SRC(move)], square[MOVE_TARGET(move)], promoted_pieces[MOVE_PROMOTED(move)]);
+    printf("%s%s%c", square[MOVE_SRC(move)], square[MOVE_TARGET(move)], promoted_pieces[MOVE_PROMOTED(move)]);
 }
 
 void print_move_list(Moves *move_list) {
