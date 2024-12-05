@@ -21,18 +21,18 @@ void load_fen(char* fen) {
     for (; i < n; i++) {
         int done = 0;
         switch (fen[i]) {
-            case 'P': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'N': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'B': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'R': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'Q': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'K': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'p': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'n': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'b': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'r': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'q': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'k': set_bit(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'P': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'N': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'B': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'R': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'Q': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'K': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'p': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'n': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'b': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'r': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'q': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'k': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
             case '/': file = 0; rank++; break;
             case '1': file += 1; break;
             case '2': file += 2; break;
@@ -122,7 +122,7 @@ void print_board() {
             
             // Loop over all bitboards for each piece type and get the bit
             for (int i = P; i <= k; i++) {
-                if (get_bit(bitboards[i], square)) {
+                if (GET_BIT(bitboards[i], square)) {
                     piece = i;
                 }
             }

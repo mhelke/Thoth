@@ -5,9 +5,9 @@
 
 typedef unsigned long long Bitboard;
 
-#define set_bit(bitboard, square) ((bitboard |= (1ULL << square)))
-#define get_bit(bitboard, square) ((bitboard & (1ULL <<  square)))
-#define pop_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
+#define SET_BIT(bitboard, square) ((bitboard |= (1ULL << square)))
+#define GET_BIT(bitboard, square) ((bitboard & (1ULL <<  square)))
+#define POP_BIT(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
 #define SQUARE_INDEX(rank, file) ((rank) * 8 + (file))
 
 #define COPY_BOARD()                                                    \

@@ -145,7 +145,7 @@ Bitboard mask_pawn_attacks(int side, int square) {
     Bitboard bitboard = 0ULL;
 
     // Set piece on board
-    set_bit(bitboard, square);
+    SET_BIT(bitboard, square);
 
     // white = 0, black = 1
     // pawn captures offset of 7 & 9
@@ -180,7 +180,7 @@ Bitboard mask_knight_attacks(int square) {
     Bitboard bitboard = 0ULL;
 
     // Set piece on board
-    set_bit(bitboard, square);
+    SET_BIT(bitboard, square);
 
     // Generate kngiht moves.
     // Offsets 6, 10, 15, 17
@@ -224,7 +224,7 @@ Bitboard mask_king_attacks(int square) {
     Bitboard bitboard = 0ULL;
 
     // Set piece on board
-    set_bit(bitboard, square);
+    SET_BIT(bitboard, square);
 
     // Generate king moves.
     if (bitboard >> 8) {
@@ -444,7 +444,7 @@ Bitboard set_occupancy(int index, int bits_mask, Bitboard attack_mask) {
     for (int i = 0; i < bits_mask; i++) {
         // Get least significant 1st bit index of attack mask and pop it
         int square = get_least_sig_bit_index(attack_mask);
-        pop_bit(attack_mask, square);
+        POP_BIT(attack_mask, square);
 
         // Ensure occupancy is on board, then populate map
         if (index & (1 << i)) {
@@ -485,7 +485,7 @@ void print_bitboard(Bitboard bitboard) {
             if (!file) {
                 printf(" %d ", 8 - rank);
             }
-            printf(" %d ", get_bit(bitboard, square) ? 1 : 0);
+            printf(" %d ", GET_BIT(bitboard, square) ? 1 : 0);
         }
         printf("\n");
     }

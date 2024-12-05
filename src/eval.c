@@ -194,7 +194,7 @@ int evaluate() {
                 case q: score -= POSITION_QUEEN[MIRROR(square)]; break;
                 case k: score -= POSITION_KING[MIRROR(square)]; break;
             }
-            pop_bit(bitboard, square);
+            POP_BIT(bitboard, square);
         }
     }
     return (side == WHITE) ? score : -score;
