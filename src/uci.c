@@ -21,10 +21,7 @@ int parse_move(const char *str) {
 
     for (int i = 0; i < move_list->count; i++) {
         int move = move_list->moves[i];
-        int move_src = MOVE_SRC(move); 
-        int move_target = MOVE_TARGET(move);
-
-        if (move_src == src && move_target == target) {
+        if (MOVE_SRC(move) == src && MOVE_TARGET(move) == target) {
             int promoted_piece = MOVE_PROMOTED(move);
             if (promoted_piece) {
                 char promotion_char = str[4];

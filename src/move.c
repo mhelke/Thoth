@@ -341,11 +341,6 @@ int make_move(int move, int move_type) {
         int src = MOVE_SRC(move);
         int target = MOVE_TARGET(move);
         int piece = MOVE_PIECE(move);
-        int promoted = MOVE_PROMOTED(move);
-        int capture = MOVE_CAPTURE(move);
-        int double_pawn = MOVE_DOUBLE(move);
-        int ep = MOVE_ENPASSANT(move);
-        int castled = MOVE_CASTLE(move);
 
         // Move piece from source to target
         pop_bit(bitboards[piece], src);
@@ -356,7 +351,7 @@ int make_move(int move, int move_type) {
         set_bit(occupancies[side], target);
 
         // Capture moves
-        if (capture) {
+        if (MOVE_CAPTURE(move)) {
             int captured_piece;
             int start = (side == WHITE) ? p : P;
             int end = (side == WHITE) ? k : K;
@@ -371,15 +366,15 @@ int make_move(int move, int move_type) {
         }
 
         // Promotion Move
-        if (promoted) {
+        if (MOVE_PROMOTED(move)) {
             int pawn_bb = (side == WHITE) ? P : p;
             pop_bit(bitboards[pawn_bb], target);
-            set_bit(bitboards[promoted], target);
+            set_bit(bitboards[MOVE_PROMOTED(move)], target);
             set_bit(occupancies[side], target);
         }
 
         // En passant
-        if (ep) {
+        if (MOVE_ENPASSANT(move)) {
             int pawn_bb = (side == WHITE) ? p : P;
             int target_adj = (side == WHITE) ? 8 : -8;
             pop_bit(bitboards[pawn_bb], target + target_adj);
@@ -390,12 +385,12 @@ int make_move(int move, int move_type) {
         enpassant = na;
 
         // Double Push - set en passant square
-        if (double_pawn) {
+        if (MOVE_DOUBLE(move)) {
             enpassant = target + ((side == WHITE) ? 8 : -8);
         }
 
         // Castling
-        if (castled) {
+        if (MOVE_CASTLE(move)) {
             int rook_src[4] = {h1, a1, h8, a8};
             int rook_target[4] = {f1, d1, f8, d8};
             int rook_pieces[4] = {R, R, r, r};
@@ -430,8 +425,7 @@ int make_move(int move, int move_type) {
         return 1;
     } else {
         // Only return capture moves
-        int capture = MOVE_CAPTURE(move);
-        if (!capture) {
+        if (!MOVE_CAPTURE(move)) {
             return 0;
         }
         return make_move(move, ALL_MOVES);
@@ -441,11 +435,7 @@ int make_move(int move, int move_type) {
 
 
 void print_move(int move) {
-    int src = MOVE_SRC(move);
-    int target = MOVE_TARGET(move);
-    int promoted = MOVE_PROMOTED(move);
-
-    printf("%s%s%c\n", square[src], square[target], promoted_pieces[promoted]);
+    printf("%s%s%c\n", square[MOVE_SRC(move)], square[MOVE_TARGET(move)], promoted_pieces[MOVE_PROMOTED(move)]);
 }
 
 void print_move_list(Moves *move_list) {
@@ -456,14 +446,15 @@ void print_move_list(Moves *move_list) {
     printf("\n\tPiece\tMove   Capture\tDouble\tEP\tCastling\n");
     for (int i = 0; i < move_list->count; i++) {
         int move = move_list->moves[i];
-        int src = MOVE_SRC(move);
-        int target = MOVE_TARGET(move);
-        int promoted = MOVE_PROMOTED(move);
-        int piece = MOVE_PIECE(move);
-        int capture = MOVE_CAPTURE(move);
-        int d_push = MOVE_DOUBLE(move);
-        int ep = MOVE_ENPASSANT(move);
-        int castling = MOVE_CASTLE(move);
-    printf("%d.\t%c\t%s%s%c\t%d\t%d\t%d\t%d\n", i+1, ascii_pieces[piece], square[src], square[target], promoted ? promoted_pieces[promoted] : ' ', capture, d_push, ep, castling);
+    printf("%d.\t%c\t%s%s%c\t%d\t%d\t%d\t%d\n", 
+                    i+1, 
+                    ascii_pieces[MOVE_PIECE(move)], 
+                    square[MOVE_SRC(move)], 
+                    square[MOVE_TARGET(move)], 
+                    MOVE_PROMOTED(move) ? promoted_pieces[MOVE_PROMOTED(move)] : ' ', 
+                    MOVE_CAPTURE(move), 
+                    MOVE_DOUBLE(move), 
+                    MOVE_ENPASSANT(move),
+                    MOVE_CASTLE(move));
     }
 }
