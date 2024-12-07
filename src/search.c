@@ -20,6 +20,9 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     }
 
     search->nodes++;
+    int legal_move_count = 0;
+    int check = is_square_attacked(get_least_sig_bit_index((side == WHITE) ? bitboards[K] : bitboards[k]), side ^ 1);
+
     int current_best;
     int prev_alpha = alpha;
 
@@ -36,6 +39,9 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             UNDO();
             continue;
         }
+
+        legal_move_count++;
+
         int score = -negamax(-beta, -alpha, depth-1, search);
         search->ply--;
         UNDO();
@@ -52,6 +58,17 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                 current_best = move_list->moves[i];
             }
         }
+    }
+
+    // No moves - game over
+    if (legal_move_count == 0) {
+        // Checkmate
+        if (check) {
+            return -50000 + search->ply; // add ply to ensure the shortest possible checkmate is always found
+        }
+
+        // Stalemate Draw
+        return 0;
     }
 
     if (prev_alpha != alpha) {
