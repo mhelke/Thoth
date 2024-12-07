@@ -83,10 +83,10 @@ void parse_position(char *command) {
 
 // Parse the go command from UCI
 // Example command: go depth 6
-void parse_go(char * command) {
+void parse_go(char *command) {
     int depth = -1;
     char *current = NULL;
-    if (strstr(command, "depth")) {
+    if ((current = strstr(command, "depth"))) {
         depth = atoi(current + 6); // shift pointer to start of depth
     } else {
         depth = 5; // TODO: placeholder
@@ -127,7 +127,7 @@ int parse_line() {
         return 1;
     }
     if (strncmp(input, "go", 2) == 0) {
-        parse_go("input");
+        parse_go(input);
         return 1;
     }
     if (strncmp(input, "quit", 4) == 0) {
