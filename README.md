@@ -6,10 +6,14 @@ Thoth is a UCI-compatible chess engine written in C.
 
 ## Features
   * Bitboards and magic bitboards to represent the chessboard and allow for super fast and efficient move generation.
+  * Alpha-Beta algorithm with quiescence search
+  * Move sorting 
   
 ## Running the Engine
 
-From the root directory, run the following command to compile and run the engine `make & thoth`. 
+1. From the root directory, run `make` to generate the executable.
+2. Import the executable into a program such as [Arena](http://www.playwitharena.de/).
+3. Watch the engine play!
 
 ## Author
 
