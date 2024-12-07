@@ -3,7 +3,6 @@
 
 #include "search.h"
 #include "eval.h"
-#include "move.h"
 
 int search(int depth) {
     Search search[1] = {0};
@@ -126,4 +125,69 @@ int quiescence(int alpha, int beta, Search *search) {
     }
 
     return alpha; // fail low
+}
+
+/******** Most valuable victim/least valuable attacker (MVV-LVA) ********
+ * When a less valuable piece captures a more valuable piece, 
+ * the move should have priority in the search order (eg PxQ).
+ * This helps hit the beta cutoff sooner, reducing the nodes searched. 
+ *                           
+ *  (Victim)    Pawn Knight Bishop   Rook  Queen   King
+ *  (Attacker)
+ *        Pawn   105    205    305    405    505    605
+ *      Knight   104    204    304    404    504    604
+ *      Bishop   103    203    303    403    503    603
+ *        Rook   102    202    302    402    502    602
+ *       Queen   101    201    301    401    501    601
+ *        King   100    200    300    400    500    600
+ *   
+ ***********************************************************************/
+
+// MVV LVA [attacker][victim]
+static int mvv_lva[12][12] = {
+ 	105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+	104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+	103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+	102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+	101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600,
+
+	105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+	104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+	103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+	102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+	101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
+};
+
+
+int score_move(int move) {
+
+    if (!MOVE_CAPTURE(move)) {
+        return 0;
+    }
+
+    int captured_piece = P;
+
+    int start = (side == WHITE) ? p : P;
+    int end = (side == WHITE) ? k : K;
+    int target = MOVE_TARGET(move);
+
+    for (int piece = start; piece <= end; piece++) {
+        if (GET_BIT(bitboards[piece], target)) {
+            captured_piece = piece;
+            break;
+        }
+    }
+    // MVV-LVA lookup
+    return mvv_lva[MOVE_PIECE(move)][captured_piece];
+}
+
+void print_move_scores(Moves* move_list) {
+    printf("Move Scores:\n");
+    for (int i =0; i < move_list->count; i++) {
+        printf("Move: ");
+        print_move(move_list->moves[i]);
+        printf("  Score: %d\n", score_move(move_list->moves[i]));
+    }
 }

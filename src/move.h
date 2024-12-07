@@ -1,3 +1,6 @@
+#ifndef MOVE_H
+#define MOVE_H
+
 #include "bitboard.h"
 
 #define SOURCE 0x3f
@@ -54,3 +57,5 @@ void generate_queen_moves(int, Moves*);
 void generate_king_moves(int, Moves*);
 
 int is_square_attacked(int, int);
+
+#endif
