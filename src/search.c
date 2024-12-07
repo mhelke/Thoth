@@ -8,6 +8,7 @@
 int search(int depth) {
     Search search[1] = {0};
     int score = negamax(-INT_MAX, INT_MAX, depth, search);
+    printf("info score cp %d depth %d nodes %ld\n", score, depth, search->nodes);
     printf("bestmove ");
     print_move(search->best_move);
     printf("\n");
