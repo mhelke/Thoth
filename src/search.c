@@ -17,7 +17,7 @@ int search(int depth) {
 
 int negamax(int alpha, int beta, int depth, Search *search) {
     if (depth == 0) {
-        return evaluate();
+        return quiescence(alpha, beta, search);
     }
 
     search->nodes++;
@@ -77,4 +77,53 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     }
 
     return alpha; // fails low
+}
+
+int quiescence(int alpha, int beta, Search *search) {
+
+    search->nodes++;
+
+    int score = evaluate();
+
+     // Fail-hard
+    if (score >= beta) {
+        return beta; // fails high
+    }
+
+    if (score > alpha) {
+        alpha = score; // PV 
+    }
+
+
+    Moves move_list[1];
+    generate_moves(move_list);
+
+    for (int i = 0; i < move_list->count; i++) {
+        COPY_BOARD();
+        search->ply++;
+
+        // Only search captures to prevent the horizon effect.
+        // Static evaluation should only be returned once the position has reached a quiet position.
+        if (make_move(move_list->moves[i], CAPTURES) == 0) {
+            // Not a capture
+            search->ply--;
+            UNDO();
+            continue;
+        }
+
+        int score = -quiescence(-beta, -alpha, search);
+        search->ply--;
+        UNDO();
+
+        // Fail-hard
+        if (score >= beta) {
+            return beta; // fails high
+        }
+
+        if (score > alpha) {
+            alpha = score; // PV 
+        }
+    }
+
+    return alpha; // fail low
 }

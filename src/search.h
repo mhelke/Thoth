@@ -6,3 +6,4 @@ typedef struct {
 
 int search(int);
 int negamax(int, int, int, Search*);
+int quiescence(int, int, Search*);
