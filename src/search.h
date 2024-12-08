@@ -13,5 +13,6 @@ int search(int);
 int negamax(int, int, int, Search*);
 int quiescence(int, int, Search*);
 void print_move_scores(Moves*);
+int sort_moves(Moves*);
 
 #endif

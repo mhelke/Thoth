@@ -5,11 +5,12 @@
 #include "eval.h"
 
 int search(int depth) {
-    Search search[1] = {0};
-    int score = negamax(-INT_MAX, INT_MAX, depth, search);
-    printf("info score cp %d depth %d nodes %ld\n", score, depth, search->nodes);
+    Search search = {0};
+    search.nodes = 0;
+    int score = negamax(-INT_MAX, INT_MAX, depth, &search);
+    printf("info score cp %d depth %d nodes %ld\n", score, depth, search.nodes);
     printf("bestmove ");
-    print_move(search->best_move);
+    print_move(search.best_move);
     printf("\n");
     return score;
 }
@@ -20,14 +21,20 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     }
 
     search->nodes++;
+
     int legal_move_count = 0;
     int check = is_square_attacked(get_least_sig_bit_index((side == WHITE) ? bitboards[K] : bitboards[k]), side ^ 1);
+
+    if (check) {
+        depth++;
+    }
 
     int current_best;
     int prev_alpha = alpha;
 
     Moves move_list[1];
     generate_moves(move_list);
+    sort_moves(move_list);
 
     for (int i = 0; i < move_list->count; i++) {
         COPY_BOARD();
@@ -96,6 +103,7 @@ int quiescence(int alpha, int beta, Search *search) {
 
     Moves move_list[1];
     generate_moves(move_list);
+    sort_moves(move_list);
 
     for (int i = 0; i < move_list->count; i++) {
         COPY_BOARD();
@@ -190,4 +198,38 @@ void print_move_scores(Moves* move_list) {
         print_move(move_list->moves[i]);
         printf("  Score: %d\n", score_move(move_list->moves[i]));
     }
+}
+
+#include <stdlib.h> // Include for malloc and free
+
+int sort_moves(Moves *move_list) {
+    int count = move_list->count;
+    int *scores = (int *)malloc(count * sizeof(int));
+
+    if (scores == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return -1;
+    }
+
+    for (int i = 0; i < count; i++) {
+        scores[i] = score_move(move_list->moves[i]);
+    }
+
+    for (int i = 0; i < count; i++) {
+        for (int j = i + 1; j < count; j++) {
+            if (scores[i] < scores[j]) {
+                // Swap scores
+                int temp_score = scores[i];
+                scores[i] = scores[j];
+                scores[j] = temp_score;
+
+                // Swap moves
+                int temp_move = move_list->moves[i];
+                move_list->moves[i] = move_list->moves[j];
+                move_list->moves[j] = temp_move;
+            }
+        }
+    }
+    free(scores);
+    return 0;
 }
