@@ -34,7 +34,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
     Moves move_list[1];
     generate_moves(move_list);
-    sort_moves(move_list);
+    sort_moves(move_list, search);
 
     for (int i = 0; i < move_list->count; i++) {
         COPY_BOARD();
@@ -55,12 +55,17 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
         // Fail-hard
         if (score >= beta) {
+            // Killer Heuristic
+            search->killer_moves[1][search->ply] = search->killer_moves[0][search->ply];
+            search->killer_moves[0][search->ply] = move_list->moves[i];
             return beta; // fails high
         }
 
         if (score > alpha) {
-            alpha = score; // PV 
+            // History Heuristic
+            search->history[MOVE_PIECE(move_list->moves[i])][MOVE_TARGET(move_list->moves[i])] += depth;
 
+            alpha = score; // PV node
             if (search->ply == 0) {
                 current_best = move_list->moves[i];
             }
@@ -103,7 +108,7 @@ int quiescence(int alpha, int beta, Search *search) {
 
     Moves move_list[1];
     generate_moves(move_list);
-    sort_moves(move_list);
+    sort_moves(move_list, search);
 
     for (int i = 0; i < move_list->count; i++) {
         COPY_BOARD();
@@ -168,11 +173,20 @@ static int mvv_lva[12][12] = {
 	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
 };
 
-
-int score_move(int move) {
+int score_move(int move, Search *search) {
 
     if (!MOVE_CAPTURE(move)) {
-        return 0;
+        // Killer Heuristic
+        if (search->killer_moves[0][search->ply] == move) {
+            return BONUS_KILLER;
+        }
+
+        if (search->killer_moves[1][search->ply] == move) {
+            return BONUS_SECOND_KILLER;
+        }
+
+        // History Heuristic
+        return search->history[MOVE_PIECE(move)][MOVE_TARGET(move)];
     }
 
     int captured_piece = P;
@@ -188,7 +202,9 @@ int score_move(int move) {
         }
     }
     // MVV-LVA lookup
-    return mvv_lva[MOVE_PIECE(move)][captured_piece];
+    // 10,000 is added to ensure capture moves will score higher priority than quiet killer moves
+    // This is because captures have a higher change of producing a cutoff.
+    return mvv_lva[MOVE_PIECE(move)][captured_piece] + BONUS_CAPTURE;
 }
 
 void print_move_scores(Moves* move_list) {
@@ -196,13 +212,14 @@ void print_move_scores(Moves* move_list) {
     for (int i =0; i < move_list->count; i++) {
         printf("Move: ");
         print_move(move_list->moves[i]);
-        printf("  Score: %d\n", score_move(move_list->moves[i]));
+        Search search = {0};
+        printf("  Score: %d\n", score_move(move_list->moves[i], &search));
     }
 }
 
 #include <stdlib.h> // Include for malloc and free
 
-int sort_moves(Moves *move_list) {
+int sort_moves(Moves *move_list, Search *search) {
     int count = move_list->count;
     int *scores = (int *)malloc(count * sizeof(int));
 
@@ -212,7 +229,7 @@ int sort_moves(Moves *move_list) {
     }
 
     for (int i = 0; i < count; i++) {
-        scores[i] = score_move(move_list->moves[i]);
+        scores[i] = score_move(move_list->moves[i], search);
     }
 
     for (int i = 0; i < count; i++) {
