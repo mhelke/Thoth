@@ -13,12 +13,12 @@
 // int history[12][64]; // 
 typedef struct {
     int ply;
-    int best_move;
+    // int best_move;
     unsigned long long nodes;
     int killer_moves[2][64]; // TODO: Increase plys for higher depths 
     int history[12][64];
-
-
+    int pv_length[64]; // TODO: Increase plys for higher depths
+    int pv_table[64][64]; // TODO: Increase plys for higher depth
 } Search;
 
 int search(int);

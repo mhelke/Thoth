@@ -8,14 +8,21 @@ int search(int depth) {
     Search search = {0};
     search.nodes = 0;
     int score = negamax(-INT_MAX, INT_MAX, depth, &search);
-    printf("info score cp %d depth %d nodes %ld\n", score, depth, search.nodes);
+    printf("info score cp %d depth %d nodes %ld pv ", score, depth, search.nodes);
+    for (int i = 0; i < search.pv_length[0]; i++) {
+        print_move(search.pv_table[0][i]);
+        printf(" ");
+    }
+    printf("\n");
     printf("bestmove ");
-    print_move(search.best_move);
+    print_move(search.pv_table[0][0]);
     printf("\n");
     return score;
 }
 
 int negamax(int alpha, int beta, int depth, Search *search) {
+    search->pv_length[search->ply] = search->ply;
+    
     if (depth == 0) {
         return quiescence(alpha, beta, search);
     }
@@ -28,9 +35,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     if (check) {
         depth++;
     }
-
-    int current_best;
-    int prev_alpha = alpha;
 
     Moves move_list[1];
     generate_moves(move_list);
@@ -56,19 +60,26 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         // Fail-hard
         if (score >= beta) {
             // Killer Heuristic
-            search->killer_moves[1][search->ply] = search->killer_moves[0][search->ply];
-            search->killer_moves[0][search->ply] = move_list->moves[i];
+            if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
+                search->killer_moves[1][search->ply] = search->killer_moves[0][search->ply];
+                search->killer_moves[0][search->ply] = move_list->moves[i];
+            }
             return beta; // fails high
         }
 
         if (score > alpha) {
             // History Heuristic
-            search->history[MOVE_PIECE(move_list->moves[i])][MOVE_TARGET(move_list->moves[i])] += depth;
-
-            alpha = score; // PV node
-            if (search->ply == 0) {
-                current_best = move_list->moves[i];
+            if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
+                search->history[MOVE_PIECE(move_list->moves[i])][MOVE_TARGET(move_list->moves[i])] += depth;
             }
+            alpha = score; // PV node
+
+            // Update PV line
+            search->pv_table[search->ply][search->ply] = move_list->moves[i];
+            for (int ply = search->ply + 1; ply < search->pv_length[search->ply + 1]; ply++) {
+                search->pv_table[search->ply][ply] = search->pv_table[search->ply + 1][ply];
+            }
+            search->pv_length[search->ply] = search->pv_length[search->ply + 1];
         }
     }
 
@@ -81,10 +92,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
         // Stalemate Draw
         return 0;
-    }
-
-    if (prev_alpha != alpha) {
-        search->best_move = current_best;
     }
 
     return alpha; // fails low
@@ -216,8 +223,6 @@ void print_move_scores(Moves* move_list) {
         printf("  Score: %d\n", score_move(move_list->moves[i], &search));
     }
 }
-
-#include <stdlib.h> // Include for malloc and free
 
 int sort_moves(Moves *move_list, Search *search) {
     int count = move_list->count;
