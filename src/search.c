@@ -5,15 +5,23 @@
 #include "eval.h"
 
 int search(int depth) {
+    int score = 0;
     Search search = {0};
     search.nodes = 0;
-    int score = negamax(-INT_MAX, INT_MAX, depth, &search);
-    printf("info score cp %d depth %d nodes %ld pv ", score, depth, search.nodes);
-    for (int i = 0; i < search.pv_length[0]; i++) {
-        print_move(search.pv_table[0][i]);
-        printf(" ");
+    search.score_pv = 0;
+    search.follow_pv = 0;
+
+    // Iterative deepening
+    for (int i = 1; i <= depth; i++) {
+        search.follow_pv = 1;
+        score = negamax(-INT_MAX, INT_MAX, i, &search);
+        printf("info score cp %d depth %d nodes %ld pv ", score, i, search.nodes);
+        for (int i = 0; i < search.pv_length[0]; i++) {
+            print_move(search.pv_table[0][i]);
+            printf(" ");
+        }
+        printf("\n");
     }
-    printf("\n");
     printf("bestmove ");
     print_move(search.pv_table[0][0]);
     printf("\n");
@@ -27,6 +35,11 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         return quiescence(alpha, beta, search);
     }
 
+    if (search->ply >= MAX_PLY) {
+        // Too deep in search
+        return evaluate();
+    }
+
     search->nodes++;
 
     int legal_move_count = 0;
@@ -38,6 +51,11 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
     Moves move_list[1];
     generate_moves(move_list);
+
+    if (search->follow_pv) {
+        pv_scoring(move_list, search);
+    }
+
     sort_moves(move_list, search);
 
     for (int i = 0; i < move_list->count; i++) {
@@ -180,7 +198,26 @@ static int mvv_lva[12][12] = {
 	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
 };
 
+void pv_scoring(Moves *move_list, Search *search) {
+    search->follow_pv = 0;
+    for (int i = 0; i < move_list->count; i++) {
+        if (search->pv_table[0][search->ply] == move_list->moves[i]) {
+            search->score_pv = 1;
+            search->follow_pv = 1;
+        }
+    }
+}
+
 int score_move(int move, Search *search) {
+    if (search->score_pv) {
+        if (search->pv_table[0][search->ply] == move) {
+            search->score_pv = 0;
+            // printf("\nPV Move: ");
+            // print_move(move);
+            // printf(" ply %d\n", search->ply);
+            return 20000;
+        }
+    }
 
     if (!MOVE_CAPTURE(move)) {
         // Killer Heuristic

@@ -7,18 +7,18 @@
 #define BONUS_SECOND_KILLER 8000
 #define BONUS_CAPTURE 10000
 
-// int killer_moves[2][64]; 
+#define MAX_PLY 64
 
-// History
-// int history[12][64]; // 
 typedef struct {
     int ply;
     // int best_move;
     unsigned long long nodes;
-    int killer_moves[2][64]; // TODO: Increase plys for higher depths 
-    int history[12][64];
-    int pv_length[64]; // TODO: Increase plys for higher depths
-    int pv_table[64][64]; // TODO: Increase plys for higher depth
+    int killer_moves[2][MAX_PLY]; // TODO: Increase plys for higher depths 
+    int history[12][64]; // [piece][square]
+    int pv_length[MAX_PLY]; // TODO: Increase plys for higher depths
+    int pv_table[MAX_PLY][MAX_PLY]; // TODO: Increase plys for higher depth
+    int follow_pv;
+    int score_pv;
 } Search;
 
 int search(int);
@@ -26,5 +26,6 @@ int negamax(int, int, int, Search*);
 int quiescence(int, int, Search*);
 void print_move_scores(Moves*);
 int sort_moves(Moves*, Search*);
+void pv_scoring(Moves*, Search*);
 
 #endif
