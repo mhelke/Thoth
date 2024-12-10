@@ -29,6 +29,8 @@ int search(int depth) {
 }
 
 int negamax(int alpha, int beta, int depth, Search *search) {
+    int found_pv = 0;
+
     search->pv_length[search->ply] = search->ply;
     
     if (depth == 0) {
@@ -68,10 +70,28 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             UNDO();
             continue;
         }
-
         legal_move_count++;
+         
+        int score;
 
-        int score = -negamax(-beta, -alpha, depth-1, search);
+        if (found_pv) {
+            // Once a move is found that is between alpha and beta, the goal is to prove that the rest of the moves are all bad.
+            // This is generally faster than trying to find a move withing the remaining moves that might be good.
+            score = -negamax(-alpha-1, -alpha, depth-1, search);
+
+            // If this assumption was proven wrong, and there is a better move than the initial PV move,
+            // search again using a standard alpha-beta search.
+            // This scenario actually wastes time by needing to search again, but it generally doesn't
+            // happen enough to cancel out the time saved when the assumption is correct.
+            if ((score > alpha) && (score < beta)) {
+                // Assumption was wrong - re-search the move.
+                score = -negamax(-beta, -alpha, depth-1, search);
+            }
+        } else {
+            // PV has not been found. Continue with standard search.
+            score = -negamax(-beta, -alpha, depth-1, search);
+        }
+
         search->ply--;
         UNDO();
 
@@ -90,7 +110,8 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
                 search->history[MOVE_PIECE(move_list->moves[i])][MOVE_TARGET(move_list->moves[i])] += depth;
             }
-            alpha = score; // PV node
+            alpha = score; // Found PV node
+            found_pv = 1;
 
             // Update PV line
             search->pv_table[search->ply][search->ply] = move_list->moves[i];
@@ -212,9 +233,6 @@ int score_move(int move, Search *search) {
     if (search->score_pv) {
         if (search->pv_table[0][search->ply] == move) {
             search->score_pv = 0;
-            // printf("\nPV Move: ");
-            // print_move(move);
-            // printf(" ply %d\n", search->ply);
             return 20000;
         }
     }
