@@ -9,6 +9,9 @@
 
 #define MAX_PLY 64
 
+#define FULL_DEPTH_MOVES 4
+#define REDUCTION_LIMIT 3
+
 typedef struct {
     int ply;
     // int best_move;
@@ -27,5 +30,6 @@ int quiescence(int, int, Search*);
 void print_move_scores(Moves*);
 int sort_moves(Moves*, Search*);
 void pv_scoring(Moves*, Search*);
+int can_reduce(int, int);
 
 #endif

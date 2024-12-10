@@ -3,8 +3,10 @@
 
 #include "search.h"
 #include "eval.h"
+#include "util.h"
 
 int search(int depth) {
+    int start = get_ms();
     int score = 0;
     Search search = {0};
     search.nodes = 0;
@@ -25,11 +27,13 @@ int search(int depth) {
     printf("bestmove ");
     print_move(search.pv_table[0][0]);
     printf("\n");
+    printf("Total Time: %d\n", (get_ms() - start));
     return score;
 }
 
 int negamax(int alpha, int beta, int depth, Search *search) {
     int found_pv = 0;
+    int moves_searched = 0;
 
     search->pv_length[search->ply] = search->ply;
     
@@ -88,12 +92,32 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                 score = -negamax(-beta, -alpha, depth-1, search);
             }
         } else {
-            // PV has not been found. Continue with standard search.
-            score = -negamax(-beta, -alpha, depth-1, search);
+            // First move, run full-depth alpha-beta search
+            if (moves_searched == 0) {
+                score = -negamax(-beta, -alpha, depth-1, search);
+            } else {
+                // Late Move Reduction (LMR)
+                if (moves_searched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && can_reduce(check, move_list->moves[i])) {
+                    // Search with a reduced depth
+                    score = -negamax(-alpha-1, -alpha, depth-2, search);
+                } else {
+                    score = alpha + 1;
+                }
+                // Better move found
+                if (score > alpha) {
+                    // Re-search with full-depth
+                    score = -negamax(-alpha-1, -alpha, depth-1, search);
+                    // LMR failed. Re-search with regular alpha-beta search
+                    if ((score > alpha) && (score < beta)) {
+                        score = -negamax(-beta, -alpha, depth-1, search);
+                    }
+                }
+            }
         }
 
         search->ply--;
         UNDO();
+        moves_searched++;
 
         // Fail-hard
         if (score >= beta) {
@@ -279,6 +303,13 @@ void print_move_scores(Moves* move_list) {
     }
 }
 
+/**
+ * 1. PV move
+ * 2. Captures with MVV/LVA
+ * 3. Killer Heuristic
+ * 4. History Heuristic
+ * 5. Remaining moves
+ */
 int sort_moves(Moves *move_list, Search *search) {
     int count = move_list->count;
     int *scores = (int *)malloc(count * sizeof(int));
@@ -309,4 +340,9 @@ int sort_moves(Moves *move_list, Search *search) {
     }
     free(scores);
     return 0;
+}
+
+// Whether LMR can occur
+int can_reduce(int is_check, int move) {
+    return !is_check &&  !MOVE_CAPTURE(move) && !MOVE_PROMOTED(move);
 }
