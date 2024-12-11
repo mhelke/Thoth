@@ -55,6 +55,24 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         depth++;
     }
 
+    // Null Move Pruning
+    if (depth >= REDUCTION_LIMIT && !check && search->ply) {
+        COPY_BOARD();
+
+        // Give opponent a "null" move
+        side ^= 1;
+        enpassant = na;
+        // Search with reduced depth to find early beta cutoffs.
+        int score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
+
+        UNDO();
+
+        if (score >= beta) {
+            // Node fails high
+            return beta;
+        }
+    }
+
     Moves move_list[1];
     generate_moves(move_list);
 
