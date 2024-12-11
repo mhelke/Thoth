@@ -13,16 +13,36 @@ int search(int depth) {
     search.score_pv = 0;
     search.follow_pv = 0;
 
+    int alpha = -INT_MAX;
+    int beta = INT_MAX;
+    int current_depth = 1;
     // Iterative deepening
-    for (int i = 1; i <= depth; i++) {
+    while (current_depth <= depth) {
         search.follow_pv = 1;
-        score = negamax(-INT_MAX, INT_MAX, i, &search);
-        printf("info score cp %d depth %d nodes %ld pv ", score, i, search.nodes);
+        score = negamax(alpha, beta, current_depth, &search);
+
+        // Aspiration Window
+        // TODO: Watch for search instability with this and adjust as needed.
+        // Assume the score in the next iteration is not likely to be much different from this iteration's score.
+        // This produces more beta cutoffs, leading to reduced nodes searched.
+
+        // Score falls outside the window. Search again at full depth.
+        if ((score <= alpha) || (score >= beta)) {
+            alpha = -INT_MAX;
+            beta = INT_MAX;
+            continue;
+        }
+        // Apply aspiration window
+        alpha = score - ASPIRATION_WINDOW;
+        beta = score + ASPIRATION_WINDOW;
+
+        printf("info score cp %d depth %d nodes %ld pv ", score, current_depth, search.nodes);
         for (int i = 0; i < search.pv_length[0]; i++) {
             print_move(search.pv_table[0][i]);
             printf(" ");
         }
         printf("\n");
+        current_depth++;
     }
     printf("bestmove ");
     print_move(search.pv_table[0][0]);
