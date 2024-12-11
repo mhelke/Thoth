@@ -11,6 +11,7 @@
 
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
+#define REDUCTION 2
 
 typedef struct {
     int ply;

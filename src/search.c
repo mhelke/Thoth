@@ -99,8 +99,9 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                 // Late Move Reduction (LMR)
                 if (moves_searched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && can_reduce(check, move_list->moves[i])) {
                     // Search with a reduced depth
-                    score = -negamax(-alpha-1, -alpha, depth-2, search);
+                    score = -negamax(-alpha-1, -alpha, depth-REDUCTION, search);
                 } else {
+                    // Ensures search is performed below
                     score = alpha + 1;
                 }
                 // Better move found
@@ -342,7 +343,7 @@ int sort_moves(Moves *move_list, Search *search) {
     return 0;
 }
 
-// Whether LMR can occur
+// Whether LMR can occur. See https://www.chessprogramming.org/Late_Move_Reductions
 int can_reduce(int is_check, int move) {
     return !is_check &&  !MOVE_CAPTURE(move) && !MOVE_PROMOTED(move);
 }
