@@ -1,8 +1,20 @@
-/*
-Universal Chess Interface (UCI) is the standard communication protocol which GUIs use to communicate with chess engines.
-More info on UCI: https://www.chessprogramming.org/UCI
-*/
+/************************************************************************
+* Universal Chess Interface (UCI) is the standard communication protocol 
+* which GUIs use to communicate with chess engines.
+* More info on UCI: https://www.chessprogramming.org/UCI
+*
+* Credit for handling time controls:
+*   Vice Chess Engine by Richard Allbert
+*   https://github.com/bluefeversoft/vice
+************************************************************************/
 
+#if defined(_WIN32) || defined(_WIN64)
+    #include <io.h>
+    #include <windows.h>
+#else
+    #include <unistd.h>
+    #include <sys/select.h>
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,6 +22,19 @@ More info on UCI: https://www.chessprogramming.org/UCI
 #include "move.h"
 #include "board.h"
 #include "search.h"
+#include "uci.h"
+#include "util.h"
+
+// Time control variables
+int quit = 0;
+int movestogo = 30;
+int movetime = -1;
+int time = -1;
+int inc = 0;
+int starttime = 0;
+int stoptime = 0;
+int timeset = 0;
+int stopped = 0;
 
 // Parse move string from UCI
 // Example move from UCI protocol: "e7e8q"
@@ -105,7 +130,7 @@ void handle_uci_ready() {
 }
 
 int parse_line() {
-    fflush(stdout); // needed?
+    fflush(stdout);
     char input[2000];
     memset(input, 0, sizeof(input));
     if (fgets(input, 2000, stdin) == NULL) {
@@ -143,4 +168,81 @@ void uci_main() {
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
     while (parse_line());
+}
+
+/************************************************
+* Credit to Vice Chess Engine by Richard Allbert
+************************************************/
+int input_waiting() {
+    #ifdef _WIN32
+        static int init = 0, pipe;
+        static HANDLE inh;
+        DWORD dw;
+
+        if (!init) {
+            init = 1;
+            inh = GetStdHandle(STD_INPUT_HANDLE);
+            pipe = !GetConsoleMode(inh, &dw);
+            if (!pipe) {
+                SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT));
+                FlushConsoleInputBuffer(inh);
+            }
+        }
+
+        if (pipe) {
+            if (!PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL)) return 1;
+            return dw;
+        } else {
+            GetNumberOfConsoleInputEvents(inh, &dw);
+            return dw <= 1 ? 0 : dw;
+        }
+    #else
+        fd_set readfds;
+        struct timeval tv;
+        FD_ZERO(&readfds);
+        FD_SET(fileno(stdin), &readfds);
+        tv.tv_sec = 0; 
+        tv.tv_usec = 0;
+        select(16, &readfds, NULL, NULL, &tv);
+        return (FD_ISSET(fileno(stdin), &readfds));
+    #endif
+}
+
+/************************************************
+* Credit to Vice Chess Engine by Richard Allbert
+************************************************/
+void read_input() {
+    int bytes;
+    char input[256] = "", *endc;
+
+    // "listen" to STDIN
+    if (input_waiting()) {
+        stopped = 1;
+        
+        do {
+            bytes=read(fileno(stdin), input, 256);
+        } while (bytes < 0);
+
+        endc = strchr(input,'\n');
+        if (endc) *endc=0;
+        
+        if (strlen(input) > 0) {
+            // Listen for quit or stop command and terminate search
+            if (!strncmp(input, "quit", 4)) {
+                quit = 1;
+            } else if (!strncmp(input, "stop", 4)) {
+                quit = 1;
+            }
+        }   
+    }
+}
+
+int should_stop() {
+    // Time is up, stop search
+    if(timeset == 1 && get_ms() > stoptime) {
+		stopped = 1;
+	}
+    // Check if engine was stopped
+	read_input();
+    return stopped;
 }
