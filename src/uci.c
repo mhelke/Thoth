@@ -107,15 +107,73 @@ void parse_position(char *command) {
 }
 
 // Parse the go command from UCI
-// Example command: go depth 6
 void parse_go(char *command) {
     int depth = -1;
     char *current = NULL;
+    if ((current = strstr(command,"infinite"))) { /* Let search continue until stopped by user */}
+
+    // Black increment
+    if ((current = strstr(command,"binc")) && side == BLACK) {
+        inc = atoi(current + 5);
+    }
+
+    // White increment
+    if ((current = strstr(command,"winc")) && side == WHITE) {
+        inc = atoi(current + 5);
+    }
+
+    // White time limit
+    if ((current = strstr(command,"wtime")) && side == WHITE) {
+        time = atoi(current + 6);
+    }
+    // Black time limit
+    if ((current = strstr(command,"btime")) && side == BLACK) {
+        time = atoi(current + 6);
+    }
+
+    // Number of moves to go until bonus time
+    if ((current = strstr(command,"movestogo"))) {
+        movestogo = atoi(current + 10);
+    }
+
+    // Time per move
+    if ((current = strstr(command,"movetime"))) {
+        movetime = atoi(current + 9);
+    }
+
+    // Fixed depth search
     if ((current = strstr(command, "depth"))) {
         depth = atoi(current + 6); // shift pointer to start of depth
-    } else {
-        depth = 5; // TODO: placeholder
     }
+
+    // Handle fixed time per move
+    if(movetime != -1) {
+        time = movetime;
+        movestogo = 1;
+    }
+
+    starttime = get_ms();
+
+    // Handle time control
+    if(time != -1) {
+        timeset = 1;
+        time /= movestogo;
+        
+        // Provide buffer
+        if (time > 1500) time -= 50;
+        
+        // How long the engine has to calculate based on the time control
+        stoptime = starttime + time + inc;
+    }
+
+    // Set a large default depth if not specified and rely on stoptime to stop the search
+    if(depth == -1) {
+        depth = 64;
+    }
+
+    printf("time: %d start: %d stop: %d depth: %d timeset: %d\n",
+    time, starttime, stoptime, depth, timeset);
+    stopped = 0;
     search(depth);
 }
 

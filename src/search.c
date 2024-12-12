@@ -4,6 +4,7 @@
 #include "search.h"
 #include "eval.h"
 #include "util.h"
+#include "uci.h"
 
 int search(int depth) {
     int start = get_ms();
@@ -12,12 +13,18 @@ int search(int depth) {
     search.nodes = 0;
     search.score_pv = 0;
     search.follow_pv = 0;
+    search.stopped = 0;
 
     int alpha = -INT_MAX;
     int beta = INT_MAX;
     int current_depth = 1;
     // Iterative deepening
     while (current_depth <= depth) {
+
+        if (search.stopped) {
+            break;
+        }
+
         search.follow_pv = 1;
         score = negamax(alpha, beta, current_depth, &search);
 
@@ -52,7 +59,11 @@ int search(int depth) {
 }
 
 int negamax(int alpha, int beta, int depth, Search *search) {
-    int found_pv = 0;
+    // Check for UCI input
+    if ((search->nodes & 2047) == 0) {
+        search->stopped = should_stop();
+    }
+
     int moves_searched = 0;
 
     search->pv_length[search->ply] = search->ply;
@@ -86,6 +97,10 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         int score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
 
         UNDO();
+
+        if (search->stopped) {
+            return 0;
+        }
 
         if (score >= beta) {
             // Node fails high
@@ -148,6 +163,11 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
         search->ply--;
         UNDO();
+
+         if (search->stopped) {
+            return 0;
+        }
+
         moves_searched++;
 
         // Fail-hard
@@ -166,7 +186,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                 search->history[MOVE_PIECE(move_list->moves[i])][MOVE_TARGET(move_list->moves[i])] += depth;
             }
             alpha = score; // Found PV node
-            found_pv = 1;
 
             // Update PV line
             search->pv_table[search->ply][search->ply] = move_list->moves[i];
@@ -192,6 +211,10 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 }
 
 int quiescence(int alpha, int beta, Search *search) {
+    // Check for UCI input
+    if ((search->nodes & 2047) == 0) {
+        search->stopped = should_stop();
+    }
 
     search->nodes++;
 
@@ -227,6 +250,10 @@ int quiescence(int alpha, int beta, Search *search) {
         int score = -quiescence(-beta, -alpha, search);
         search->ply--;
         UNDO();
+
+        if (search->stopped) {
+            return 0;
+        }
 
         // Fail-hard
         if (score >= beta) {

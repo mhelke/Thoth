@@ -24,6 +24,7 @@ typedef struct {
     int pv_table[MAX_PLY][MAX_PLY]; // TODO: Increase plys for higher depth
     int follow_pv;
     int score_pv;
+    int stopped;
 } Search;
 
 int search(int);
