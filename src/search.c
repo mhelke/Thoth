@@ -116,40 +116,32 @@ int negamax(int alpha, int beta, int depth, Search *search) {
          
         int score;
 
-        if (found_pv) {
-            // Once a move is found that is between alpha and beta, the goal is to prove that the rest of the moves are all bad.
-            // This is generally faster than trying to find a move withing the remaining moves that might be good.
-            score = -negamax(-alpha-1, -alpha, depth-1, search);
-
-            // If this assumption was proven wrong, and there is a better move than the initial PV move,
-            // search again using a standard alpha-beta search.
-            // This scenario actually wastes time by needing to search again, but it generally doesn't
-            // happen enough to cancel out the time saved when the assumption is correct.
-            if ((score > alpha) && (score < beta)) {
-                // Assumption was wrong - re-search the move.
-                score = -negamax(-beta, -alpha, depth-1, search);
-            }
+        // First move, run full-depth alpha-beta search
+        if (moves_searched == 0) {
+            score = -negamax(-beta, -alpha, depth-1, search);
         } else {
-            // First move, run full-depth alpha-beta search
-            if (moves_searched == 0) {
-                score = -negamax(-beta, -alpha, depth-1, search);
+            // Late Move Reduction (LMR)
+            if (moves_searched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && can_reduce(check, move_list->moves[i])) {
+                // Search with a reduced depth
+                score = -negamax(-alpha-1, -alpha, depth-REDUCTION, search);
             } else {
-                // Late Move Reduction (LMR)
-                if (moves_searched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && can_reduce(check, move_list->moves[i])) {
-                    // Search with a reduced depth
-                    score = -negamax(-alpha-1, -alpha, depth-REDUCTION, search);
-                } else {
-                    // Ensures search is performed below
-                    score = alpha + 1;
-                }
-                // Better move found
-                if (score > alpha) {
-                    // Re-search with full-depth
-                    score = -negamax(-alpha-1, -alpha, depth-1, search);
-                    // LMR failed. Re-search with regular alpha-beta search
-                    if ((score > alpha) && (score < beta)) {
-                        score = -negamax(-beta, -alpha, depth-1, search);
-                    }
+                // Ensures search is performed below
+                score = alpha + 1;
+            }
+            // Better move found
+            if (score > alpha) {
+                // Once a move is found that is between alpha and beta, the goal is to prove that the rest of the moves are all bad.
+                // This is generally faster than trying to find a move withing the remaining moves that might be good.
+                // Re-search with full-depth, smaller window
+                score = -negamax(-alpha-1, -alpha, depth-1, search);
+                // If this assumption was proven wrong, and there is a better move than the initial PV move,
+                // search again using a standard alpha-beta search.
+                // This scenario actually wastes time by needing to search again, but it generally doesn't
+                // happen enough to cancel out the time saved when the assumption is correct.
+                // LMR failed. Re-search with regular alpha-beta search
+                if ((score > alpha) && (score < beta)) {
+                    // Assumption was wrong - re-search the move with standard alpha-beta search.
+                    score = -negamax(-beta, -alpha, depth-1, search);
                 }
             }
         }
