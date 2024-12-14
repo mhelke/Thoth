@@ -6,7 +6,7 @@
 #include "util.h"
 #include "uci.h"
 
-int search(int depth) {
+int search(int depth, Board *board) {
     int start = get_ms();
     int score = 0;
     Search search = {0};
@@ -14,6 +14,7 @@ int search(int depth) {
     search.score_pv = 0;
     search.follow_pv = 0;
     search.stopped = 0;
+    search.board = board;
 
     int alpha = -INT_MAX;
     int beta = INT_MAX;
@@ -59,6 +60,9 @@ int search(int depth) {
 }
 
 int negamax(int alpha, int beta, int depth, Search *search) {
+
+    Board *board = search->board;
+
     // Check for UCI input
     if ((search->nodes & 2047) == 0) {
         search->stopped = should_stop();
@@ -74,13 +78,13 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
     if (search->ply >= MAX_PLY) {
         // Too deep in search
-        return evaluate();
+        return evaluate(board);
     }
 
     search->nodes++;
 
     int legal_move_count = 0;
-    int check = is_square_attacked(get_least_sig_bit_index((side == WHITE) ? bitboards[K] : bitboards[k]), side ^ 1);
+    int check = is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[K] : board->bitboards[k]), board->side ^ 1, board);
 
     if (check) {
         depth++;
@@ -88,15 +92,15 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
     // Null Move Pruning
     if (depth >= REDUCTION_LIMIT && !check && search->ply) {
-        COPY_BOARD();
+        COPY_BOARD(board);
 
         // Give opponent a "null" move
-        side ^= 1;
-        enpassant = na;
+        board->side ^= 1;
+        board->enpassant = na;
         // Search with reduced depth to find early beta cutoffs.
         int score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
 
-        UNDO();
+        UNDO(board);
 
         if (search->stopped) {
             return 0;
@@ -109,7 +113,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     }
 
     Moves move_list[1];
-    generate_moves(move_list);
+    generate_moves(move_list, board);
 
     if (search->follow_pv) {
         pv_scoring(move_list, search);
@@ -118,13 +122,13 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     sort_moves(move_list, search);
 
     for (int i = 0; i < move_list->count; i++) {
-        COPY_BOARD();
+        COPY_BOARD(board);
         search->ply++;
 
-        if (make_move(move_list->moves[i], ALL_MOVES) == 0) {
+        if (make_move(move_list->moves[i], ALL_MOVES, board) == 0) {
             // illegal move
             search->ply--;
-            UNDO();
+            UNDO(board);
             continue;
         }
         legal_move_count++;
@@ -162,7 +166,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         }
 
         search->ply--;
-        UNDO();
+        UNDO(board);
 
          if (search->stopped) {
             return 0;
@@ -211,6 +215,8 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 }
 
 int quiescence(int alpha, int beta, Search *search) {
+    Board *board = search->board;
+
     // Check for UCI input
     if ((search->nodes & 2047) == 0) {
         search->stopped = should_stop();
@@ -218,7 +224,7 @@ int quiescence(int alpha, int beta, Search *search) {
 
     search->nodes++;
 
-    int score = evaluate();
+    int score = evaluate(board);
 
      // Fail-hard
     if (score >= beta) {
@@ -231,25 +237,25 @@ int quiescence(int alpha, int beta, Search *search) {
 
 
     Moves move_list[1];
-    generate_moves(move_list);
+    generate_moves(move_list, board);
     sort_moves(move_list, search);
 
     for (int i = 0; i < move_list->count; i++) {
-        COPY_BOARD();
+        COPY_BOARD(board);
         search->ply++;
 
         // Only search captures to prevent the horizon effect.
         // Static evaluation should only be returned once the position has reached a quiet position.
-        if (make_move(move_list->moves[i], CAPTURES) == 0) {
+        if (make_move(move_list->moves[i], CAPTURES, board) == 0) {
             // Not a capture
             search->ply--;
-            UNDO();
+            UNDO(board);
             continue;
         }
 
         int score = -quiescence(-beta, -alpha, search);
         search->ply--;
-        UNDO();
+        UNDO(board);
 
         if (search->stopped) {
             return 0;
@@ -335,12 +341,12 @@ int score_move(int move, Search *search) {
 
     int captured_piece = P;
 
-    int start = (side == WHITE) ? p : P;
-    int end = (side == WHITE) ? k : K;
+    int start = (search->board->side == WHITE) ? p : P;
+    int end = (search->board->side == WHITE) ? k : K;
     int target = MOVE_TARGET(move);
 
     for (int piece = start; piece <= end; piece++) {
-        if (GET_BIT(bitboards[piece], target)) {
+        if (GET_BIT(search->board->bitboards[piece], target)) {
             captured_piece = piece;
             break;
         }

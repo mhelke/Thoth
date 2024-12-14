@@ -25,6 +25,8 @@
 #include "uci.h"
 #include "util.h"
 
+static Board* board;
+
 // Time control variables
 int quit = 0;
 int movestogo = 30;
@@ -40,7 +42,7 @@ int stopped = 0;
 // Example move from UCI protocol: "e7e8q"
 int parse_move(const char *str) {
     Moves move_list[1];
-    generate_moves(move_list);
+    generate_moves(move_list, board);
 
     int src = (str[0] - 'a') + (8 - (str[1] - '0')) * 8;
     int target = (str[2] - 'a') + (8 - (str[3] - '0')) * 8;
@@ -67,20 +69,24 @@ int parse_move(const char *str) {
 // Example commands: `position startpos`, `position fen <FEN_STRING>`
 // The command can also include moves: `position startpos moves e2e4 e7e5`
 void parse_position(char *command) {
+    if (board != NULL) {
+        free_board(board);
+    }
+    board = create_board();
     command += 9; // shift pointer to position argument
     char *current = command;
 
     // Parse startpos command and init board to start position
     if (strncmp(command, "startpos", 8) == 0) {
-        load_fen(start_position);
+        load_fen(start_position, board);
     } else {
         current = strstr(command, "fen");
 
         if (current == NULL) {
-            load_fen(start_position);
+            load_fen(start_position, board);
         } else {
             current += 4; // shift pointer to start of FEN string
-            load_fen(current);
+            load_fen(current, board);
         }
     }
 
@@ -94,7 +100,7 @@ void parse_position(char *command) {
             if (move == 0) {
                 break;
             }
-            make_move(move, ALL_MOVES);
+            make_move(move, ALL_MOVES, board);
 
             // Move pointer to next move
             while (*current && *current != ' ') {
@@ -103,7 +109,7 @@ void parse_position(char *command) {
             current++;
          }
     }
-    print_board(); // remove
+    print_board(board); // remove
 }
 
 // Parse the go command from UCI
@@ -113,21 +119,21 @@ void parse_go(char *command) {
     if ((current = strstr(command,"infinite"))) { /* Let search continue until stopped by user */}
 
     // Black increment
-    if ((current = strstr(command,"binc")) && side == BLACK) {
+    if ((current = strstr(command,"binc")) && board->side == BLACK) {
         inc = atoi(current + 5);
     }
 
     // White increment
-    if ((current = strstr(command,"winc")) && side == WHITE) {
+    if ((current = strstr(command,"winc")) && board->side == WHITE) {
         inc = atoi(current + 5);
     }
 
     // White time limit
-    if ((current = strstr(command,"wtime")) && side == WHITE) {
+    if ((current = strstr(command,"wtime")) && board->side == WHITE) {
         time = atoi(current + 6);
     }
     // Black time limit
-    if ((current = strstr(command,"btime")) && side == BLACK) {
+    if ((current = strstr(command,"btime")) && board->side == BLACK) {
         time = atoi(current + 6);
     }
 
@@ -174,7 +180,7 @@ void parse_go(char *command) {
     printf("time: %d start: %d stop: %d depth: %d timeset: %d\n",
     time, starttime, stoptime, depth, timeset);
     stopped = 0;
-    search(depth);
+    search(depth, board);
 }
 
 void set_info() {

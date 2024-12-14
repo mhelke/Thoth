@@ -3,16 +3,16 @@
 
 #include "bitboard.h"
 
-void reset_board() {
-    memset(bitboards, 0ULL, sizeof(bitboards));
-    memset(occupancies, 0ULL, sizeof(occupancies));
-    side = 0;
-    enpassant = na;
-    castle = 0;
+void reset_board(Board *board) {
+    memset(board->bitboards, 0ULL, sizeof(board->bitboards));
+    memset(board->occupancies, 0ULL, sizeof(board->occupancies));
+    board->side = 0;
+    board->enpassant = na;
+    board->castle = 0;
 }
 
-void load_fen(char* fen) {
-    reset_board();
+void load_fen(char* fen, Board *board) {
+    reset_board(board);
 
     int i = 0;
     int n = strlen(fen);
@@ -21,18 +21,18 @@ void load_fen(char* fen) {
     for (; i < n; i++) {
         int done = 0;
         switch (fen[i]) {
-            case 'P': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'N': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'B': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'R': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'Q': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'K': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'p': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'n': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'b': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'r': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'q': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
-            case 'k': SET_BIT(bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'P': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'N': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'B': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'R': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'Q': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'K': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'p': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'n': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'b': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'r': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'q': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
+            case 'k': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
             case '/': file = 0; rank++; break;
             case '1': file += 1; break;
             case '2': file += 2; break;
@@ -55,22 +55,22 @@ void load_fen(char* fen) {
     i++;
     switch (fen[i++]) {
         case 'w':
-            side = WHITE;
+            board->side = WHITE;
             break;
         case 'b':
-            side = BLACK;
+            board->side = BLACK;
             break;
         default: return;
     }
     i++;
-    castle = 0;
+    board->castle = 0;
     for (; i < n; i++) {
         int done = 0;
         switch (fen[i]) {
-            case 'K': castle |= WK; break;
-            case 'Q': castle |= WQ; break;
-            case 'k': castle |= BK; break;
-            case 'q': castle |= BQ; break;
+            case 'K': board->castle |= WK; break;
+            case 'Q': board->castle |= WQ; break;
+            case 'k': board->castle |= BK; break;
+            case 'q': board->castle |= BQ; break;
             case '-': done = 1; break;
             case ' ': done = 1; break;
             default: return;
@@ -81,33 +81,33 @@ void load_fen(char* fen) {
     }
     i++;
     if (fen[i] == '-') {
-        enpassant = na;
+        board->enpassant = na;
         i++;
     } else if (fen[i] >= 'a' && fen[i] <= 'h') {
         int ep_file = fen[i] - 'a';
         i++;
         if (fen[i] >= '1' && fen[i] <= '8') {
             int ep_rank = 8 - (fen[i] - '0');
-            enpassant = SQUARE_INDEX(ep_rank, ep_file);;
+            board->enpassant = SQUARE_INDEX(ep_rank, ep_file);;
             i++;
         }
     } else {
-        enpassant = na;
+        board->enpassant = na;
     }
 
     for (int piece = P; piece <= K; piece++) {
-        occupancies[WHITE] |= bitboards[piece];
+        board->occupancies[WHITE] |= board->bitboards[piece];
     }
 
     for (int piece = p; piece <= k; piece++) {
-        occupancies[BLACK] |= bitboards[piece];
+        board->occupancies[BLACK] |= board->bitboards[piece];
     }
-    occupancies[BOTH] |= occupancies[WHITE];
-    occupancies[BOTH] |= occupancies[BLACK];
+    board->occupancies[BOTH] |= board->occupancies[WHITE];
+    board->occupancies[BOTH] |= board->occupancies[BLACK];
     i++;
 }
 
-void print_board() {
+void print_board(Board *board) {
     printf("\n");
 
     for (int rank = 0; rank < 8; rank++) {
@@ -122,7 +122,7 @@ void print_board() {
             
             // Loop over all bitboards for each piece type and get the bit
             for (int i = P; i <= k; i++) {
-                if (GET_BIT(bitboards[i], square)) {
+                if (GET_BIT(board->bitboards[i], square)) {
                     piece = i;
                 }
             }
@@ -135,12 +135,12 @@ void print_board() {
     // print board files
     printf("\n      a  b  c  d  e  f  g  h\n\n");
     
-    printf("Side to move:\t %s\n", !side ? "White" : "Black");
+    printf("Side to move:\t %s\n", !board->side ? "White" : "Black");
     
-    printf("Enpassant:\t %s\n", (enpassant != na) ? square[enpassant] : "N/A");
+    printf("Enpassant:\t %s\n", (board->enpassant != na) ? square[board->enpassant] : "N/A");
     
-    printf("Castle:\t\t %c%c%c%c\n\n", (castle & WK) ? 'K' : '-',
-                                           (castle & WQ) ? 'Q' : '-',
-                                           (castle & BK) ? 'k' : '-',
-                                           (castle & BQ) ? 'q' : '-');    
+    printf("Castle:\t\t %c%c%c%c\n\n", (board->castle & WK) ? 'K' : '-',
+                                           (board->castle & WQ) ? 'Q' : '-',
+                                           (board->castle & BK) ? 'k' : '-',
+                                           (board->castle & BQ) ? 'q' : '-');    
 }

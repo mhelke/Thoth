@@ -2,7 +2,7 @@
 #include "gen.h"
 #include "move.h"
 
-void print_attacked_squares(int side) {
+void print_attacked_squares(int side, Board* board) {
     printf("\n");
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
@@ -10,7 +10,7 @@ void print_attacked_squares(int side) {
             if (!file) {
                 printf("%d ", 8 - rank);
             }
-            printf("  %d", is_square_attacked(square, side) ? 1 : 0);
+            printf("  %d", is_square_attacked(square, side, board) ? 1 : 0);
         }        
         printf("\n");
     }

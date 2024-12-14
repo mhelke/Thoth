@@ -10,17 +10,32 @@ typedef unsigned long long Bitboard;
 #define POP_BIT(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
 #define SQUARE_INDEX(rank, file) ((rank) * 8 + (file))
 
-#define COPY_BOARD()                                                    \
+typedef struct {
+    Bitboard bitboards[12];
+    Bitboard occupancies[3];
+    Bitboard pawn_attacks[2][64];
+    Bitboard knight_attacks[64];
+    Bitboard king_attacks[64];
+    Bitboard bishop_attacks[64][512];
+    Bitboard rook_attacks[64][4096];
+    Bitboard bishop_masks[64];
+    Bitboard rook_masks[64];
+    int side;
+    int enpassant;
+    int castle;
+} Board;
+
+#define COPY_BOARD(board)                                                    \
     Bitboard bitboards_copy[12], occupancies_copy[3];                   \
     int side_copy, enpassant_copy, castle_copy;                         \
-    memcpy(bitboards_copy, bitboards, sizeof(bitboards));               \
-    memcpy(occupancies_copy, occupancies, sizeof(occupancies));         \
-    side_copy = side, enpassant_copy = enpassant, castle_copy = castle; \
+    memcpy(bitboards_copy, board->bitboards, sizeof(board->bitboards));               \
+    memcpy(occupancies_copy, board->occupancies, sizeof(board->occupancies));         \
+    side_copy = board->side, enpassant_copy = board->enpassant, castle_copy = board->castle; \
 
-#define UNDO()                                                          \
-    memcpy(bitboards, bitboards_copy, 96);                              \
-    memcpy(occupancies, occupancies_copy, 24);                          \
-    side = side_copy, enpassant = enpassant_copy, castle = castle_copy; \
+#define UNDO(board)                                                          \
+    memcpy(board->bitboards, bitboards_copy, 96);                              \
+    memcpy(board->occupancies, occupancies_copy, 24);                          \
+    board->side = side_copy, board->enpassant = enpassant_copy, board->castle = castle_copy; \
 
 Bitboard mask_pawn_attacks(int, int);
 Bitboard mask_knight_attacks(int);
@@ -30,12 +45,15 @@ Bitboard mask_rook_attacks(int);
 Bitboard generate_bishop_attacks(int, Bitboard);
 Bitboard generate_rook_attacks(int, Bitboard);
 Bitboard set_occupancy(int, int, Bitboard);
-Bitboard get_bishop_attacks(int, Bitboard); 
-Bitboard get_rook_attacks(int, Bitboard); 
-Bitboard get_queen_attacks(int, Bitboard); 
+Bitboard get_bishop_attacks(int, Bitboard, Board*); 
+Bitboard get_rook_attacks(int, Bitboard, Board*); 
+Bitboard get_queen_attacks(int, Bitboard, Board*); 
 
-void init_siders(int);
-void init_tables();
+Board* create_board();
+void free_board(Board *board);
+
+void init_siders(int, Board*);
+void init_tables(Board*);
 
 void print_bitboard(Bitboard);
 
@@ -104,23 +122,5 @@ extern const Bitboard bishop_magics[64];
 extern const Bitboard rook_magics[64];
 extern const int bishop_relevant_bits[64];
 extern const int rook_relevant_bits[64];
-extern Bitboard pawn_attacks[2][64];
-extern Bitboard knight_attacks[64];
-extern Bitboard king_attacks[64];
-
-// Piece bitboards
-extern Bitboard bitboards[12];
-
-// Occupancy bitboards (white, black, all)
-extern Bitboard occupancies[3];
-
-// Side to move
-extern int side;
-
-// En passant square 
-extern int enpassant;
-
-// Castling rights
-extern int castle;
 
 #endif

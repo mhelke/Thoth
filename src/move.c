@@ -27,21 +27,21 @@ const int castling_rights[64] = {
     13, 15, 15, 15, 12, 15, 15, 14
 };
 
-void generate_moves(Moves *moves) {
+void generate_moves(Moves *moves, Board *board) {
     moves->count = 0;
-    generate_pawn_moves(side, moves);
-    generate_knight_moves(side, moves);
-    generate_bishop_moves(side, moves);
-    generate_rook_moves(side, moves);
-    generate_queen_moves(side, moves);
-    generate_king_moves(side, moves);
-    generate_castling_moves(side, moves);
+    generate_pawn_moves(board->side, moves, board);
+    generate_knight_moves(board->side, moves, board);
+    generate_bishop_moves(board->side, moves, board);
+    generate_rook_moves(board->side, moves, board);
+    generate_queen_moves(board->side, moves, board);
+    generate_king_moves(board->side, moves, board);
+    generate_castling_moves(board->side, moves, board);
 }
 
-void generate_pawn_moves(int side, Moves *moves) {
+void generate_pawn_moves(int side, Moves *moves, Board *board) {
     int src, target, direction, opponent;
     int piece = (side == WHITE) ? P : p;
-    Bitboard bitboard = bitboards[piece];
+    Bitboard bitboard = board->bitboards[piece];
     direction = (side == WHITE) ? -8 : 8;
     opponent = 1 - side;
     int promotion_rank_start = (side == WHITE) ? a7 : a2;
@@ -66,7 +66,7 @@ void generate_pawn_moves(int side, Moves *moves) {
         target = src + direction; // pawn moves forward
 
         if ((side == WHITE && target >= a8) || (side == BLACK && target <= h1)) {
-            if (!GET_BIT(occupancies[BOTH], target)) {
+            if (!GET_BIT(board->occupancies[BOTH], target)) {
                 // Promotion
                 if (src >= promotion_rank_start && src <= promotion_rank_end) {
                     for (int i = 0; i < 4; ++i) {
@@ -79,7 +79,7 @@ void generate_pawn_moves(int side, Moves *moves) {
                     add_move(moves, move);
 
                     // Pawn jump
-                    if (src >= double_move_rank_start && src <= double_move_rank_end && !GET_BIT(occupancies[BOTH], target + direction)) {
+                    if (src >= double_move_rank_start && src <= double_move_rank_end && !GET_BIT(board->occupancies[BOTH], target + direction)) {
                         move = encode_move(src, target + direction, piece, 0, 0, 1, 0, 0);
                         add_move(moves, move);
                     }
@@ -87,7 +87,7 @@ void generate_pawn_moves(int side, Moves *moves) {
             }
         }
 
-        Bitboard attacks = pawn_attacks[side][src] & occupancies[opponent];
+        Bitboard attacks = board->pawn_attacks[side][src] & board->occupancies[opponent];
         while (attacks) {
             target = get_least_sig_bit_index(attacks);
 
@@ -107,11 +107,11 @@ void generate_pawn_moves(int side, Moves *moves) {
         }
 
         // En Passant
-        if (enpassant != na) {
-            int enpassant_file = enpassant % 8;
+        if (board->enpassant != na) {
+            int enpassant_file = board->enpassant % 8;
             if (src >= enpassant_rank && src <= enpassant_rank + 7 &&
                 (src % 8 == enpassant_file - 1 || src % 8 == enpassant_file + 1)) {
-                Bitboard enpassant_attacks = pawn_attacks[side][src] & (1ULL << enpassant);
+                Bitboard enpassant_attacks = board->pawn_attacks[side][src] & (1ULL << board->enpassant);
                 if (enpassant_attacks) {
                     int ep_target = get_least_sig_bit_index(enpassant_attacks);
                     int move = encode_move(src, ep_target, piece, 0, 1, 0, 1, 0);
@@ -123,7 +123,7 @@ void generate_pawn_moves(int side, Moves *moves) {
     }
 }
 
-void generate_castling_moves(int side, Moves *moves) {
+void generate_castling_moves(int side, Moves *moves, Board *board) {
     const char *side_name = (side == WHITE) ? "White" : "Black";
     int piece = (side == WHITE)  ? K : k;
     int src = (side == WHITE) ? e1 : e8;
@@ -135,9 +135,9 @@ void generate_castling_moves(int side, Moves *moves) {
     int opponent = 1 - side;
 
     // King-side
-    if ((side == WHITE && (castle & WK)) || (side == BLACK && (castle & BK))) {
-        if (!GET_BIT(occupancies[BOTH], k_pass) && !GET_BIT(occupancies[BOTH], k_target)) {
-            if (!is_square_attacked(src, opponent) && !is_square_attacked(k_pass, opponent) && !is_square_attacked(k_target, opponent)) {
+    if ((side == WHITE && (board->castle & WK)) || (side == BLACK && (board->castle & BK))) {
+        if (!GET_BIT(board->occupancies[BOTH], k_pass) && !GET_BIT(board->occupancies[BOTH], k_target)) {
+            if (!is_square_attacked(src, opponent, board) && !is_square_attacked(k_pass, opponent, board) && !is_square_attacked(k_target, opponent, board)) {
                 int move = encode_move(src, k_target, piece, 0, 0, 0, 0, 1);
                 add_move(moves, move);
             }
@@ -145,9 +145,9 @@ void generate_castling_moves(int side, Moves *moves) {
     }
 
     // Queen-side
-    if ((side == WHITE && (castle & WQ)) || (side == BLACK && (castle & BQ))) {
-        if (!GET_BIT(occupancies[BOTH], q_pass) && !GET_BIT(occupancies[BOTH], q_target) && !GET_BIT(occupancies[BOTH], q_pass_second)) {
-            if (!is_square_attacked(src, opponent) && !is_square_attacked(q_pass, opponent) && !is_square_attacked(q_target, opponent)) {
+    if ((side == WHITE && (board->castle & WQ)) || (side == BLACK && (board->castle & BQ))) {
+        if (!GET_BIT(board->occupancies[BOTH], q_pass) && !GET_BIT(board->occupancies[BOTH], q_target) && !GET_BIT(board->occupancies[BOTH], q_pass_second)) {
+            if (!is_square_attacked(src, opponent, board) && !is_square_attacked(q_pass, opponent, board) && !is_square_attacked(q_target, opponent, board)) {
                 int move = encode_move(src, q_target, piece, 0, 0, 0, 0, 1);
                 add_move(moves, move);
             }
@@ -155,23 +155,23 @@ void generate_castling_moves(int side, Moves *moves) {
     }
 }
 
-void generate_knight_moves(int side, Moves *moves) {
+void generate_knight_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? N : n;
     int src, target;
     int opponent = 1 - side;
     const char *side_name = (side == WHITE) ? "White" : "Black";
 
-    Bitboard bitboard = bitboards[piece];
+    Bitboard bitboard = board->bitboards[piece];
 
     while (bitboard) {
         src = get_least_sig_bit_index(bitboard);
 
-        Bitboard attacks = knight_attacks[src] & (~occupancies[side]);
+        Bitboard attacks = board->knight_attacks[src] & (~board->occupancies[side]);
 
         while (attacks) {
             target = get_least_sig_bit_index(attacks);
 
-            if (GET_BIT(occupancies[opponent], target)) {
+            if (GET_BIT(board->occupancies[opponent], target)) {
                 // capture
                 int move = encode_move(src, target, piece, 0, 1, 0, 0, 0);
                 add_move(moves, move);
@@ -187,23 +187,23 @@ void generate_knight_moves(int side, Moves *moves) {
     }
 }
 
-void generate_bishop_moves(int side, Moves *moves) {
+void generate_bishop_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? B : b;
     int src, target;
     int opponent = 1 - side;
     const char *side_name = (side == WHITE) ? "White" : "Black";
 
-    Bitboard bitboard = bitboards[piece];
+    Bitboard bitboard = board->bitboards[piece];
 
     while (bitboard) {
         src = get_least_sig_bit_index(bitboard);
 
-        Bitboard attacks = get_bishop_attacks(src, occupancies[BOTH]) & (~occupancies[side]);
+        Bitboard attacks = get_bishop_attacks(src, board->occupancies[BOTH], board) & (~board->occupancies[side]);
 
         while (attacks) {
             target = get_least_sig_bit_index(attacks);
 
-            if (GET_BIT(occupancies[opponent], target)) {
+            if (GET_BIT(board->occupancies[opponent], target)) {
                 // capture
                 int move = encode_move(src, target, piece, 0, 1, 0, 0, 0);
                 add_move(moves, move);
@@ -219,23 +219,23 @@ void generate_bishop_moves(int side, Moves *moves) {
     }
 }
 
-void generate_rook_moves(int side, Moves *moves) {
+void generate_rook_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? R : r;
     int src, target;
     int opponent = 1 - side;
     const char *side_name = (side == WHITE) ? "White" : "Black";
 
-    Bitboard bitboard = bitboards[piece];
+    Bitboard bitboard = board->bitboards[piece];
 
     while (bitboard) {
         src = get_least_sig_bit_index(bitboard);
 
-        Bitboard attacks = get_rook_attacks(src, occupancies[BOTH]) & (~occupancies[side]);
+        Bitboard attacks = get_rook_attacks(src, board->occupancies[BOTH], board) & (~board->occupancies[side]);
 
         while (attacks) {
             target = get_least_sig_bit_index(attacks);
 
-            if (GET_BIT(occupancies[opponent], target)) {
+            if (GET_BIT(board->occupancies[opponent], target)) {
                 // capture
                 int move = encode_move(src, target, piece, 0, 1, 0, 0, 0);
                 add_move(moves, move);
@@ -251,23 +251,23 @@ void generate_rook_moves(int side, Moves *moves) {
     }
 }
 
-void generate_queen_moves(int side, Moves *moves) {
+void generate_queen_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? Q : q;
     int src, target;
     int opponent = 1 - side;
     const char *side_name = (side == WHITE) ? "White" : "Black";
 
-    Bitboard bitboard = bitboards[piece];
+    Bitboard bitboard = board->bitboards[piece];
 
     while (bitboard) {
         src = get_least_sig_bit_index(bitboard);
 
-        Bitboard attacks = get_queen_attacks(src, occupancies[BOTH]) & (~occupancies[side]);
+        Bitboard attacks = get_queen_attacks(src, board->occupancies[BOTH], board) & (~board->occupancies[side]);
 
         while (attacks) {
             target = get_least_sig_bit_index(attacks);
 
-            if (GET_BIT(occupancies[opponent], target)) {
+            if (GET_BIT(board->occupancies[opponent], target)) {
                 // capture
                 int move = encode_move(src, target, piece, 0, 1, 0, 0, 0);
                 add_move(moves, move);
@@ -283,23 +283,23 @@ void generate_queen_moves(int side, Moves *moves) {
     }
 }
 
-void generate_king_moves(int side, Moves *moves) {
+void generate_king_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? K : k;
     int src, target;
     int opponent = 1 - side;
     const char *side_name = (side == WHITE) ? "White" : "Black";
 
-    Bitboard bitboard = bitboards[piece];
+    Bitboard bitboard = board->bitboards[piece];
 
     while (bitboard) {
         src = get_least_sig_bit_index(bitboard);
 
-        Bitboard attacks = king_attacks[src] & (~occupancies[side]);
+        Bitboard attacks = board->king_attacks[src] & (~board->occupancies[side]);
 
         while (attacks) {
             target = get_least_sig_bit_index(attacks);
 
-            if (GET_BIT(occupancies[opponent], target)) {
+            if (GET_BIT(board->occupancies[opponent], target)) {
                 // capture
                 int move = encode_move(src, target, piece, 0, 1, 0, 0, 0);
                 add_move(moves, move);
@@ -315,16 +315,16 @@ void generate_king_moves(int side, Moves *moves) {
     }
 }
 
-int is_square_attacked(int square, int side) {
+int is_square_attacked(int square, int side, Board *board) {
     int opponent = (side == WHITE) ? BLACK : WHITE;
     int offset = (side == WHITE) ? 0 : 6;
     
-    if (pawn_attacks[opponent][square] & bitboards[P + offset]) return 1;
-    if (knight_attacks[square] & bitboards[N + offset]) return 1;
-    if (get_bishop_attacks(square, occupancies[BOTH]) & bitboards[B + offset]) return 1;
-    if (get_rook_attacks(square, occupancies[BOTH]) & bitboards[R + offset]) return 1;    
-    if (get_queen_attacks(square, occupancies[BOTH]) & bitboards[Q + offset]) return 1;
-    if (king_attacks[square] & bitboards[K + offset]) return 1;
+    if (board->pawn_attacks[opponent][square] & board->bitboards[P + offset]) return 1;
+    if (board->knight_attacks[square] & board->bitboards[N + offset]) return 1;
+    if (get_bishop_attacks(square, board->occupancies[BOTH], board) & board->bitboards[B + offset]) return 1;
+    if (get_rook_attacks(square, board->occupancies[BOTH], board) & board->bitboards[R + offset]) return 1;    
+    if (get_queen_attacks(square, board->occupancies[BOTH], board) & board->bitboards[Q + offset]) return 1;
+    if (board->king_attacks[square] & board->bitboards[K + offset]) return 1;
     
     return 0;
 }
@@ -334,59 +334,59 @@ void add_move(Moves *move_list, int move) {
     move_list->count++;
 }
 
-int make_move(int move, int move_type) {
+int make_move(int move, int move_type, Board *board) {
     if (move_type == ALL_MOVES) {
-        COPY_BOARD();
+        COPY_BOARD(board);
 
         int src = MOVE_SRC(move);
         int target = MOVE_TARGET(move);
         int piece = MOVE_PIECE(move);
 
         // Move piece from source to target
-        POP_BIT(bitboards[piece], src);
-        SET_BIT(bitboards[piece], target);
+        POP_BIT(board->bitboards[piece], src);
+        SET_BIT(board->bitboards[piece], target);
 
         // Update occupancy tables
-        POP_BIT(occupancies[side], src);
-        SET_BIT(occupancies[side], target);
+        POP_BIT(board->occupancies[board->side], src);
+        SET_BIT(board->occupancies[board->side], target);
 
         // Capture moves
         if (MOVE_CAPTURE(move)) {
             int captured_piece;
-            int start = (side == WHITE) ? p : P;
-            int end = (side == WHITE) ? k : K;
+            int start = (board->side == WHITE) ? p : P;
+            int end = (board->side == WHITE) ? k : K;
 
             for (captured_piece = start; captured_piece <= end; captured_piece++) {
-                if (GET_BIT(bitboards[captured_piece], target)) {
-                    POP_BIT(bitboards[captured_piece], target);
+                if (GET_BIT(board->bitboards[captured_piece], target)) {
+                    POP_BIT(board->bitboards[captured_piece], target);
                     break;
                 }
             }
-            POP_BIT(occupancies[!side], target);
+            POP_BIT(board->occupancies[!board->side], target);
         }
 
         // Promotion Move
         if (MOVE_PROMOTED(move)) {
-            int pawn_bb = (side == WHITE) ? P : p;
-            POP_BIT(bitboards[pawn_bb], target);
-            SET_BIT(bitboards[MOVE_PROMOTED(move)], target);
-            SET_BIT(occupancies[side], target);
+            int pawn_bb = (board->side == WHITE) ? P : p;
+            POP_BIT(board->bitboards[pawn_bb], target);
+            SET_BIT(board->bitboards[MOVE_PROMOTED(move)], target);
+            SET_BIT(board->occupancies[board->side], target);
         }
 
         // En passant
         if (MOVE_ENPASSANT(move)) {
-            int pawn_bb = (side == WHITE) ? p : P;
-            int target_adj = (side == WHITE) ? 8 : -8;
-            POP_BIT(bitboards[pawn_bb], target + target_adj);
-            POP_BIT(occupancies[!side], target + target_adj);
+            int pawn_bb = (board->side == WHITE) ? p : P;
+            int target_adj = (board->side == WHITE) ? 8 : -8;
+            POP_BIT(board->bitboards[pawn_bb], target + target_adj);
+            POP_BIT(board->occupancies[!board->side], target + target_adj);
         }
 
         // Reset En Passant Square
-        enpassant = na;
+        board->enpassant = na;
 
         // Double Push - set en passant square
         if (MOVE_DOUBLE(move)) {
-            enpassant = target + ((side == WHITE) ? 8 : -8);
+            board->enpassant = target + ((board->side == WHITE) ? 8 : -8);
         }
 
         // Castling
@@ -398,28 +398,28 @@ int make_move(int move, int move_type) {
 
             for (int i = 0; i < 4; i++) {
                 if (target == targets[i]) {
-                    POP_BIT(bitboards[rook_pieces[i]], rook_src[i]);
-                    SET_BIT(bitboards[rook_pieces[i]], rook_target[i]);
-                    POP_BIT(occupancies[side], rook_src[i]);
-                    SET_BIT(occupancies[side], rook_target[i]);
+                    POP_BIT(board->bitboards[rook_pieces[i]], rook_src[i]);
+                    SET_BIT(board->bitboards[rook_pieces[i]], rook_target[i]);
+                    POP_BIT(board->occupancies[board->side], rook_src[i]);
+                    SET_BIT(board->occupancies[board->side], rook_target[i]);
                     break;
                 }
             }
         }
 
         // Castling rights
-        castle &= castling_rights[src];
-        castle &= castling_rights[target];
+        board->castle &= castling_rights[src];
+        board->castle &= castling_rights[target];
 
         // Update overall occupancy table
-        occupancies[BOTH] = occupancies[WHITE] | occupancies[BLACK];
+        board->occupancies[BOTH] = board->occupancies[WHITE] | board->occupancies[BLACK];
 
         // Change side
-        side ^= 1;
+        board->side ^= 1;
 
         // Ensure King is not in Check
-        if (is_square_attacked(get_least_sig_bit_index((side == WHITE) ? bitboards[k] : bitboards[K]), side)) {
-            UNDO();
+        if (is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[k] : board->bitboards[K]), board->side, board)) {
+            UNDO(board);
             return 0;
         }
         return 1;
@@ -428,7 +428,7 @@ int make_move(int move, int move_type) {
         if (!MOVE_CAPTURE(move)) {
             return 0;
         }
-        return make_move(move, ALL_MOVES);
+        return make_move(move, ALL_MOVES, board);
     }
     return 0;
 }

@@ -8,39 +8,39 @@
 
 Bitboard nodes;
 
-void perft(int depth) {
+void perft(int depth, Board* board) {
     if (depth == 0) {
         nodes++;
         return;
     }
 
     Moves move_list[1];
-    generate_moves(move_list);
+    generate_moves(move_list, board);
 
     for (int move_count = 0; move_count < move_list->count; move_count++) {   
-        COPY_BOARD();
-        if (!make_move(move_list->moves[move_count], ALL_MOVES)) {
+        COPY_BOARD(board);
+        if (!make_move(move_list->moves[move_count], ALL_MOVES, board)) {
             continue;
         }
-        perft(depth - 1);
-        UNDO();        
+        perft(depth - 1, board);
+        UNDO(board);        
     }
 }
 
-int perft_test(char *fen, int depth, const unsigned long long *expected_values) {
-    load_fen(fen);
+int perft_test(char *fen, int depth, const unsigned long long *expected_values, Board* board) {
+    load_fen(fen, board);
     nodes = 0;
 
     long start = get_ms();
 
     Moves move_list[1];
-    generate_moves(move_list);
+    generate_moves(move_list, board);
 
     for (int move_count = 0; move_count < move_list->count; move_count++) {
-        COPY_BOARD();
-        if (make_move(move_list->moves[move_count], ALL_MOVES)) {
-            perft(depth - 1);
-            UNDO();
+        COPY_BOARD(board);
+        if (make_move(move_list->moves[move_count], ALL_MOVES, board)) {
+            perft(depth - 1, board);
+            UNDO(board);
         }
     }
     long end = get_ms();
@@ -102,12 +102,15 @@ void perft_tests() {
         printf("\n\n-----Running test %d-----\n", i + 1);
         for (int depth = 1; depth <= tests[i].max_depth; depth++) {
             printf("\n[%d] Running depth %d...\n", i + 1, depth);
-            int passed = perft_test(tests[i].fen, depth, tests[i].expected_values);
+            Board* board = create_board();
+            int passed = perft_test(tests[i].fen, depth, tests[i].expected_values, board);
             if (!passed) {
                 printf("\nFAILURE for test [%d] at depth %d", i + 1, depth);
                 printf("\n!! Tests failed !!\n");
+                free_board(board);
                 return;
             }
+            free_board(board);
         }
     }
     printf("\n All tests passed!\n");        

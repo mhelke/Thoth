@@ -45,17 +45,17 @@ enum {ALL_MOVES, CAPTURES };
 void print_move(int);
 void print_move_list(Moves*);
 void add_move(Moves*, int);
-int make_move(int, int);
+int make_move(int, int, Board*);
 
-void generate_moves(Moves*);
-void generate_pawn_moves(int, Moves*);
-void generate_castling_moves(int, Moves*);
-void generate_knight_moves(int, Moves*);
-void generate_bishop_moves(int, Moves*);
-void generate_rook_moves(int, Moves*);
-void generate_queen_moves(int, Moves*);
-void generate_king_moves(int, Moves*);
+void generate_moves(Moves*, Board*);
+void generate_pawn_moves(int, Moves*, Board*);
+void generate_castling_moves(int, Moves*, Board*);
+void generate_knight_moves(int, Moves*, Board*);
+void generate_bishop_moves(int, Moves*, Board*);
+void generate_rook_moves(int, Moves*, Board*);
+void generate_queen_moves(int, Moves*, Board*);
+void generate_king_moves(int, Moves*, Board*);
 
-int is_square_attacked(int, int);
+int is_square_attacked(int, int, Board*);
 
 #endif

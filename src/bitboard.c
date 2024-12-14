@@ -100,36 +100,6 @@ int char_pieces[] = {
     ['k'] = k
 };
 
-// Piece bitboards
-Bitboard bitboards[12];
-
-// Occupancy bitboards (white, black, all)
-Bitboard occupancies[3];
-
-// Side to move
-int side = -1;
-
-// En passant square 
-int enpassant = na;
-
-// Castling rights
-int castle = 0;
-
-// Pawn attacks table
-Bitboard pawn_attacks[2][64];
-
-// Knight attacks table
-Bitboard knight_attacks[64];
-
-// King attacks table
-Bitboard king_attacks[64];
-
-// Bishop attacks table
-Bitboard bishop_attacks[64][512];
-
-// Rook attacks table
-Bitboard rook_attacks[64][4096];
-
 // Bishop attack masks
 Bitboard bishop_masks[64];
 
@@ -384,7 +354,7 @@ Bitboard generate_rook_attacks(int square, Bitboard block) {
     return attacks;
 }
 
-void init_siders(int is_bishop) {
+void init_siders(int is_bishop, Board *board) {
     for (int s = 0; s < 64; s++) {
         bishop_masks[s] = mask_bishop_attacks(s);
         rook_masks[s] = mask_rook_attacks(s);
@@ -401,31 +371,31 @@ void init_siders(int is_bishop) {
             Bitboard occupancy = set_occupancy(i, relevant_bit_count, attack_mask);
             if (is_bishop) {
                 int magic_index = (occupancy * bishop_magics[s]) >> (64 - bishop_relevant_bits[s]);
-                bishop_attacks[s][magic_index] = generate_bishop_attacks(s, occupancy);
+                board->bishop_attacks[s][magic_index] = generate_bishop_attacks(s, occupancy);
             } else {
                 int magic_index = (occupancy * rook_magics[s]) >> (64 - rook_relevant_bits[s]);
-                rook_attacks[s][magic_index] = generate_rook_attacks(s, occupancy);
+                board->rook_attacks[s][magic_index] = generate_rook_attacks(s, occupancy);
             }
          }
     }
 }
 
-Bitboard get_bishop_attacks(int square, Bitboard occupancy) {
+Bitboard get_bishop_attacks(int square, Bitboard occupancy, Board *board) {
     occupancy &= bishop_masks[square];
     occupancy *= bishop_magics[square];
     occupancy >>= 64 - bishop_relevant_bits[square];
-    return bishop_attacks[square][occupancy];
+    return board->bishop_attacks[square][occupancy];
 }
 
-Bitboard get_rook_attacks(int square, Bitboard occupancy) {
+Bitboard get_rook_attacks(int square, Bitboard occupancy, Board *board) {
     occupancy &= rook_masks[square];
     occupancy *= rook_magics[square];
     occupancy >>= 64 - rook_relevant_bits[square];
-    return rook_attacks[square][occupancy];
+    return board->rook_attacks[square][occupancy];
 }
 
-Bitboard get_queen_attacks(int square, Bitboard occupancy) {
-    return (get_bishop_attacks(square, occupancy) | get_rook_attacks(square, occupancy));
+Bitboard get_queen_attacks(int square, Bitboard occupancy, Board *board) {
+    return (get_bishop_attacks(square, occupancy, board) | get_rook_attacks(square, occupancy, board));
 }
 
 
@@ -456,21 +426,21 @@ Bitboard set_occupancy(int index, int bits_mask, Bitboard attack_mask) {
 }
 
 // Generate attack tables
-void init_tables() {
+void init_tables(Board *board) {
     for (int square = 0; square < 64; square++) {
         // Pawn attacks
-        pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, square);
-        pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, square);
+        board->pawn_attacks[WHITE][square] = mask_pawn_attacks(WHITE, square);
+        board->pawn_attacks[BLACK][square] = mask_pawn_attacks(BLACK, square);
 
         // Kinght attacks
-        knight_attacks[square] = mask_knight_attacks(square);
+        board->knight_attacks[square] = mask_knight_attacks(square);
 
         // King attacks
-        king_attacks[square] = mask_king_attacks(square);
+        board->king_attacks[square] = mask_king_attacks(square);
     }
 
-    init_siders(BISHOP);
-    init_siders(ROOK);
+    init_siders(BISHOP, board);
+    init_siders(ROOK, board);
 }
 
 
@@ -495,4 +465,25 @@ void print_bitboard(Bitboard bitboard) {
 
     // print bitboard as unsigned decimal
     printf("Bitboard: %llud\n\n", bitboard);
+}
+
+#include <stdlib.h>
+
+Board* create_board() {
+    Board *board = (Board *)malloc(sizeof(Board));
+    if (board == NULL) {
+        // Handle memory allocation failure
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    board->side = -1;
+    board->enpassant = na;
+    board->castle = 0;
+
+    init_tables(board);
+    return board;
+}
+
+void free_board(Board *board) {
+    free(board);
 }

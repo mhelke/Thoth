@@ -2,6 +2,7 @@
 #define SEARCH_H
 
 #include "move.h"
+#include "bitboard.h"
 
 #define BONUS_KILLER 9000
 #define BONUS_SECOND_KILLER 8000
@@ -25,9 +26,10 @@ typedef struct {
     int follow_pv;
     int score_pv;
     int stopped;
+    Board *board;
 } Search;
 
-int search(int);
+int search(int, Board*);
 int negamax(int, int, int, Search*);
 int quiescence(int, int, Search*);
 void print_move_scores(Moves*);
