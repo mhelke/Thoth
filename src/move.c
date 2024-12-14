@@ -1,6 +1,8 @@
 #include <stdio.h>
 
 #include "move.h"
+#include "table.h"
+#include "board.h"
 
 /*
 Used to determine whether castling rights have changed.
@@ -350,6 +352,9 @@ int make_move(int move, int move_type, Board *board) {
         POP_BIT(board->occupancies[board->side], src);
         SET_BIT(board->occupancies[board->side], target);
 
+        board->hash_key ^= piece_keys[piece][src];
+        board->hash_key ^= piece_keys[piece][target];
+
         // Capture moves
         if (MOVE_CAPTURE(move)) {
             int captured_piece;
@@ -359,6 +364,7 @@ int make_move(int move, int move_type, Board *board) {
             for (captured_piece = start; captured_piece <= end; captured_piece++) {
                 if (GET_BIT(board->bitboards[captured_piece], target)) {
                     POP_BIT(board->bitboards[captured_piece], target);
+                    board->hash_key ^= piece_keys[captured_piece][target];
                     break;
                 }
             }
@@ -371,6 +377,8 @@ int make_move(int move, int move_type, Board *board) {
             POP_BIT(board->bitboards[pawn_bb], target);
             SET_BIT(board->bitboards[MOVE_PROMOTED(move)], target);
             SET_BIT(board->occupancies[board->side], target);
+            board->hash_key ^= piece_keys[pawn_bb][target];
+            board->hash_key ^= piece_keys[MOVE_PROMOTED(move)][target];
         }
 
         // En passant
@@ -379,6 +387,12 @@ int make_move(int move, int move_type, Board *board) {
             int target_adj = (board->side == WHITE) ? 8 : -8;
             POP_BIT(board->bitboards[pawn_bb], target + target_adj);
             POP_BIT(board->occupancies[!board->side], target + target_adj);
+
+            board->hash_key ^= piece_keys[pawn_bb][(target + target_adj)];
+        }
+
+        if (board->enpassant != na) {
+            board->hash_key ^= enpassant_keys[board->enpassant];
         }
 
         // Reset En Passant Square
@@ -387,6 +401,7 @@ int make_move(int move, int move_type, Board *board) {
         // Double Push - set en passant square
         if (MOVE_DOUBLE(move)) {
             board->enpassant = target + ((board->side == WHITE) ? 8 : -8);
+            board->hash_key ^= enpassant_keys[target + ((board->side == WHITE) ? 8 : -8)];
         }
 
         // Castling
@@ -402,20 +417,43 @@ int make_move(int move, int move_type, Board *board) {
                     SET_BIT(board->bitboards[rook_pieces[i]], rook_target[i]);
                     POP_BIT(board->occupancies[board->side], rook_src[i]);
                     SET_BIT(board->occupancies[board->side], rook_target[i]);
+
+                    board->hash_key ^= piece_keys[rook_pieces[i]][rook_src[i]];
+                    board->hash_key ^= piece_keys[rook_pieces[i]][rook_target[i]];
+
                     break;
                 }
             }
         }
 
+        board->hash_key ^= castling_keys[board->castle];
+
         // Castling rights
         board->castle &= castling_rights[src];
         board->castle &= castling_rights[target];
+
+        board->hash_key ^= castling_keys[board->castle];
 
         // Update overall occupancy table
         board->occupancies[BOTH] = board->occupancies[WHITE] | board->occupancies[BLACK];
 
         // Change side
         board->side ^= 1;
+
+        board->hash_key ^= side_key;
+
+        // Debug hash key generation
+        /*
+        Bitboard expected_hash = generate_hash_key(board);
+        if (board->hash_key != expected_hash) {
+            printf("Within make_move...\n");
+            printf("Move: ");
+            print_move(move);
+            print_board(board);
+            printf("Expected hash key: %llx\n", expected_hash);
+            getchar();
+        }
+        */
 
         // Ensure King is not in Check
         if (is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[k] : board->bitboards[K]), board->side, board)) {

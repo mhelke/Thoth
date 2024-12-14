@@ -147,5 +147,5 @@ void print_board(Board *board) {
                                            (board->castle & WQ) ? 'Q' : '-',
                                            (board->castle & BK) ? 'k' : '-',
                                            (board->castle & BQ) ? 'q' : '-');    
-    printf("Hash key: %llx", board->hash_key);
+    printf("Hash key: %llx\n", board->hash_key);
 }

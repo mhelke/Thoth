@@ -32,11 +32,13 @@ typedef struct {
     memcpy(bitboards_copy, board->bitboards, sizeof(board->bitboards));               \
     memcpy(occupancies_copy, board->occupancies, sizeof(board->occupancies));         \
     side_copy = board->side, enpassant_copy = board->enpassant, castle_copy = board->castle; \
+    Bitboard hash_key_copy = board->hash_key;                                           \
 
 #define UNDO(board)                                                          \
     memcpy(board->bitboards, bitboards_copy, 96);                              \
     memcpy(board->occupancies, occupancies_copy, 24);                          \
     board->side = side_copy, board->enpassant = enpassant_copy, board->castle = castle_copy; \
+    board->hash_key = hash_key_copy                                                           \
 
 Bitboard mask_pawn_attacks(int, int);
 Bitboard mask_knight_attacks(int);
