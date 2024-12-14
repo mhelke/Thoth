@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "bitboard.h"
+#include "table.h"
 
 void reset_board(Board *board) {
     memset(board->bitboards, 0ULL, sizeof(board->bitboards));
@@ -9,6 +10,7 @@ void reset_board(Board *board) {
     board->side = 0;
     board->enpassant = na;
     board->castle = 0;
+    board -> hash_key = 0ULL;
 }
 
 void load_fen(char* fen, Board *board) {
@@ -104,6 +106,8 @@ void load_fen(char* fen, Board *board) {
     }
     board->occupancies[BOTH] |= board->occupancies[WHITE];
     board->occupancies[BOTH] |= board->occupancies[BLACK];
+
+    board->hash_key = generate_hash_key(board);
     i++;
 }
 
@@ -143,4 +147,5 @@ void print_board(Board *board) {
                                            (board->castle & WQ) ? 'Q' : '-',
                                            (board->castle & BK) ? 'k' : '-',
                                            (board->castle & BQ) ? 'q' : '-');    
+    printf("Hash key: %llx", board->hash_key);
 }

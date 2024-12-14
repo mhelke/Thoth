@@ -23,6 +23,7 @@ typedef struct {
     int side;
     int enpassant;
     int castle;
+    Bitboard hash_key;
 } Board;
 
 #define COPY_BOARD(board)                                                    \

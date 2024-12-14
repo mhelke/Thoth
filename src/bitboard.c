@@ -479,6 +479,7 @@ Board* create_board() {
     board->side = -1;
     board->enpassant = na;
     board->castle = 0;
+    board->hash_key = 0ULL;
 
     init_tables(board);
     return board;

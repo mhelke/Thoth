@@ -10,10 +10,12 @@
 #include "uci.h"
 #include "move.h"
 #include "search.h"
+#include "table.h"
 
 #define test_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
 
 int main() {
+    init_hash_keys();
     int debug = 1;
     if (debug) {
         Board* board = create_board();
@@ -24,7 +26,7 @@ int main() {
         
         search(7, board);
 
-        perft_tests();
+        // perft_tests();
         free_board(board);
 
         return 0;
