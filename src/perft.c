@@ -5,6 +5,7 @@
 #include "move.h"
 #include "util.h"
 #include "bitboard.h"
+#include "table.h"
 
 Bitboard nodes;
 
@@ -41,6 +42,18 @@ int perft_test(char *fen, int depth, const unsigned long long *expected_values, 
         if (make_move(move_list->moves[move_count], ALL_MOVES, board)) {
             perft(depth - 1, board);
             UNDO(board);
+
+            // Debug hash key generation
+            /*
+            Bitboard expected_hash = generate_hash_key(board);
+            if (board->hash_key != expected_hash) {
+                printf("Move: ");
+                print_move(move_list->moves[move_count]);
+                print_board(board);
+                printf("Expected hash key: %llx\n", expected_hash);
+                getchar();
+            }
+            */
         }
     }
     long end = get_ms();
