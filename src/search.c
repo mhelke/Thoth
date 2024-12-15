@@ -5,6 +5,7 @@
 #include "eval.h"
 #include "util.h"
 #include "uci.h"
+#include "table.h"
 
 int search(int depth, Board *board) {
     int start = get_ms();
@@ -15,6 +16,8 @@ int search(int depth, Board *board) {
     search.follow_pv = 0;
     search.stopped = 0;
     search.board = board;
+
+    clear_transposition_table();
 
     int alpha = -INT_MAX;
     int beta = INT_MAX;
@@ -60,8 +63,18 @@ int search(int depth, Board *board) {
 }
 
 int negamax(int alpha, int beta, int depth, Search *search) {
-
     Board *board = search->board;
+
+    int score;
+
+    // Assume 
+    int hash_flag = flagALPHA;
+
+    // If the move was already searched, return the score from the previous search
+    if (((score = probe_hash(board, alpha, beta, depth)) != valueUNKNOWN)) {
+        return score;
+    }
+
 
     // Check for UCI input
     if ((search->nodes & 2047) == 0) {
@@ -95,10 +108,13 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         COPY_BOARD(board);
 
         // Give opponent a "null" move
-        board->side ^= 1;
+        if (board->enpassant != na) board->hash_key ^= enpassant_keys[board->enpassant];
         board->enpassant = na;
+        board->side ^= 1;
+        board->hash_key ^= side_key;
+        
         // Search with reduced depth to find early beta cutoffs.
-        int score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
+        score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
 
         UNDO(board);
 
@@ -176,6 +192,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
         // Fail-hard
         if (score >= beta) {
+            record_hash(board, beta, depth, flagBETA);
             // Killer Heuristic
             if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
                 search->killer_moves[1][search->ply] = search->killer_moves[0][search->ply];
@@ -185,6 +202,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         }
 
         if (score > alpha) {
+            hash_flag = flagEXACT; 
             // History Heuristic
             if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
                 search->history[MOVE_PIECE(move_list->moves[i])][MOVE_TARGET(move_list->moves[i])] += depth;
@@ -211,6 +229,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         return 0;
     }
 
+    record_hash(board, alpha, depth, hash_flag);
     return alpha; // fails low
 }
 
