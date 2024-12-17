@@ -245,6 +245,11 @@ int quiescence(int alpha, int beta, Search *search) {
 
     search->nodes++;
 
+    if (search->ply >= MAX_PLY) {
+        // Too deep in search
+        return evaluate(board);
+    }
+
     int score = evaluate(board);
 
      // Fail-hard
