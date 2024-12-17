@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "bitboard.h"
+#include "table.h"
 
 const Bitboard NOT_A_FILE = 18374403900871474942ULL;
 const Bitboard NOT_H_FILE = 9187201950435737471ULL;
@@ -482,6 +483,7 @@ Board* create_board() {
     board->hash_key = 0ULL;
 
     init_tables(board);
+    clear_transposition_table();
     return board;
 }
 

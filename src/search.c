@@ -17,8 +17,6 @@ int search(int depth, Board *board) {
     search.stopped = 0;
     search.board = board;
 
-    clear_transposition_table();
-
     int alpha = -INT_MAX;
     int beta = INT_MAX;
     int current_depth = 1;
@@ -71,7 +69,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     int hash_flag = flagALPHA;
 
     // If the move was already searched, return the score from the previous search
-    if (((score = probe_hash(board, alpha, beta, depth)) != valueUNKNOWN)) {
+    if (search->ply != 0 && (score = probe_hash(board, alpha, beta, depth)) != valueUNKNOWN) {
         return score;
     }
 
