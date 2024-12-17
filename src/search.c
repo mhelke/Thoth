@@ -192,17 +192,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
         moves_searched++;
 
-        // Fail-hard
-        if (score >= beta) {
-            record_hash(board, beta, depth, flagBETA);
-            // Killer Heuristic
-            if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
-                search->killer_moves[1][search->ply] = search->killer_moves[0][search->ply];
-                search->killer_moves[0][search->ply] = move_list->moves[i];
-            }
-            return beta; // fails high
-        }
-
         if (score > alpha) {
             hash_flag = flagEXACT; 
             // History Heuristic
@@ -217,6 +206,17 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                 search->pv_table[search->ply][ply] = search->pv_table[search->ply + 1][ply];
             }
             search->pv_length[search->ply] = search->pv_length[search->ply + 1];
+        }
+
+        // Fail-hard
+        if (score >= beta) {
+            record_hash(board, beta, depth, flagBETA);
+            // Killer Heuristic
+            if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
+                search->killer_moves[1][search->ply] = search->killer_moves[0][search->ply];
+                search->killer_moves[0][search->ply] = move_list->moves[i];
+            }
+            return beta; // fails high
         }
     }
 
@@ -252,15 +252,14 @@ int quiescence(int alpha, int beta, Search *search) {
 
     int score = evaluate(board);
 
-     // Fail-hard
-    if (score >= beta) {
-        return beta; // fails high
-    }
-
     if (score > alpha) {
         alpha = score; // PV 
     }
 
+     // Fail-hard
+    if (score >= beta) {
+        return beta; // fails high
+    }
 
     Moves move_list[1];
     generate_moves(move_list, board);

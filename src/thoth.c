@@ -16,7 +16,7 @@
 
 int main() {
     init_hash_keys();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         Board* board = create_board();
         load_fen(test_position, board);
