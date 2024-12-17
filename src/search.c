@@ -69,7 +69,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     int hash_flag = flagALPHA;
 
     // If the move was already searched, return the score from the previous search
-    if (search->ply != 0 && (score = probe_hash(board, alpha, beta, depth)) != valueUNKNOWN) {
+    if (search->ply && (score = probe_hash(board, alpha, beta, depth, search->ply)) != valueUNKNOWN) {
         return score;
     }
 
@@ -208,7 +208,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
         // Fail-hard
         if (score >= beta) {
-            record_hash(board, beta, depth, flagBETA);
+            record_hash(board, beta, depth, search->ply, flagBETA);
             // Killer Heuristic
             if (MOVE_CAPTURE(move_list->moves[i]) == 0) {
                 search->killer_moves[1][search->ply] = search->killer_moves[0][search->ply];
@@ -222,14 +222,14 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     if (legal_move_count == 0) {
         // Checkmate
         if (check) {
-            return -50000 + search->ply; // add ply to ensure the shortest possible checkmate is always found
+            return -MATE_VALUE + search->ply; // add ply to ensure the shortest possible checkmate is always found
         }
 
         // Stalemate Draw
         return 0;
     }
 
-    record_hash(board, alpha, depth, hash_flag);
+    record_hash(board, alpha, depth, search->ply, hash_flag);
     return alpha; // fails low
 }
 

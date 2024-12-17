@@ -64,7 +64,9 @@ void clear_transposition_table() {
     }
 }
 
-void record_hash(Board* board, int score, int depth, int flag) {
+void record_hash(Board* board, int score, int depth, int ply, int flag) {
+    if (score < -MATE_SCORE) score -= ply;
+    if (score > MATE_SCORE) score += ply;
     TranspositionTable *entry = &transposition_table[board->hash_key % hashSIZE];
     entry->key = board->hash_key;
     entry->score = score;
@@ -72,18 +74,23 @@ void record_hash(Board* board, int score, int depth, int flag) {
     entry->depth = depth; 
 }
 
-int probe_hash(Board* board, int alpha, int beta, int depth) {
+int probe_hash(Board* board, int alpha, int beta, int depth, int ply) {
     TranspositionTable *entry = &transposition_table[board->hash_key % hashSIZE];
 
     if (entry->key == board->hash_key) {
         if (entry->depth >= depth) {
+
+            int score = entry->score;
+            if (score < -MATE_SCORE) score += ply;
+            if (score > MATE_SCORE) score -= ply;
+
             if (entry->flag == flagEXACT) {
-                return entry->score;
+                return score;
             }
-            if ((entry->flag == flagALPHA) && (entry->score <=alpha)) {
+            if ((entry->flag == flagALPHA) && (score <=alpha)) {
                 return alpha;
             }
-            if ((entry->flag == flagBETA) && (entry->score >= beta)) {
+            if ((entry->flag == flagBETA) && (score >= beta)) {
                 return beta;
             }
         }

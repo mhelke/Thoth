@@ -8,6 +8,9 @@
 #define flagALPHA 1
 #define flagBETA 2
 
+#define MATE_VALUE 50000
+#define MATE_SCORE 51000
+
 typedef struct {
     Bitboard key;
     int depth;
@@ -26,5 +29,5 @@ extern Bitboard side_key;
 void init_hash_keys();
 Bitboard generate_hash_key(Board*);
 void clear_transposition_table();
-void record_hash(Board*, int, int, int);
-int probe_hash(Board*, int, int, int);
+void record_hash(Board*, int, int, int, int);
+int probe_hash(Board*, int, int, int, int);
