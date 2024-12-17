@@ -45,7 +45,15 @@ int search(int depth, Board *board) {
         alpha = score - ASPIRATION_WINDOW;
         beta = score + ASPIRATION_WINDOW;
 
-        printf("info score cp %d depth %d nodes %ld pv ", score, current_depth, search.nodes);
+        // printf("info score cp %d depth %d nodes %ld pv ", score, current_depth, search.nodes);
+        if (score > -MATE_VALUE && score < -MATE_SCORE) {
+            printf("info score mate %d depth %d nodes %lld time %d pv ", -(score + MATE_VALUE) / 2 - 1, current_depth, search.nodes, get_ms() - start);
+        } else if (score > MATE_SCORE && score < MATE_VALUE) {
+            printf("info score mate %d depth %d nodes %lld time %d pv ", (MATE_VALUE - score) / 2 + 1, current_depth, search.nodes, get_ms() - start);   
+        } else {
+            printf("info score cp %d depth %d nodes %lld time %d pv ", score, current_depth, search.nodes, get_ms() - start);
+        }
+        
         for (int i = 0; i < search.pv_length[0]; i++) {
             print_move(search.pv_table[0][i]);
             printf(" ");
@@ -65,14 +73,16 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
     int score;
 
-    // Assume 
+    // Set flag to alpha unless a node is found that outscores alpha.
     int hash_flag = flagALPHA;
 
+
     // If the move was already searched, return the score from the previous search
-    if (search->ply && (score = probe_hash(board, alpha, beta, depth, search->ply)) != valueUNKNOWN) {
+    // Only read from the hash table if it is not the root ply and not the pv node.
+    int is_pv = beta-alpha > 1;
+    if (search->ply && (score = probe_hash(board, alpha, beta, depth, search->ply)) != valueUNKNOWN && !is_pv) {
         return score;
     }
-
 
     // Check for UCI input
     if ((search->nodes & 2047) == 0) {

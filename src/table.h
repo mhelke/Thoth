@@ -9,7 +9,7 @@
 #define flagBETA 2
 
 #define MATE_VALUE 50000
-#define MATE_SCORE 51000
+#define MATE_SCORE 49000
 
 typedef struct {
     Bitboard key;
