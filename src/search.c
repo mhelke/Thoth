@@ -106,6 +106,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     // Null Move Pruning
     if (depth >= REDUCTION_LIMIT && !check && search->ply) {
         COPY_BOARD(board);
+        search->ply++;
 
         // Give opponent a "null" move
         if (board->enpassant != na) board->hash_key ^= enpassant_keys[board->enpassant];
@@ -116,6 +117,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         // Search with reduced depth to find early beta cutoffs.
         score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
 
+        search->ply--;
         UNDO(board);
 
         if (search->stopped) {
