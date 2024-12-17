@@ -7,9 +7,16 @@ Thoth is a UCI-compatible chess engine written in C.
 ## Features
   * Bitboards and magic bitboards to represent the chessboard and allow for super fast and efficient move generation.
   * Alpha-Beta algorithm with quiescence search
-  * UCI compatible PV lines
-  * Move sorting
+  * Iterative deepening with aspiration window
+  * Null move pruning
+  * Late move reduction and PV search
+  * UCI compatible PV lines 
+  * Move ordering with Killer and History Heuristics
   * Zobrist hashing and transposition tables
+
+## Evaluation Metrics
+ * Material scores
+ * Piece-square tables 
   
 ## Running the Engine
 
