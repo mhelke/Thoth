@@ -28,15 +28,27 @@
 static Board* board;
 
 // Time control variables
-int quit = 0;
-int movestogo = 30;
-int movetime = -1;
-int time = -1;
-int inc = 0;
-int starttime = 0;
-int stoptime = 0;
-int timeset = 0;
-int stopped = 0;
+int quit;
+int movestogo;
+int movetime;
+int time;
+int inc;
+int starttime;
+int stoptime;
+int timeset;
+int stopped;
+
+static void reset_time() {
+    quit = 0;
+    movestogo = 30;
+    movetime = -1;
+    time = -1;
+    inc = 0;
+    starttime = 0;
+    stoptime = 0;
+    timeset = 0;
+    stopped = 0;
+}
 
 // Parse move string from UCI
 // Example move from UCI protocol: "e7e8q"
@@ -114,9 +126,10 @@ void parse_position(char *command) {
 
 // Parse the go command from UCI
 void parse_go(char *command) {
+    reset_time();
     int depth = -1;
     char *current = NULL;
-    if ((current = strstr(command,"infinite"))) { /* Let search continue until stopped by user */}
+    if ((current = strstr(command,"infinite"))) { /* Let search continue until stopped by user */ }
 
     // Black increment
     if ((current = strstr(command,"binc")) && board->side == BLACK) {
