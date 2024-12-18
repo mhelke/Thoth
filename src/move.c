@@ -454,6 +454,10 @@ int make_move(int move, int move_type, Board *board) {
             getchar();
         }
         */
+       
+        // Store position in repetition table to detect 3 fold repetition 
+        board->repetition_index++;
+        board->repetition_table[board->repetition_index] = board->hash_key;
 
         // Ensure King is not in Check
         if (is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[k] : board->bitboards[K]), board->side, board)) {

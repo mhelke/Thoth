@@ -481,6 +481,7 @@ Board* create_board() {
     board->enpassant = na;
     board->castle = 0;
     board->hash_key = 0ULL;
+    board->repetition_index = 0;
 
     init_tables(board);
     clear_transposition_table();

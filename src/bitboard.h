@@ -24,6 +24,8 @@ typedef struct {
     int enpassant;
     int castle;
     Bitboard hash_key;
+    Bitboard repetition_table[1000]; // 
+    int repetition_index;
 } Board;
 
 #define COPY_BOARD(board)                                                    \
@@ -38,7 +40,8 @@ typedef struct {
     memcpy(board->bitboards, bitboards_copy, 96);                              \
     memcpy(board->occupancies, occupancies_copy, 24);                          \
     board->side = side_copy, board->enpassant = enpassant_copy, board->castle = castle_copy; \
-    board->hash_key = hash_key_copy                                                           \
+    board->hash_key = hash_key_copy;                                                           \
+    board->repetition_index--;                                                               \
 
 Bitboard mask_pawn_attacks(int, int);
 Bitboard mask_knight_attacks(int);

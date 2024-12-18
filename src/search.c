@@ -45,7 +45,6 @@ int search(int depth, Board *board) {
         alpha = score - ASPIRATION_WINDOW;
         beta = score + ASPIRATION_WINDOW;
 
-        // printf("info score cp %d depth %d nodes %ld pv ", score, current_depth, search.nodes);
         if (score > -MATE_VALUE && score < -MATE_SCORE) {
             printf("info score mate %d depth %d nodes %lld time %d pv ", -(score + MATE_VALUE) / 2 - 1, current_depth, search.nodes, get_ms() - start);
         } else if (score > MATE_SCORE && score < MATE_VALUE) {
@@ -76,6 +75,10 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     // Set flag to alpha unless a node is found that outscores alpha.
     int hash_flag = flagALPHA;
 
+    // 3-fold repetition draw
+    if (is_repetition(board)) {
+        return DRAW_SCORE;
+    }
 
     // If the move was already searched, return the score from the previous search
     // Only read from the hash table if it is not the root ply and not the pv node.
@@ -115,6 +118,8 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     if (depth >= REDUCTION_LIMIT && !check && search->ply) {
         COPY_BOARD(board);
         search->ply++;
+        board->repetition_index++;
+        board->repetition_table[board->repetition_index] = board->hash_key;
 
         // Give opponent a "null" move
         if (board->enpassant != na) board->hash_key ^= enpassant_keys[board->enpassant];
@@ -154,7 +159,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         if (make_move(move_list->moves[i], ALL_MOVES, board) == 0) {
             // illegal move
             search->ply--;
-            UNDO(board);
             continue;
         }
         legal_move_count++;
@@ -236,7 +240,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         }
 
         // Stalemate Draw
-        return 0;
+        return DRAW_SCORE;
     }
 
     record_hash(board, alpha, depth, search->ply, hash_flag);
@@ -282,7 +286,6 @@ int quiescence(int alpha, int beta, Search *search) {
         if (make_move(move_list->moves[i], CAPTURES, board) == 0) {
             // Not a capture
             search->ply--;
-            UNDO(board);
             continue;
         }
 
@@ -305,6 +308,19 @@ int quiescence(int alpha, int beta, Search *search) {
     }
 
     return alpha; // fail low
+}
+
+// Check for 3-fold repetition
+// Note we actually only check for a single repetition because if the engine chooses a repetition node,
+// it will continue to repeat moves under the assumption it's the "best" move.
+// As a result, this also cuts down on nodes. 
+int is_repetition(Board* board) {
+    for (int i = 0; i < board->repetition_index; i++) {
+        if (board->repetition_table[i] == board->hash_key) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /******** Most valuable victim/least valuable attacker (MVV-LVA) ********

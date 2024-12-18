@@ -15,6 +15,8 @@
 #define REDUCTION 2
 #define ASPIRATION_WINDOW 50
 
+#define DRAW_SCORE 0
+
 typedef struct {
     int ply;
     // int best_move;
@@ -36,5 +38,6 @@ void print_move_scores(Moves*);
 int sort_moves(Moves*, Search*);
 void pv_scoring(Moves*, Search*);
 int can_reduce(int, int);
+int is_repetition(Board*);
 
 #endif
