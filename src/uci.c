@@ -81,10 +81,6 @@ int parse_move(const char *str) {
 // Example commands: `position startpos`, `position fen <FEN_STRING>`
 // The command can also include moves: `position startpos moves e2e4 e7e5`
 void parse_position(char *command) {
-    if (board != NULL) {
-        free_board(board);
-    }
-    board = create_board();
     command += 9; // shift pointer to position argument
     char *current = command;
 
@@ -242,9 +238,11 @@ int parse_line() {
 }
 
 void uci_main() {
+    board = create_board();
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
     while (parse_line());
+    free_board(board);
 }
 
 /************************************************
