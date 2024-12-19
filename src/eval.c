@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "eval.h"
 #include "bitboard.h"
 #include "move.h"
@@ -234,6 +235,72 @@ const int POSITION_KING[64] =
      0,   5,   5,  -5,  -5,   0,   5,   0,
      0,   0,   5,   0, -15,   0,  10,   0
 };
+
+// Files
+Bitboard file_masks[64];
+Bitboard rank_masks[64];
+Bitboard isolated_masks[64];
+Bitboard white_passed_masks[64];
+Bitboard black_passed_masks[64];
+
+Bitboard set_masks(int file, int rank) {
+    Bitboard mask = 0ULL;
+
+    for (int r = 0; r < 8; r++) {
+        for (int f = 0; f < 8; f++) {
+            int square = SQUARE_INDEX(r, f);
+
+            if (file != -1) {
+                if (f == file) {
+                    mask |= SET_BIT(mask, square);
+                }
+            } else if (rank != -1) {
+                if (r == rank) {
+                    mask |= SET_BIT(mask, square);
+                }
+            }
+        }
+    }
+
+    return mask;
+}
+
+void set_evaluation_masks() {
+    for (int r = 0; r < 8; r++) {
+        for (int f = 0; f < 8; f++) {
+            int square = SQUARE_INDEX(r, f);
+            file_masks[square] |= set_masks(f, -1);
+            rank_masks[square] |= set_masks(-1, r);
+
+            isolated_masks[square] |= set_masks(f-1, -1);
+            isolated_masks[square] |= set_masks(f+1, -1);
+
+            white_passed_masks[square] |= set_masks(f - 1, -1);
+            white_passed_masks[square] |= set_masks(f, -1);
+            white_passed_masks[square] |= set_masks(f + 1, -1);
+
+            black_passed_masks[square] |= set_masks(f - 1, -1);
+            black_passed_masks[square] |= set_masks(f, -1);
+            black_passed_masks[square] |= set_masks(f + 1, -1);
+        }
+    }
+
+    for (int r = 0; r < 8; r++) {
+        for (int f = 0; f < 8; f++) {
+            int square = SQUARE_INDEX(r, f);
+            for (int i = 0; i < (8 - r); i++) {
+                white_passed_masks[square] &= ~rank_masks[(7 - i) * 8 + f]; 
+            }
+            for (int i = 0; i < r + 1; i++) {
+                black_passed_masks[square] &= ~rank_masks[i * 8 + f];
+            }
+        }
+    }
+}
+
+void init_masks() {
+    set_evaluation_masks();
+} 
 
 int material_score[12] = {
     100,      // white pawn score
