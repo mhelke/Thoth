@@ -11,12 +11,14 @@
 #include "move.h"
 #include "search.h"
 #include "table.h"
+#include "eval.h"
 
 #define test_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
 #define mate_position "8/8/8/8/8/K7/Q7/7k w - 0 1 "
 
 int main() {
     init_hash_keys();
+    init_evaluation_masks();
     int debug = 0;
     if (debug) {
         Board* board = create_board();

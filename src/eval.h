@@ -3,5 +3,13 @@
 
 #include "bitboard.h"
 
+extern Bitboard file_masks[64];
+extern Bitboard rank_masks[64];
+extern Bitboard isolated_masks[64];
+extern Bitboard white_passed_masks[64];
+extern Bitboard black_passed_masks[64];
+
 int evaluate(Board*);
+void init_evaluation_masks();
+
 #endif

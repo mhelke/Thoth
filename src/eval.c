@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "eval.h"
 #include "bitboard.h"
 #include "move.h"
@@ -236,7 +235,6 @@ const int POSITION_KING[64] =
      0,   0,   5,   0, -15,   0,  10,   0
 };
 
-// Files
 Bitboard file_masks[64];
 Bitboard rank_masks[64];
 Bitboard isolated_masks[64];
@@ -249,23 +247,18 @@ Bitboard set_masks(int file, int rank) {
     for (int r = 0; r < 8; r++) {
         for (int f = 0; f < 8; f++) {
             int square = SQUARE_INDEX(r, f);
-
-            if (file != -1) {
-                if (f == file) {
-                    mask |= SET_BIT(mask, square);
-                }
-            } else if (rank != -1) {
-                if (r == rank) {
-                    mask |= SET_BIT(mask, square);
-                }
+            if (file != -1 && f == file) {
+                mask |= SET_BIT(mask, square);
+            } 
+            if (rank != -1 && r == rank) {
+                mask |= SET_BIT(mask, square);
             }
         }
     }
-
     return mask;
 }
 
-void set_evaluation_masks() {
+void init_evaluation_masks() {
     for (int r = 0; r < 8; r++) {
         for (int f = 0; f < 8; f++) {
             int square = SQUARE_INDEX(r, f);
@@ -298,10 +291,6 @@ void set_evaluation_masks() {
     }
 }
 
-void init_masks() {
-    set_evaluation_masks();
-} 
-
 int material_score[12] = {
     100,      // white pawn score
     300,      // white knight scrore
@@ -317,8 +306,24 @@ int material_score[12] = {
  -10000,      // black king score
 };
 
+const int square_to_rank[64] = {
+    7, 7, 7, 7, 7, 7, 7, 7,
+    6, 6, 6, 6, 6, 6, 6, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    4, 4, 4, 4, 4, 4, 4, 4,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    1, 1, 1, 1, 1, 1, 1, 1,
+	0, 0, 0, 0, 0, 0, 0, 0
+};
+
+const int double_pawn_penalty = -10;
+const int isolated_pawn_penalty = -10;
+const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 }; 
+
 int evaluate(Board *board) {
     int score = 0;
+    int double_pawns;
     for (int piece = P; piece <= k; piece++) {
         Bitboard bitboard = board->bitboards[piece];
         while (bitboard) {
@@ -329,13 +334,39 @@ int evaluate(Board *board) {
 
             // Position
             switch (piece) {
-                case P: score += POSITION_PAWN[square]; break;
+                case P:
+                    score += POSITION_PAWN[square]; 
+                    double_pawns = count_bits(board->bitboards[P] & file_masks[square]);
+                    if (double_pawns > 1) {
+                        score += double_pawns * double_pawn_penalty;
+                    }
+                    if ((board->bitboards[P] & isolated_masks[square]) == 0) {
+                        score += isolated_pawn_penalty;
+                    }
+                    if ((white_passed_masks[square] & board->bitboards[p]) == 0) {
+                        score += passed_pawn_bonus[square_to_rank[square]];
+                    }
+                    break;
                 case N: score += POSITION_KNIGHT[square]; break;
                 case B: score += POSITION_BISHOP[square]; break;
                 case R: score += POSITION_ROOK[square]; break;
                 // case Q: score += POSITION_QUEEN[square]; break;
                 case K: score += POSITION_KING[square]; break;
-                case p: score -= POSITION_PAWN[MIRROR(square)]; break;
+                case p: 
+                    score -= POSITION_PAWN[MIRROR(square)]; 
+                    double_pawns = count_bits(board->bitboards[p] & file_masks[square]);
+                    if (double_pawns > 1) {
+                        score -= double_pawns * double_pawn_penalty;
+                    }
+                    
+                    if ((board->bitboards[p] & isolated_masks[square]) == 0) {
+                        score -= isolated_pawn_penalty;
+                    }
+                    
+                    if ((black_passed_masks[square] & board->bitboards[P]) == 0) {
+                        score -= passed_pawn_bonus[square_to_rank[MIRROR(square)]];
+                    }
+                    break;
                 case n: score -= POSITION_KNIGHT[MIRROR(square)]; break;
                 case b: score -= POSITION_BISHOP[MIRROR(square)]; break;
                 case r: score -= POSITION_ROOK[MIRROR(square)]; break;
