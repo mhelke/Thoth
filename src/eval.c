@@ -351,7 +351,10 @@ int evaluate(Board *board) {
                     }
                     break;
                 case N: score += POSITION_KNIGHT[square]; break;
-                case B: score += POSITION_BISHOP[square]; break;
+                case B: 
+                    score += POSITION_BISHOP[square];
+                    score += count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
+                    break;
                 case R:
                     // Bonus for rooks on open files
                     if ((board->bitboards[P] & file_masks[square]) == 0) {
@@ -362,7 +365,10 @@ int evaluate(Board *board) {
                     }
                     score += POSITION_ROOK[square]; 
                     break;
-                // case Q: score += POSITION_QUEEN[square]; break;
+                case Q:
+                    score += count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
+                    // score += POSITION_QUEEN[square];
+                    break;
                 case K:
                     // Penalty for kings on exposed files
                     if ((board->bitboards[P] & file_masks[square]) == 0) {
@@ -389,7 +395,10 @@ int evaluate(Board *board) {
                     }
                     break;
                 case n: score -= POSITION_KNIGHT[MIRROR(square)]; break;
-                case b: score -= POSITION_BISHOP[MIRROR(square)]; break;
+                case b:
+                    score -= count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
+                    score -= POSITION_BISHOP[MIRROR(square)];
+                    break;
                 case r:
                     // Bonus for rooks on open files
                     if ((board->bitboards[p] & file_masks[square]) == 0) {
@@ -400,7 +409,10 @@ int evaluate(Board *board) {
                     } 
                     score -= POSITION_ROOK[MIRROR(square)]; 
                     break;
-                // case q: score -= POSITION_QUEEN[MIRROR(square)]; break;
+                case q:
+                    score -= count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
+                    // score -= POSITION_QUEEN[MIRROR(square)]; 
+                    break;
                 case k:
                 // Penalty for kings on exposed files
                     if ((board->bitboards[p] & file_masks[square]) == 0) {
@@ -415,60 +427,5 @@ int evaluate(Board *board) {
             POP_BIT(bitboard, square);
         }
     }
-    // score += evaluate_mobility();
     return (board->side == WHITE) ? score : -score;
 }
-
-// int evaluate_mobility() {
-//     int score = 0;
-
-//     COPY_BOARD();
-//     side = WHITE;
-//     Moves move_list[1];
-//     generate_moves(move_list);  // Generate all moves for the side
-//     // Evaluate mobility for white pieces
-//     for (int piece = P; piece <= K; piece++) {
-//         if (bitboards[piece]) { // Check if there are any pieces of this type on the board
-//             int piece_count = 0;  // Initialize a counter for this piece type
-//             // Count mobility for this piece type
-//             for (int i = 0; i < move_list->count; i++) {
-//                 if (MOVE_PIECE(move_list->moves[i]) == piece) {
-//                     piece_count++;
-//                 }
-//             }
-//             score += piece_count * mobility_weight(piece);  // Weight mobility
-//         }
-//     }
-    
-//     side = BLACK;
-//     memset(move_list->moves, 0, sizeof(move_list->moves));
-//     move_list->count = 0;
-//     generate_moves(move_list);  // Generate all moves for the side
-//     // Evaluate mobility for black pieces
-//     for (int piece = p; piece <= k; piece++) {
-//         if (bitboards[piece]) { // Check if there are any pieces of this type on the board
-//             int piece_count = 0;  // Initialize a counter for this piece type
-
-//             // Count mobility for this piece type
-//             for (int i = 0; i < move_list->count; i++) {
-//                 if (MOVE_PIECE(move_list->moves[i]) == piece) {
-//                     piece_count++;
-//                 }
-//             }
-//             score -= piece_count * mobility_weight(piece);  // Weight mobility
-//         }
-//     }
-//     UNDO();
-//     return score;
-// }
-
-// // Function to assign weights to different pieces' mobility
-// int mobility_weight(int piece) {
-//     switch (piece) {
-//         case N: case n: return 5;
-//         case B: case b: return 5;
-//         case R: case r: return 2;
-//         case Q: case q: return 1;
-//         default: return 0;
-//     }
-// }
