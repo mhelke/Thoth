@@ -321,6 +321,9 @@ const int double_pawn_penalty = -10;
 const int isolated_pawn_penalty = -10;
 const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 }; 
 
+const int half_open_file_score = 10;
+const int open_file_score = 15;
+
 int evaluate(Board *board) {
     int score = 0;
     int double_pawns;
@@ -349,7 +352,15 @@ int evaluate(Board *board) {
                     break;
                 case N: score += POSITION_KNIGHT[square]; break;
                 case B: score += POSITION_BISHOP[square]; break;
-                case R: score += POSITION_ROOK[square]; break;
+                case R:
+                     if ((board->bitboards[P] & file_masks[square]) == 0) {
+                        score += half_open_file_score;
+                     }
+                     if ((board->bitboards[P] | board->bitboards[p] & file_masks[square]) == 0) {
+                        score += open_file_score;
+                     }
+                    score += POSITION_ROOK[square]; 
+                    break;
                 // case Q: score += POSITION_QUEEN[square]; break;
                 case K: score += POSITION_KING[square]; break;
                 case p: 
@@ -369,7 +380,15 @@ int evaluate(Board *board) {
                     break;
                 case n: score -= POSITION_KNIGHT[MIRROR(square)]; break;
                 case b: score -= POSITION_BISHOP[MIRROR(square)]; break;
-                case r: score -= POSITION_ROOK[MIRROR(square)]; break;
+                case r:
+                    if ((board->bitboards[p] & file_masks[square]) == 0) {
+                        score -= half_open_file_score;
+                     }
+                     if ((board->bitboards[P] | board->bitboards[p] & file_masks[square]) == 0) {
+                        score -= open_file_score;
+                     } 
+                    score -= POSITION_ROOK[MIRROR(square)]; 
+                    break;
                 // case q: score -= POSITION_QUEEN[MIRROR(square)]; break;
                 case k: score -= POSITION_KING[MIRROR(square)]; break;
             }
