@@ -324,7 +324,7 @@ const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 };
 const int half_open_file_score = 10;
 const int open_file_score = 15;
 
-const king_safety_bonus = 5;
+const int king_safety_bonus = 5;
 
 int evaluate(Board *board) {
     int score = 0;
