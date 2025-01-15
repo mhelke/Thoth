@@ -324,6 +324,8 @@ const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 };
 const int half_open_file_score = 10;
 const int open_file_score = 15;
 
+const king_safety_bonus = 5;
+
 int evaluate(Board *board) {
     int score = 0;
     int double_pawns;
@@ -377,7 +379,9 @@ int evaluate(Board *board) {
                     if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
                        score -= open_file_score;
                     } 
-                    score += POSITION_KING[square]; 
+                    score += POSITION_KING[square];
+                    // Pieces in front of king protecting it
+                    score += count_bits(board->king_attacks[square] & board->occupancies[WHITE]) * king_safety_bonus;
                     break;
                 case p: 
                     score -= POSITION_PAWN[MIRROR(square)]; 
@@ -414,7 +418,7 @@ int evaluate(Board *board) {
                     // score -= POSITION_QUEEN[MIRROR(square)]; 
                     break;
                 case k:
-                // Penalty for kings on exposed files
+                    // Penalty for kings on exposed files
                     if ((board->bitboards[p] & file_masks[square]) == 0) {
                         score += half_open_file_score;
                      }
@@ -422,6 +426,8 @@ int evaluate(Board *board) {
                        score += open_file_score;
                     }  
                     score -= POSITION_KING[MIRROR(square)];
+                    // Pieces in front of king protecting it
+                    score -= count_bits(board->king_attacks[square] & board->occupancies[BLACK]) * king_safety_bonus;
                     break;
             }
             POP_BIT(bitboard, square);
