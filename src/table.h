@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "bitboard.h"
 
-#define hashSIZE 0x400000 // TODO: This should dynamically allocate memory
+#define hashSIZE 80000 // TODO: This should dynamically allocate memory
 #define valueUNKNOWN INT_MAX
 
 #define flagEXACT 0
