@@ -17,7 +17,9 @@ Thoth is a UCI-compatible chess engine written in C.
 ## Evaluation Metrics
  * Material scores
  * Piece-square tables
+ * Mobility
  * Pawn structure
+ * King safety
   
 ## Running the Engine
 
