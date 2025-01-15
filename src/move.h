@@ -24,6 +24,11 @@
 #define MOVE_ENPASSANT(move) ((move & ENPASSANT) >> 22)
 #define MOVE_CASTLE(move) ((move & CASTLE) >> 23)
 
+typedef struct {
+    int moves[256];
+    int count;
+} Moves;
+
 static const char promoted_pieces[] = {
     [Q] = 'q',
     [R] = 'r',
@@ -35,18 +40,12 @@ static const char promoted_pieces[] = {
     [n] = 'n',
 };
 
-typedef struct {
-    int moves[256];
-    int count;
-} Moves;
-
 enum {ALL_MOVES, CAPTURES };
 
 void print_move(int);
 void print_move_list(Moves*);
 void add_move(Moves*, int);
 int make_move(int, int, Board*);
-
 void generate_moves(Moves*, Board*);
 void generate_pawn_moves(int, Moves*, Board*);
 void generate_castling_moves(int, Moves*, Board*);

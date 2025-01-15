@@ -7,4 +7,5 @@
 void perft(int, Board*);
 void perft_test(char*, int, const unsigned long long*, Board*);
 void perft_tests();
+
 #endif

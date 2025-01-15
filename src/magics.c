@@ -2,11 +2,14 @@
 #include <stdio.h>
 
 #include "magics.h"
-/* 
-This approach attempts to find magic numbers by trying random numbers with a low number of non-zero bits by brute force.
-This code is not run with the engine, but was used to generate the magic numbers seen in [bitboard.c].
+/** 
+* This approach attempts to find magic numbers by trying random numbers with a low number of non-zero bits by brute force.
+* This code is not run with the engine, but was used to generate the magic numbers seen in [bitboard.c].
 
-Credit for magic generation approach: https://www.chessprogramming.org/Looking_for_Magics#Feeding_in_Randoms
+*************************************************************************
+* Credit to Tord Romstad for this approach 
+* https://www.chessprogramming.org/Looking_for_Magics#Feeding_in_Randoms
+*************************************************************************
 */
 
 unsigned int state = 1804289383; // random starting number
@@ -106,13 +109,11 @@ void _init_magic_bitboards() {
     // Rook
     for (int square = 0; square < 64; square++) {
         _rook_magics[square] = _find_magic_bitboard(square, rook_relevant_bits[square], ROOK);
-        // printf(" 0x%llxULL\n", _find_magic_bitboard(square, rook_relevant_bits[square], ROOK));
     }
 
     // Bishop
     for (int square = 0; square < 64; square++) {
         // Bishop
         _bishop_magics[square] = _find_magic_bitboard(square, bishop_relevant_bits[square], BISHOP);
-        // printf(" 0x%llxULL\n", _find_magic_bitboard(square, bishop_relevant_bits[square], BISHOP));
     }
 }

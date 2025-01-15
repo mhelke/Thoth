@@ -7,14 +7,11 @@
 #define BONUS_KILLER 9000
 #define BONUS_SECOND_KILLER 8000
 #define BONUS_CAPTURE 10000
-
 #define MAX_PLY 64
-
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
 #define REDUCTION 2
 #define ASPIRATION_WINDOW 50
-
 #define DRAW_SCORE 0
 
 typedef struct {

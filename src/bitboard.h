@@ -57,10 +57,8 @@ Bitboard get_queen_attacks(int, Bitboard, Board*);
 
 Board* create_board();
 void free_board(Board *board);
-
 void init_siders(int, Board*);
 void init_tables(Board*);
-
 void print_bitboard(Bitboard);
 
 // count total bits in the bitboard  
@@ -98,9 +96,6 @@ static const char *square[] = {
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 };
 
-extern char ascii_pieces[12];
-extern int char_pieces[];
-
 // Board representation
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
@@ -128,5 +123,7 @@ extern const Bitboard bishop_magics[64];
 extern const Bitboard rook_magics[64];
 extern const int bishop_relevant_bits[64];
 extern const int rook_relevant_bits[64];
+extern char ascii_pieces[12];
+extern int char_pieces[];
 
 #endif

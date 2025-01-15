@@ -21,13 +21,13 @@ typedef struct {
 
 extern TranspositionTable transposition_table[hashSIZE]; 
 
-extern Bitboard piece_keys[12][64];
-extern Bitboard enpassant_keys[64];
-extern Bitboard castling_keys[16];
-extern Bitboard side_key;
-
 void init_hash_keys();
 Bitboard generate_hash_key(Board*);
 void clear_transposition_table();
 void record_hash(Board*, int, int, int, int);
 int probe_hash(Board*, int, int, int, int);
+
+extern Bitboard piece_keys[12][64];
+extern Bitboard enpassant_keys[64];
+extern Bitboard castling_keys[16];
+extern Bitboard side_key;
