@@ -353,16 +353,26 @@ int evaluate(Board *board) {
                 case N: score += POSITION_KNIGHT[square]; break;
                 case B: score += POSITION_BISHOP[square]; break;
                 case R:
-                     if ((board->bitboards[P] & file_masks[square]) == 0) {
-                        score += half_open_file_score;
-                     }
-                     if ((board->bitboards[P] | board->bitboards[p] & file_masks[square]) == 0) {
-                        score += open_file_score;
-                     }
+                    // Bonus for rooks on open files
+                    if ((board->bitboards[P] & file_masks[square]) == 0) {
+                       score += half_open_file_score;
+                    }
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                       score += open_file_score;
+                    }
                     score += POSITION_ROOK[square]; 
                     break;
                 // case Q: score += POSITION_QUEEN[square]; break;
-                case K: score += POSITION_KING[square]; break;
+                case K:
+                    // Penalty for kings on exposed files
+                    if ((board->bitboards[P] & file_masks[square]) == 0) {
+                        score -= half_open_file_score;
+                    }
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                       score -= open_file_score;
+                    } 
+                    score += POSITION_KING[square]; 
+                    break;
                 case p: 
                     score -= POSITION_PAWN[MIRROR(square)]; 
                     double_pawns = count_bits(board->bitboards[p] & file_masks[square]);
@@ -381,16 +391,26 @@ int evaluate(Board *board) {
                 case n: score -= POSITION_KNIGHT[MIRROR(square)]; break;
                 case b: score -= POSITION_BISHOP[MIRROR(square)]; break;
                 case r:
+                    // Bonus for rooks on open files
                     if ((board->bitboards[p] & file_masks[square]) == 0) {
-                        score -= half_open_file_score;
-                     }
-                     if ((board->bitboards[P] | board->bitboards[p] & file_masks[square]) == 0) {
-                        score -= open_file_score;
-                     } 
+                       score -= half_open_file_score;
+                    }
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                       score -= open_file_score;
+                    } 
                     score -= POSITION_ROOK[MIRROR(square)]; 
                     break;
                 // case q: score -= POSITION_QUEEN[MIRROR(square)]; break;
-                case k: score -= POSITION_KING[MIRROR(square)]; break;
+                case k:
+                // Penalty for kings on exposed files
+                    if ((board->bitboards[p] & file_masks[square]) == 0) {
+                        score += half_open_file_score;
+                     }
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                       score += open_file_score;
+                    }  
+                    score -= POSITION_KING[MIRROR(square)];
+                    break;
             }
             POP_BIT(bitboard, square);
         }
