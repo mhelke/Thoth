@@ -31,7 +31,7 @@ int search(int depth, Board *board) {
         score = negamax(alpha, beta, current_depth, &search);
 
         // Aspiration Window
-        // TODO: Watch for search instability with this and adjust as needed.
+        // Note - wtch for search instability with this and adjust as needed.
         // Assume the score in the next iteration is not likely to be much different from this iteration's score.
         // This produces more beta cutoffs, leading to reduced nodes searched.
 
@@ -45,20 +45,21 @@ int search(int depth, Board *board) {
         alpha = score - ASPIRATION_WINDOW;
         beta = score + ASPIRATION_WINDOW;
 
-        if (score > -MATE_VALUE && score < -MATE_SCORE) {
-            printf("info score mate %d depth %d nodes %lld time %d pv ", -(score + MATE_VALUE) / 2 - 1, current_depth, search.nodes, get_ms() - start);
-        } else if (score > MATE_SCORE && score < MATE_VALUE) {
-            printf("info score mate %d depth %d nodes %lld time %d pv ", (MATE_VALUE - score) / 2 + 1, current_depth, search.nodes, get_ms() - start);   
-        } else {
-            printf("info score cp %d depth %d nodes %lld time %d pv ", score, current_depth, search.nodes, get_ms() - start);
+        if (search.pv_length[0]) {
+            if (score > -MATE_VALUE && score < -MATE_SCORE) {
+                printf("info score mate %d depth %d nodes %lld time %d pv ", -(score + MATE_VALUE) / 2 - 1, current_depth, search.nodes, get_ms() - start);
+            } else if (score > MATE_SCORE && score < MATE_VALUE) {
+                printf("info score mate %d depth %d nodes %lld time %d pv ", (MATE_VALUE - score) / 2 + 1, current_depth, search.nodes, get_ms() - start);   
+            } else {
+                printf("info score cp %d depth %d nodes %lld time %d pv ", score, current_depth, search.nodes, get_ms() - start);
+            }
+            for (int i = 0; i < search.pv_length[0]; i++) {
+                print_move(search.pv_table[0][i]);
+                printf(" ");
+            }
+            printf("\n");
+            current_depth++;
         }
-        
-        for (int i = 0; i < search.pv_length[0]; i++) {
-            print_move(search.pv_table[0][i]);
-            printf(" ");
-        }
-        printf("\n");
-        current_depth++;
     }
     printf("bestmove ");
     print_move(search.pv_table[0][0]);

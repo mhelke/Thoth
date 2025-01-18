@@ -188,7 +188,7 @@ void parse_go(char *command) {
         depth = 64;
     }
 
-    printf("time: %d start: %d stop: %d depth: %d timeset: %d\n",
+    printf("time: %d start: %u stop: %u depth: %d timeset: %d\n",
     time, starttime, stoptime, depth, timeset);
     stopped = 0;
     search(depth, board);
