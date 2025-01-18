@@ -25,6 +25,8 @@
 #include "uci.h"
 #include "util.h"
 
+#define version "0.1"
+
 static Board* board;
 
 // Time control variables
@@ -193,7 +195,7 @@ void parse_go(char *command) {
 }
 
 void set_info() {
-    printf("id name Thoth\n");
+    printf("id name Thoth %s\n", version);
     printf("id author Matthew Helke\n");
     printf("uciok\n");
 }
