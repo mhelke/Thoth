@@ -484,6 +484,7 @@ Board* create_board() {
     board->repetition_index = 0;
 
     init_tables(board);
+    init_hash_table(64); // 64MB
     clear_transposition_table();
     return board;
 }

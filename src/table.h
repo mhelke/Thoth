@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "bitboard.h"
 
-#define hashSIZE 80000 // TODO: This should dynamically allocate memory
 #define valueUNKNOWN INT_MAX
 
 #define flagEXACT 0
@@ -19,9 +18,8 @@ typedef struct {
     int best_move;
 } TranspositionTable;
 
-extern TranspositionTable transposition_table[hashSIZE]; 
-
 void init_hash_keys();
+void init_hash_table(int);
 Bitboard generate_hash_key(Board*);
 void clear_transposition_table();
 void record_hash(Board*, int, int, int, int);

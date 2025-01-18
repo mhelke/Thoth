@@ -24,8 +24,12 @@
 #include "search.h"
 #include "uci.h"
 #include "util.h"
+#include "table.h"
 
 #define version "0.1"
+#define MAX_HASH 128
+#define MIN_HASH 4
+int hash_size = 64;
 
 static Board* board;
 
@@ -197,6 +201,7 @@ void parse_go(char *command) {
 void set_info() {
     printf("id name Thoth %s\n", version);
     printf("id author Matthew Helke\n");
+    printf("option name Hash type spin default %d min %d max %d\n", hash_size, MIN_HASH, MAX_HASH);
     printf("uciok\n");
 }
 
@@ -235,6 +240,20 @@ int parse_line() {
     }
     if (strncmp(input, "uci", 3) == 0) {
         set_info();
+        return 1;
+    }
+    if (strncmp(input, "setoption name Hash value ", 26) == 0) {
+        sscanf(input + 26, "%d", &hash_size);
+
+        // Update hash size if out of bounds
+        if (hash_size < MIN_HASH) {
+            hash_size = MIN_HASH;
+        } else if (hash_size > MAX_HASH) {
+            hash_size = MAX_HASH;
+        }
+
+        printf("Set hash size to %dMB\n", hash_size);
+        init_hash_table(hash_size);
         return 1;
     }
 }

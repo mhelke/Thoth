@@ -8,7 +8,8 @@ Bitboard enpassant_keys[64];
 Bitboard castling_keys[16];
 Bitboard side_key;
 
-TranspositionTable transposition_table[hashSIZE]; 
+int hash_entries = 0;
+TranspositionTable *transposition_table = NULL; 
 
 void init_hash_keys() {
     for (int piece = P; piece <= k; piece++) {
@@ -23,6 +24,25 @@ void init_hash_keys() {
         castling_keys[i] = generate_random_U64_number();
     }   
     side_key = generate_random_U64_number();
+}
+
+void init_hash_table(int mb) {
+    int hash_size = 0x100000 * mb;
+    hash_entries = hash_size / sizeof(transposition_table);
+
+    if (transposition_table != NULL) {
+        free(transposition_table);
+    }
+
+    transposition_table = (TranspositionTable *) malloc(hash_entries * sizeof(TranspositionTable));
+    
+    if (transposition_table == NULL) {
+        printf("Error allocating hash table with %dMB!\n", mb);
+        init_hash_table(mb/2);
+        return;
+    }
+    clear_transposition_table();
+    printf("Hash table allocated with %dMB and %d entries\n", mb, hash_entries);
 }
 
 Bitboard generate_hash_key(Board* board) {
@@ -55,19 +75,21 @@ Bitboard generate_hash_key(Board* board) {
 }
 
 void clear_transposition_table() {
-    for (int i = 0; i < hashSIZE; i++) {
-        transposition_table[i].key = 0;
-        transposition_table[i].depth = 0;
-        transposition_table[i].flag = 0;
-        transposition_table[i].score = 0;
-        transposition_table[i].best_move = 0;
+    TranspositionTable *entry;
+
+    for (entry = transposition_table; entry < transposition_table + hash_entries; entry++) {
+        entry->key = 0;
+        entry->depth = 0;
+        entry->flag = 0;
+        entry->score = 0;
+        entry -> best_move = 0;
     }
 }
 
 void record_hash(Board* board, int score, int depth, int ply, int flag) {
     if (score < -MATE_SCORE) score -= ply;
     if (score > MATE_SCORE) score += ply;
-    TranspositionTable *entry = &transposition_table[board->hash_key % hashSIZE];
+    TranspositionTable *entry = &transposition_table[board->hash_key % hash_entries];
     entry->key = board->hash_key;
     entry->score = score;
     entry->flag = flag;
@@ -75,7 +97,7 @@ void record_hash(Board* board, int score, int depth, int ply, int flag) {
 }
 
 int probe_hash(Board* board, int alpha, int beta, int depth, int ply) {
-    TranspositionTable *entry = &transposition_table[board->hash_key % hashSIZE];
+    TranspositionTable *entry = &transposition_table[board->hash_key % hash_entries];
 
     if (entry->key == board->hash_key) {
         if (entry->depth >= depth) {
