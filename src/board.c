@@ -17,6 +17,12 @@ void reset_board(Board *board) {
     clear_transposition_table();
 }
 
+/**
+ * Setup the board using a provided FEN.
+ * 
+ * FEN is used to describe a position in a one-line ASCII string. This is how the GUI communicates the position to the engine.
+ * Reference: https://www.chessprogramming.org/Forsyth-Edwards_Notation
+*/
 void load_fen(char* fen, Board *board) {
     reset_board(board);
 
@@ -26,6 +32,7 @@ void load_fen(char* fen, Board *board) {
     int file = 0;
     for (; i < n; i++) {
         int done = 0;
+        // Piece placement
         switch (fen[i]) {
             case 'P': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
             case 'N': SET_BIT(board->bitboards[char_pieces[fen[i]]], (SQUARE_INDEX(rank, file++))); break;
@@ -59,6 +66,7 @@ void load_fen(char* fen, Board *board) {
         }
     }
     i++;
+    // Side to move
     switch (fen[i++]) {
         case 'w':
             board->side = WHITE;
@@ -69,6 +77,7 @@ void load_fen(char* fen, Board *board) {
         default: return;
     }
     i++;
+    // Castling rights
     board->castle = 0;
     for (; i < n; i++) {
         int done = 0;
@@ -86,6 +95,7 @@ void load_fen(char* fen, Board *board) {
         }
     }
     i++;
+    // En passant square
     if (fen[i] == '-') {
         board->enpassant = na;
         i++;
@@ -100,6 +110,22 @@ void load_fen(char* fen, Board *board) {
     } else {
         board->enpassant = na;
     }
+    i++;
+    // Halfmove clock (50-move rule counter)
+    if (fen[i]) {
+        int halfmove = 0;
+        while (fen[i] != ' ') {
+            halfmove = halfmove * 10 + (fen[i] - '0');
+            i++;
+        }
+        board->fifty_move_rule_counter = halfmove;
+    }
+
+    /* 
+        The final piece of the FEN string is the fullmove counter.
+        The engine does not need to know what move number it is, so this value is ignored.
+        If there becomes a need for this value, it can be implemented here.
+    */
 
     for (int piece = P; piece <= K; piece++) {
         board->occupancies[WHITE] |= board->bitboards[piece];
@@ -113,40 +139,36 @@ void load_fen(char* fen, Board *board) {
 
     board->hash_key = generate_hash_key(board);
     i++;
+    printf("50 move rule counter: %d\n", board->fifty_move_rule_counter);
 }
 
+/**
+ * Print the board to the console.
+ * 
+ * This function is only used for debugging purposes.
+ */
 void print_board(Board *board) {
     printf("\n");
-
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
             int square = SQUARE_INDEX(rank, file);;
-            
             if (!file) {
                 printf("  %d ", 8 - rank);
             }
-            
             int piece = -1;
-            
-            // Loop over all bitboards for each piece type and get the bit
             for (int i = P; i <= k; i++) {
                 if (GET_BIT(board->bitboards[i], square)) {
                     piece = i;
                 }
-            }
-            // Print the piece notation for the given bitboard 
+            } 
             printf("  %c", (piece == -1) ? '.' : ascii_pieces[piece]);
         }
         printf("\n");
     }
     
-    // print board files
-    printf("\n      a  b  c  d  e  f  g  h\n\n");
-    
+    printf("\n      a  b  c  d  e  f  g  h\n\n");    
     printf("Side to move:\t %s\n", !board->side ? "White" : "Black");
-    
     printf("Enpassant:\t %s\n", (board->enpassant != na) ? square[board->enpassant] : "N/A");
-    
     printf("Castle:\t\t %c%c%c%c\n\n", (board->castle & WK) ? 'K' : '-',
                                            (board->castle & WQ) ? 'Q' : '-',
                                            (board->castle & BK) ? 'k' : '-',

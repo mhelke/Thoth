@@ -31,7 +31,7 @@ int search(int depth, Board *board) {
         score = negamax(alpha, beta, current_depth, &search);
 
         // Aspiration Window
-        // Note - wtch for search instability with this and adjust as needed.
+        // Note - watch for search instability with this and adjust as needed.
         // Assume the score in the next iteration is not likely to be much different from this iteration's score.
         // This produces more beta cutoffs, leading to reduced nodes searched.
 
@@ -76,7 +76,14 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     // Set flag to alpha unless a node is found that outscores alpha.
     int hash_flag = flagALPHA;
 
-    // 3-fold repetition or 50 move rule draw
+    /** 
+     * 3-fold repetition or 50-move rule draw 
+     * 
+     * Note: There is no need to handle adding a move to the PV table here because if the game is a draw on the first node,
+     * the GUI will handle drawing the game itself. Essentially, the GUI will never ask to search a position
+     * that is already a draw by the 50-move rule or has been repeated 3 times.
+     * This condition is only needed to inform the engine that the current node is a draw. In this case, there will already be a PV node.
+    */
     if ((search->ply && is_repetition(board)) || board->fifty_move_rule_counter >= 100) {
         return DRAW_SCORE;
     }
