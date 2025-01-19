@@ -454,6 +454,7 @@ int evaluate(Board *board) {
                     if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
                        static_score += open_file_score;
                     }
+                    static_score += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board)); 
                     break;
                 case Q:
                     opening_score += QUEEN_OPENING_POSITION[square];
@@ -507,7 +508,8 @@ int evaluate(Board *board) {
                     }
                     if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
                        static_score -= open_file_score;
-                    } 
+                    }
+                    static_score -= count_bits(get_rook_attacks(square, board->occupancies[BOTH], board)); 
                     break;
                 case q:
                     opening_score -= QUEEN_OPENING_POSITION[MIRROR(square)];
