@@ -399,7 +399,14 @@ int evaluate(Board *board) {
        game_phase = MIDDLEGAME;
     }
 
-    int score = 0;
+    /* 
+        Static score keeps track of more complex positional evaluations such as pawn structure or king safety.
+        Those values do not need to be interpolated as they are not dependent on the game phase.
+        Opening/Endgame score keeps track of material and position and is calculated based on the game phase. 
+        These values are used to interpolate the material and position scores in the middle game phase.
+        The final evaluation score is a result of the static score and the respective game phase score (interpolated for middle game).
+    */
+    int static_score = 0, opening_score = 0, endgame_score = 0;
     int double_pawns;
     for (int piece = P; piece <= k; piece++) {
         Bitboard bitboard = board->bitboards[piece];
@@ -407,159 +414,132 @@ int evaluate(Board *board) {
             int square = get_least_sig_bit_index(bitboard);
 
             // Material
-            switch (game_phase) {
-                case OPENING: score += OPENING_MATERIAL_SCORE[piece]; break;
-                case ENDGAME: score += ENDGAME_MATERIAL_SCORE[piece]; break;
-                case MIDDLEGAME: score += interpolate(OPENING_MATERIAL_SCORE[piece], ENDGAME_MATERIAL_SCORE[piece], game_phase_value); break;
-            }
-            
+            opening_score = OPENING_MATERIAL_SCORE[piece];
+            endgame_score = ENDGAME_MATERIAL_SCORE[piece];
+
             // Position
             switch (piece) {
                 case P:
-                    switch (game_phase) {
-                        case OPENING: score += PAWN_OPENING_POSITION[square]; break;
-                        case ENDGAME: score += PAWN_ENDGAME_POSITION[square]; break;
-                        case MIDDLEGAME: score += interpolate(PAWN_OPENING_POSITION[square], PAWN_ENDGAME_POSITION[square], game_phase_value); break;
-                    }
+                    opening_score += PAWN_OPENING_POSITION[square];
+                    endgame_score += PAWN_ENDGAME_POSITION[square];
+
                     double_pawns = count_bits(board->bitboards[P] & file_masks[square]);
                     if (double_pawns > 1) {
-                        score += double_pawns * double_pawn_penalty;
+                        static_score += double_pawns * double_pawn_penalty;
                     }
                     if ((board->bitboards[P] & isolated_masks[square]) == 0) {
-                        score += isolated_pawn_penalty;
+                        static_score += isolated_pawn_penalty;
                     }
                     if ((white_passed_masks[square] & board->bitboards[p]) == 0) {
-                        score += passed_pawn_bonus[square_to_rank[square]];
+                        static_score += passed_pawn_bonus[square_to_rank[square]];
                     }
                     break;
                 case N: 
-                    switch (game_phase) {
-                        case OPENING: score += KNIGHT_OPENING_POSITION[square]; break;
-                        case ENDGAME: score += KNIGHT_ENDGAME_POSITION[square]; break;
-                        case MIDDLEGAME: score += interpolate(KNIGHT_OPENING_POSITION[square], KNIGHT_ENDGAME_POSITION[square], game_phase_value); break;
-                    }
+                    opening_score += KNIGHT_OPENING_POSITION[square];
+                    endgame_score += KNIGHT_ENDGAME_POSITION[square];
                     break;
                 case B: 
-                    switch (game_phase) {
-                        case OPENING: score += BISHOP_OPENING_POSITION[square]; break;
-                        case ENDGAME: score += BISHOP_ENDGAME_POSITION[square]; break;
-                        case MIDDLEGAME: score += interpolate(BISHOP_OPENING_POSITION[square], BISHOP_ENDGAME_POSITION[square], game_phase_value); break;
-                    }
-                    score += count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
+                    opening_score += BISHOP_OPENING_POSITION[square];
+                    endgame_score += BISHOP_ENDGAME_POSITION[square];
+                    static_score += count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
                     break;
                 case R:
-                    switch (game_phase) {
-                        case OPENING: score += ROOK_OPENING_POSITION[square]; break;
-                        case ENDGAME: score += ROOK_ENDGAME_POSITION[square]; break;
-                        case MIDDLEGAME: score += interpolate(ROOK_OPENING_POSITION[square], ROOK_ENDGAME_POSITION[square], game_phase_value); break;
-                    }
+                    opening_score += ROOK_OPENING_POSITION[square];
+                    endgame_score += ROOK_ENDGAME_POSITION[square];
+
                     // Bonus for rooks on open files
                     if ((board->bitboards[P] & file_masks[square]) == 0) {
-                       score += half_open_file_score;
+                       static_score += half_open_file_score;
                     }
                     if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
-                       score += open_file_score;
+                       static_score += open_file_score;
                     }
                     break;
                 case Q:
-                    switch (game_phase) {
-                        case OPENING: score += QUEEN_OPENING_POSITION[square]; break;
-                        case ENDGAME: score += QUEEN_ENDGAME_POSITION[square]; break;
-                        case MIDDLEGAME: score += interpolate(QUEEN_OPENING_POSITION[square], QUEEN_ENDGAME_POSITION[square], game_phase_value); break;
-                    }
-                    score += count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
+                    opening_score += QUEEN_OPENING_POSITION[square];
+                    endgame_score += QUEEN_ENDGAME_POSITION[square];
+                    static_score += count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
                     break;
                 case K:
-                    switch (game_phase) {
-                        case OPENING: score += KING_OPENING_POSITION[square]; break;
-                        case ENDGAME: score += KING_ENDGAME_POSITION[square]; break;
-                        case MIDDLEGAME: score += interpolate(KING_OPENING_POSITION[square], KING_ENDGAME_POSITION[square], game_phase_value); break;
-                    }
+                    opening_score += KING_OPENING_POSITION[square];
+                    endgame_score += KING_ENDGAME_POSITION[square];
                     // Penalty for kings on exposed files
                     if ((board->bitboards[P] & file_masks[square]) == 0) {
-                        score -= half_open_file_score;
+                        static_score -= half_open_file_score;
                     }
                     if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
-                       score -= open_file_score;
+                       static_score -= open_file_score;
                     } 
                     // Pieces in front of king protecting it
-                    score += count_bits(board->king_attacks[square] & board->occupancies[WHITE]) * king_safety_bonus;
+                    static_score += count_bits(board->king_attacks[square] & board->occupancies[WHITE]) * king_safety_bonus;
                     break;
                 case p: 
-                    switch (game_phase) {
-                        case OPENING: score -= PAWN_OPENING_POSITION[MIRROR(square)]; break;
-                        case ENDGAME: score -= PAWN_ENDGAME_POSITION[MIRROR(square)]; break;
-                        case MIDDLEGAME: score -= interpolate(PAWN_OPENING_POSITION[MIRROR(square)], PAWN_ENDGAME_POSITION[MIRROR(square)], game_phase_value); break;
-                    }
+                    opening_score -= PAWN_OPENING_POSITION[MIRROR(square)];
+                    endgame_score -= PAWN_ENDGAME_POSITION[MIRROR(square)];
                     double_pawns = count_bits(board->bitboards[p] & file_masks[square]);
                     if (double_pawns > 1) {
-                        score -= double_pawns * double_pawn_penalty;
+                        static_score -= double_pawns * double_pawn_penalty;
                     }
                     
                     if ((board->bitboards[p] & isolated_masks[square]) == 0) {
-                        score -= isolated_pawn_penalty;
+                        static_score -= isolated_pawn_penalty;
                     }
                     
                     if ((black_passed_masks[square] & board->bitboards[P]) == 0) {
-                        score -= passed_pawn_bonus[square_to_rank[MIRROR(square)]];
+                        static_score -= passed_pawn_bonus[square_to_rank[MIRROR(square)]];
                     }
                     break;
                 case n:
                     switch (game_phase) {
-                        case OPENING: score -= KNIGHT_OPENING_POSITION[MIRROR(square)]; break;
-                        case ENDGAME: score -= KNIGHT_ENDGAME_POSITION[MIRROR(square)]; break;
-                        case MIDDLEGAME: score -= interpolate(KNIGHT_OPENING_POSITION[MIRROR(square)], KNIGHT_ENDGAME_POSITION[MIRROR(square)], game_phase_value); break;
-                    } 
+                        opening_score -= KNIGHT_OPENING_POSITION[MIRROR(square)];
+                        endgame_score -= KNIGHT_ENDGAME_POSITION[MIRROR(square)];
                     break;
                 case b:
-                    switch (game_phase) {
-                        case OPENING: score -= BISHOP_OPENING_POSITION[MIRROR(square)]; break;
-                        case ENDGAME: score -= BISHOP_ENDGAME_POSITION[MIRROR(square)]; break;
-                        case MIDDLEGAME: score -= interpolate(BISHOP_OPENING_POSITION[MIRROR(square)], BISHOP_ENDGAME_POSITION[MIRROR(square)], game_phase_value); break;
-                    }
-                    score -= count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
+                    opening_score -= BISHOP_OPENING_POSITION[MIRROR(square)]; 
+                    endgame_score -= BISHOP_ENDGAME_POSITION[MIRROR(square)]; 
+                    static_score -= count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
                     break;
                 case r:
-                    switch (game_phase) {
-                        case OPENING: score -= ROOK_OPENING_POSITION[MIRROR(square)]; break;
-                        case ENDGAME: score -= ROOK_ENDGAME_POSITION[MIRROR(square)]; break;
-                        case MIDDLEGAME: score -= interpolate(ROOK_OPENING_POSITION[MIRROR(square)], ROOK_ENDGAME_POSITION[MIRROR(square)], game_phase_value); break;
-                    }
+                    opening_score -= ROOK_OPENING_POSITION[MIRROR(square)];
+                    endgame_score -= ROOK_ENDGAME_POSITION[MIRROR(square)];
                     // Bonus for rooks on open files
                     if ((board->bitboards[p] & file_masks[square]) == 0) {
-                       score -= half_open_file_score;
+                       static_score -= half_open_file_score;
                     }
                     if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
-                       score -= open_file_score;
+                       static_score -= open_file_score;
                     } 
                     break;
                 case q:
-                    switch (game_phase) {
-                        case OPENING: score -= QUEEN_OPENING_POSITION[MIRROR(square)]; break;
-                        case ENDGAME: score -= QUEEN_ENDGAME_POSITION[MIRROR(square)]; break;
-                        case MIDDLEGAME: score -= interpolate(QUEEN_OPENING_POSITION[MIRROR(square)], QUEEN_ENDGAME_POSITION[MIRROR(square)], game_phase_value); break;
-                    }
-                    score -= count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
+                    opening_score -= QUEEN_OPENING_POSITION[MIRROR(square)];
+                    endgame_score -= QUEEN_ENDGAME_POSITION[MIRROR(square)];
+
+                    static_score -= count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
                     break;
                 case k:
-                    switch (game_phase) {
-                        case OPENING: score -= KING_OPENING_POSITION[MIRROR(square)]; break;
-                        case ENDGAME: score -= KING_ENDGAME_POSITION[MIRROR(square)]; break;
-                        case MIDDLEGAME: score -= interpolate(KING_OPENING_POSITION[MIRROR(square)], KING_ENDGAME_POSITION[MIRROR(square)], game_phase_value); break;
-                    }
+                    opening_score -= KING_OPENING_POSITION[MIRROR(square)];
+                    endgame_score -= KING_ENDGAME_POSITION[MIRROR(square)];
                     // Penalty for kings on exposed files
                     if ((board->bitboards[p] & file_masks[square]) == 0) {
-                        score += half_open_file_score;
+                        static_score += half_open_file_score;
                      }
                     if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
-                       score += open_file_score;
+                       static_score += open_file_score;
                     }  
                     // Pieces in front of king protecting it
-                    score -= count_bits(board->king_attacks[square] & board->occupancies[BLACK]) * king_safety_bonus;
+                    static_score -= count_bits(board->king_attacks[square] & board->occupancies[BLACK]) * king_safety_bonus;
                     break;
             }
             POP_BIT(bitboard, square);
         }
     }
-    return (board->side == WHITE) ? score : -score;
+
+    int score = 0;
+    switch (game_phase) {
+        case OPENING: score = opening_score; break;
+        case ENDGAME: score = endgame_score; break;
+        case MIDDLEGAME: score = interpolate(opening_score, endgame_score, game_phase_value); break; 
+    }
+
+    return ((board->side == WHITE) ? score : -score) + static_score;
 }
