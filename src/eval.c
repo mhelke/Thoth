@@ -414,8 +414,8 @@ int evaluate(Board *board) {
             int square = get_least_sig_bit_index(bitboard);
 
             // Material
-            opening_score = OPENING_MATERIAL_SCORE[piece];
-            endgame_score = ENDGAME_MATERIAL_SCORE[piece];
+            opening_score += OPENING_MATERIAL_SCORE[piece];
+            endgame_score += ENDGAME_MATERIAL_SCORE[piece];
 
             // Position
             switch (piece) {
