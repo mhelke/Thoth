@@ -180,9 +180,22 @@ void parse_go(char *command) {
         timeset = 1;
         time /= movestogo;
         
-        // Provide buffer
+        // Provide buffer for communication lag
         if (time > 1500) time -= 50;
-        
+
+        // Calculated time is out, but the GUI will send a stop command if the time is actually out
+        // In this case, add a small amount of time to the increment to allow the engine to find a move
+        if (time < 0) {
+            time = 0;
+            // If main time is out, provider buffer for communication lag for time controls with increment
+            // This is to handle a case where adding the buffer to the main time causes it to be sub 0
+            inc -= 50;
+
+            // If the buffer causes the increment to be negative, set it to 1ms to allow the search to add a PV line.
+            // Without this, the search would be stopped before it even searches a move causing an illegal move error from the GUI.
+            if (inc < 0) inc = 1;
+        }
+
         // How long the engine has to calculate based on the time control
         stoptime = starttime + time + inc;
     }
