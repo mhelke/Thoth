@@ -76,8 +76,8 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     // Set flag to alpha unless a node is found that outscores alpha.
     int hash_flag = flagALPHA;
 
-    // 3-fold repetition draw
-    if (is_repetition(board)) {
+    // 3-fold repetition or 50 move rule draw
+    if ((search->ply && is_repetition(board)) || board->fifty_move_rule_counter >= 100) {
         return DRAW_SCORE;
     }
 

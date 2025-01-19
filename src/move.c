@@ -355,8 +355,18 @@ int make_move(int move, int move_type, Board *board) {
         board->hash_key ^= piece_keys[piece][src];
         board->hash_key ^= piece_keys[piece][target];
 
+        // Increment 50 move rule counter.
+        board->fifty_move_rule_counter++;
+
+        // Pawn moves reset the 50 move rule.
+        if (piece == P || piece == p) {
+            board->fifty_move_rule_counter = 0;
+        }
+
         // Capture moves
         if (MOVE_CAPTURE(move)) {
+            // Captures reset the 50 move rule.
+            board->fifty_move_rule_counter = 0;
             int captured_piece;
             int start = (board->side == WHITE) ? p : P;
             int end = (board->side == WHITE) ? k : K;

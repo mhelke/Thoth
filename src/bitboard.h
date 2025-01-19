@@ -24,24 +24,27 @@ typedef struct {
     int enpassant;
     int castle;
     Bitboard hash_key;
-    Bitboard repetition_table[1000]; // 
-    int repetition_index;
+    Bitboard repetition_table[1000];
+    int repetition_index; // Keep track of 3-fold repetition
+    int fifty_move_rule_counter; // Keep track of the 50 move rule for draw (100 plys)
 } Board;
 
-#define COPY_BOARD(board)                                                    \
-    Bitboard bitboards_copy[12], occupancies_copy[3];                   \
-    int side_copy, enpassant_copy, castle_copy;                         \
-    memcpy(bitboards_copy, board->bitboards, sizeof(board->bitboards));               \
-    memcpy(occupancies_copy, board->occupancies, sizeof(board->occupancies));         \
-    side_copy = board->side, enpassant_copy = board->enpassant, castle_copy = board->castle; \
-    Bitboard hash_key_copy = board->hash_key;                                           \
+#define COPY_BOARD(board)                                                                       \
+    Bitboard bitboards_copy[12], occupancies_copy[3];                                           \
+    int side_copy, enpassant_copy, castle_copy, hash_key_copy, fifty_move_rule_counter_copy;    \
+    memcpy(bitboards_copy, board->bitboards, sizeof(board->bitboards));                         \
+    memcpy(occupancies_copy, board->occupancies, sizeof(board->occupancies));                   \
+    side_copy = board->side, enpassant_copy = board->enpassant, castle_copy = board->castle;    \
+    fifty_move_rule_counter_copy = board->fifty_move_rule_counter;                              \
+    hash_key_copy = board->hash_key;                                                            \
 
-#define UNDO(board)                                                          \
-    memcpy(board->bitboards, bitboards_copy, 96);                              \
-    memcpy(board->occupancies, occupancies_copy, 24);                          \
-    board->side = side_copy, board->enpassant = enpassant_copy, board->castle = castle_copy; \
-    board->hash_key = hash_key_copy;                                                           \
-    board->repetition_index--;                                                               \
+#define UNDO(board)                                                                             \
+    memcpy(board->bitboards, bitboards_copy, 96);                                               \
+    memcpy(board->occupancies, occupancies_copy, 24);                                           \
+    board->side = side_copy, board->enpassant = enpassant_copy, board->castle = castle_copy;    \
+    board->repetition_index--;                                                                  \
+    board->fifty_move_rule_counter = fifty_move_rule_counter_copy;                              \
+    board->hash_key = hash_key_copy;                                                            \
 
 Bitboard mask_pawn_attacks(int, int);
 Bitboard mask_knight_attacks(int);

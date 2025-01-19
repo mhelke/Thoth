@@ -482,6 +482,7 @@ Board* create_board() {
     board->castle = 0;
     board->hash_key = 0ULL;
     board->repetition_index = 0;
+    board->fifty_move_rule_counter = 0;
 
     init_tables(board);
     init_hash_table(64); // 64MB

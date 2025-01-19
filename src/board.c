@@ -12,6 +12,7 @@ void reset_board(Board *board) {
     board->castle = 0;
     board -> hash_key = 0ULL;
     board->repetition_index = 0;
+    board->fifty_move_rule_counter = 0;
     memset(board->repetition_table, 0ULL, sizeof(board->repetition_table));
     clear_transposition_table();
 }
