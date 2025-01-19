@@ -490,9 +490,8 @@ int evaluate(Board *board) {
                     }
                     break;
                 case n:
-                    switch (game_phase) {
-                        opening_score -= KNIGHT_OPENING_POSITION[MIRROR(square)];
-                        endgame_score -= KNIGHT_ENDGAME_POSITION[MIRROR(square)];
+                    opening_score -= KNIGHT_OPENING_POSITION[MIRROR(square)];
+                    endgame_score -= KNIGHT_ENDGAME_POSITION[MIRROR(square)];
                     break;
                 case b:
                     opening_score -= BISHOP_OPENING_POSITION[MIRROR(square)]; 
