@@ -412,10 +412,13 @@ int evaluate(Board *board) {
         Bitboard bitboard = board->bitboards[piece];
         while (bitboard) {
             int square = get_least_sig_bit_index(bitboard);
+            int mirror_square = MIRROR(square);
 
             // Material
             opening_score += OPENING_MATERIAL_SCORE[piece];
             endgame_score += ENDGAME_MATERIAL_SCORE[piece];
+
+            Bitboard file_mask = file_masks[square];
 
             // Position
             switch (piece) {
@@ -423,7 +426,7 @@ int evaluate(Board *board) {
                     opening_score += PAWN_OPENING_POSITION[square];
                     endgame_score += PAWN_ENDGAME_POSITION[square];
 
-                    double_pawns = count_bits(board->bitboards[P] & file_masks[square]);
+                    double_pawns = count_bits(board->bitboards[P] & file_mask);
                     if (double_pawns > 1) {
                         static_score += double_pawns * double_pawn_penalty;
                     }
@@ -448,10 +451,10 @@ int evaluate(Board *board) {
                     endgame_score += ROOK_ENDGAME_POSITION[square];
 
                     // Bonus for rooks on open files
-                    if ((board->bitboards[P] & file_masks[square]) == 0) {
+                    if ((board->bitboards[P] & file_mask) == 0) {
                        static_score += half_open_file_score;
                     }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
                        static_score += open_file_score;
                     }
                     static_score += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board)); 
@@ -465,19 +468,19 @@ int evaluate(Board *board) {
                     opening_score += KING_OPENING_POSITION[square];
                     endgame_score += KING_ENDGAME_POSITION[square];
                     // Penalty for kings on exposed files
-                    if ((board->bitboards[P] & file_masks[square]) == 0) {
+                    if ((board->bitboards[P] & file_mask) == 0) {
                         static_score -= half_open_file_score;
                     }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
                        static_score -= open_file_score;
                     } 
                     // Pieces in front of king protecting it
                     static_score += count_bits(board->king_attacks[square] & board->occupancies[WHITE]) * king_safety_bonus;
                     break;
                 case p: 
-                    opening_score -= PAWN_OPENING_POSITION[MIRROR(square)];
-                    endgame_score -= PAWN_ENDGAME_POSITION[MIRROR(square)];
-                    double_pawns = count_bits(board->bitboards[p] & file_masks[square]);
+                    opening_score -= PAWN_OPENING_POSITION[mirror_square];
+                    endgame_score -= PAWN_ENDGAME_POSITION[mirror_square];
+                    double_pawns = count_bits(board->bitboards[p] & file_mask);
                     if (double_pawns > 1) {
                         static_score -= double_pawns * double_pawn_penalty;
                     }
@@ -487,44 +490,44 @@ int evaluate(Board *board) {
                     }
                     
                     if ((black_passed_masks[square] & board->bitboards[P]) == 0) {
-                        static_score -= passed_pawn_bonus[square_to_rank[MIRROR(square)]];
+                        static_score -= passed_pawn_bonus[square_to_rank[mirror_square]];
                     }
                     break;
                 case n:
-                    opening_score -= KNIGHT_OPENING_POSITION[MIRROR(square)];
-                    endgame_score -= KNIGHT_ENDGAME_POSITION[MIRROR(square)];
+                    opening_score -= KNIGHT_OPENING_POSITION[mirror_square];
+                    endgame_score -= KNIGHT_ENDGAME_POSITION[mirror_square];
                     break;
                 case b:
-                    opening_score -= BISHOP_OPENING_POSITION[MIRROR(square)]; 
-                    endgame_score -= BISHOP_ENDGAME_POSITION[MIRROR(square)]; 
+                    opening_score -= BISHOP_OPENING_POSITION[mirror_square]; 
+                    endgame_score -= BISHOP_ENDGAME_POSITION[mirror_square]; 
                     static_score -= count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
                     break;
                 case r:
-                    opening_score -= ROOK_OPENING_POSITION[MIRROR(square)];
-                    endgame_score -= ROOK_ENDGAME_POSITION[MIRROR(square)];
+                    opening_score -= ROOK_OPENING_POSITION[mirror_square];
+                    endgame_score -= ROOK_ENDGAME_POSITION[mirror_square];
                     // Bonus for rooks on open files
-                    if ((board->bitboards[p] & file_masks[square]) == 0) {
+                    if ((board->bitboards[p] & file_mask) == 0) {
                        static_score -= half_open_file_score;
                     }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
                        static_score -= open_file_score;
                     }
                     static_score -= count_bits(get_rook_attacks(square, board->occupancies[BOTH], board)); 
                     break;
                 case q:
-                    opening_score -= QUEEN_OPENING_POSITION[MIRROR(square)];
-                    endgame_score -= QUEEN_ENDGAME_POSITION[MIRROR(square)];
+                    opening_score -= QUEEN_OPENING_POSITION[mirror_square];
+                    endgame_score -= QUEEN_ENDGAME_POSITION[mirror_square];
 
                     static_score -= count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
                     break;
                 case k:
-                    opening_score -= KING_OPENING_POSITION[MIRROR(square)];
-                    endgame_score -= KING_ENDGAME_POSITION[MIRROR(square)];
+                    opening_score -= KING_OPENING_POSITION[mirror_square];
+                    endgame_score -= KING_ENDGAME_POSITION[mirror_square];
                     // Penalty for kings on exposed files
-                    if ((board->bitboards[p] & file_masks[square]) == 0) {
+                    if ((board->bitboards[p] & file_mask) == 0) {
                         static_score += half_open_file_score;
                      }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_masks[square]) == 0) {
+                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
                        static_score += open_file_score;
                     }  
                     // Pieces in front of king protecting it
