@@ -123,7 +123,6 @@ void parse_position(char *command) {
             current++;
          }
     }
-    print_board(board); // remove
 }
 
 // Parse the go command from UCI
