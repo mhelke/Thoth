@@ -91,7 +91,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     // If the move was already searched, return the score from the previous search
     // Only read from the hash table if it is not the root ply and not the pv node.
     int is_pv = beta-alpha > 1;
-    if (search->ply && (score = probe_hash(board, alpha, beta, depth, search->ply)) != valueUNKNOWN && !is_pv) {
+    if (search->ply && !is_pv && (score = probe_hash(board, alpha, beta, depth, search->ply)) != valueUNKNOWN) {
         return score;
     }
 
@@ -189,7 +189,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             if (score > alpha) {
                 // Once a move is found that is between alpha and beta, the goal is to prove that the rest of the moves are all bad.
                 // This is generally faster than trying to find a move withing the remaining moves that might be good.
-                // Re-search with full-depth, smaller window
+                // Search the remaining moves with full-depth, smaller window
                 score = -negamax(-alpha-1, -alpha, depth-1, search);
                 // If this assumption was proven wrong, and there is a better move than the initial PV move,
                 // search again using a standard alpha-beta search.
