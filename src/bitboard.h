@@ -31,12 +31,12 @@ typedef struct {
 
 #define COPY_BOARD(board)                                                                       \
     Bitboard bitboards_copy[12], occupancies_copy[3];                                           \
-    int side_copy, enpassant_copy, castle_copy, hash_key_copy, fifty_move_rule_counter_copy;    \
+    int side_copy, enpassant_copy, castle_copy, fifty_move_rule_counter_copy;                   \
     memcpy(bitboards_copy, board->bitboards, sizeof(board->bitboards));                         \
     memcpy(occupancies_copy, board->occupancies, sizeof(board->occupancies));                   \
     side_copy = board->side, enpassant_copy = board->enpassant, castle_copy = board->castle;    \
     fifty_move_rule_counter_copy = board->fifty_move_rule_counter;                              \
-    hash_key_copy = board->hash_key;                                                            \
+    Bitboard hash_key_copy = board->hash_key;                                                   \
 
 #define UNDO(board)                                                                             \
     memcpy(board->bitboards, bitboards_copy, 96);                                               \
