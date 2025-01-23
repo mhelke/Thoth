@@ -7,6 +7,8 @@
 #include "uci.h"
 #include "table.h"
 
+int total_researches = 0, hash_hits = 0, beta_cutoff_count = 0;
+
 int search(int depth, Board *board) {
     int start = get_ms();
     int score = 0;
@@ -39,6 +41,7 @@ int search(int depth, Board *board) {
         if ((score <= alpha) || (score >= beta)) {
             alpha = -INT_MAX;
             beta = INT_MAX;
+            total_researches++;
             continue;
         }
         // Apply aspiration window
@@ -64,7 +67,11 @@ int search(int depth, Board *board) {
     printf("bestmove ");
     print_move(search.pv_table[0][0]);
     printf("\n");
-    printf("Total Time: %d\n", (get_ms() - start));
+    printf("    [DEBUG] Total Time: %d\n", (get_ms() - start));
+    printf("    [DEBUG] Total Full Re-searches: %d\n", total_researches);
+    printf("    [DEBUG] Hash hits: %d\n", hash_hits);
+    printf("    [DEBUG] Beta Cut-offs: %d\n", beta_cutoff_count);
+
     return score;
 }
 
@@ -92,6 +99,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     // Only read from the hash table if it is not the root ply and not the pv node.
     int is_pv = beta-alpha > 1;
     if (search->ply && !is_pv && (score = probe_hash(board, alpha, beta, depth, search->ply)) != valueUNKNOWN) {
+        hash_hits++;
         return score;
     }
 
@@ -135,7 +143,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         board->side ^= 1;
         board->hash_key ^= side_key;
         
-        // Search with reduced depth to find early beta cutoffs.
+        // Search with reduced depth to find early beta-cutoffs.
         score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
 
         search->ply--;
@@ -146,7 +154,8 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         }
 
         if (score >= beta) {
-            // Node fails high
+            // Node fails high beta-cutoff
+            beta_cutoff_count++;
             return beta;
         }
     }
@@ -197,6 +206,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                 // happen enough to cancel out the time saved when the assumption is correct.
                 // LMR failed. Re-search with regular alpha-beta search
                 if ((score > alpha) && (score < beta)) {
+                    total_researches++;
                     // Assumption was wrong - re-search the move with standard alpha-beta search.
                     score = -negamax(-beta, -alpha, depth-1, search);
                 }
@@ -228,8 +238,9 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             search->pv_length[search->ply] = search->pv_length[search->ply + 1];
         }
 
-        // Fail-hard
+        // Fail-hard beta-cutoff
         if (score >= beta) {
+            beta_cutoff_count++;
             record_hash(board, beta, depth, search->ply, flagBETA);
             // Killer Heuristic
             if (MOVE_CAPTURE(move_list->moves[i]) == 0) {

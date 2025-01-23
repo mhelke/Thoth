@@ -31,18 +31,19 @@ void init_hash_table(int mb) {
     hash_entries = hash_size / sizeof(TranspositionTable);
 
     if (transposition_table != NULL) {
+        printf("    [DEBUG] Freeing transposition table\n", mb);
         free(transposition_table);
     }
 
     transposition_table = (TranspositionTable *) malloc(hash_entries * sizeof(TranspositionTable));
     
     if (transposition_table == NULL) {
-        printf("Error allocating hash table with %dMB!\n", mb);
+        printf("    [ERROR] Error allocating hash table with %dMB!\n", mb);
         init_hash_table(mb/2);
         return;
     }
     clear_transposition_table();
-    printf("Hash table allocated with %dMB and %d entries\n", mb, hash_entries);
+    printf("    [DEBUG] Hash table allocated with %dMB and %d entries\n", mb, hash_entries);
 }
 
 Bitboard generate_hash_key(Board* board) {
@@ -75,6 +76,7 @@ Bitboard generate_hash_key(Board* board) {
 }
 
 void clear_transposition_table() {
+    printf("    [DEBUG] Clearing transposition table\n");
     TranspositionTable *entry;
 
     for (entry = transposition_table; entry < transposition_table + hash_entries; entry++) {
@@ -101,7 +103,6 @@ int probe_hash(Board* board, int alpha, int beta, int depth, int ply) {
 
     if (entry->key == board->hash_key) {
         if (entry->depth >= depth) {
-
             int score = entry->score;
             if (score < -MATE_SCORE) score += ply;
             if (score > MATE_SCORE) score -= ply;
