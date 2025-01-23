@@ -28,7 +28,7 @@ void init_hash_keys() {
 
 void init_hash_table(int mb) {
     int hash_size = 0x100000 * mb;
-    hash_entries = hash_size / sizeof(transposition_table);
+    hash_entries = hash_size / sizeof(TranspositionTable);
 
     if (transposition_table != NULL) {
         free(transposition_table);
