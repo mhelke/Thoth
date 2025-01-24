@@ -555,6 +555,38 @@ int evaluate(Board *board) {
         }
     }
 
+    if (game_phase != OPENING) {
+        int pawns = count_bits(board->bitboards[P] | board->bitboards[p]);
+        int white_bishops = count_bits(board->bitboards[B]);
+        int black_bishops = count_bits(board->bitboards[b]);
+        int white_knights = count_bits(board->bitboards[N]);
+        int black_knights = count_bits(board->bitboards[n]);
+        
+        // Bishop pair
+        if (white_bishops > 1) static_score += BISHOP_PAIR_BONUS;
+        if (black_bishops > 1) static_score -= BISHOP_PAIR_BONUS;
+
+        // Knight pair
+        if (count_bits(board->bitboards[N]) > 1) static_score += pawns > 10 ? KNIGHT_PAIR_BONUS : -KNIGHT_PAIR_PENALTY;
+        if (count_bits(board->bitboards[n]) > 1) static_score -= pawns > 10 ? KNIGHT_PAIR_BONUS : -KNIGHT_PAIR_PENALTY;
+
+        if (game_phase == ENDGAME) {
+            // If there are pawns on both sides of the board, bishops are better than knights in the endgame
+            int pawns_on_abc_files = (board->bitboards[P] & FILE_ABC_MASK) || (board->bitboards[p] & FILE_ABC_MASK);
+            int pawns_on_fgh_files = (board->bitboards[P] & FILE_FGH_MASK) || (board->bitboards[p] & FILE_FGH_MASK);
+
+            if (pawns_on_abc_files && pawns_on_fgh_files) {
+                if (white_bishops > 0) {
+                    static_score += BISHOP_ENDGAME_BONUS;
+                }
+                if (black_bishops > 0) {
+                    static_score -= BISHOP_ENDGAME_BONUS;
+                }
+            }
+        }
+    }
+
+    // Calculate final score
     int score = 0;
     switch (game_phase) {
         case OPENING: score = opening_score; break;
