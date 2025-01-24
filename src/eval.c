@@ -18,7 +18,7 @@
   3. Bonus for centralized pawns.
   4. Pawns that reach the 5th rank get a bonus. This bonus grows as they advance forward to the 7th. 
 *****************/
-const int PAWN_OPENING_POSITION[64] = 
+static const int PAWN_OPENING_POSITION[64] = 
 {
     0,   0,   0,   0,   0,   0,  0,   0,
     98, 134,  61,  95,  68, 126, 34, -11,
@@ -35,7 +35,7 @@ const int PAWN_OPENING_POSITION[64] =
   2. Small bonuses/penalties for pawns below the 5th rank.
      This helps adjust the values in the middle game.
 *****************/
-const int PAWN_ENDGAME_POSITION[64] = 
+static const int PAWN_ENDGAME_POSITION[64] = 
 {
      0,   0,   0,   0,   0,   0,   0,   0,
     178, 173, 158, 134, 147, 132, 165, 187,
@@ -54,7 +54,7 @@ const int PAWN_ENDGAME_POSITION[64] =
   2. Knights past the 5th rank are very powerful because they can cramp the 
      opponent's position and attack their pieces better.
 *******************/
-const int KNIGHT_OPENING_POSITION[64] = 
+static const int KNIGHT_OPENING_POSITION[64] = 
 {
     -167, -89, -34, -49,  61, -97, -15, -107,
     -73, -41,  72,  36,  23,  62,   7,  -17,
@@ -70,7 +70,7 @@ const int KNIGHT_OPENING_POSITION[64] =
     The main principle in the endgame is mobility.
     Knights should aim for maximum mobility.
 *******************/
-const int KNIGHT_ENDGAME_POSITION[64] = 
+static const int KNIGHT_ENDGAME_POSITION[64] = 
 {
     -58, -38, -13, -28, -31, -27, -63, -99,
     -25,  -8, -25,  -2,  -9, -25, -24, -52,
@@ -87,7 +87,7 @@ const int KNIGHT_ENDGAME_POSITION[64] =
      This is the only metric that can be used during this phase of the game given
      the importance of mobility.
 *******************/
-const int BISHOP_OPENING_POSITION[64] = 
+static const int BISHOP_OPENING_POSITION[64] = 
 {
      -29,   4, -82, -37, -25, -42,   7,  -8,
     -26,  16, -18, -13,  30,  59,  18, -47,
@@ -103,7 +103,7 @@ const int BISHOP_OPENING_POSITION[64] =
     The main principle in the endgame is mobility.
     Bishops should aim for maximum mobility. 
 *******************/
-const int BISHOP_ENDGAME_POSITION[64] = 
+static const int BISHOP_ENDGAME_POSITION[64] = 
 {
     -14, -21, -11,  -8, -7,  -9, -17, -24,
     -8,   -4,   7, -12, -3, -13,  -4, -14,
@@ -123,7 +123,7 @@ const int BISHOP_ENDGAME_POSITION[64] =
      are better than other squares on the 1st rank. (f-file gets a small boost to encourage castling)
   4. Rooks on the 7th rank are strong.
 *****************/
-const int ROOK_OPENING_POSITION[64] =
+static const int ROOK_OPENING_POSITION[64] =
 {
     32,  42,  32,  51, 63,  9,  31,  43,
     27,  32,  58,  62, 80, 67,  26,  44,
@@ -143,7 +143,7 @@ const int ROOK_OPENING_POSITION[64] =
   3. The further up the board, the better due to cutting off paths of the king and other pawns.
      Also, a rook should be behind the opponent's passed pawns. 
 *****************/
-const int ROOK_ENDGAME_POSITION[64] =
+static const int ROOK_ENDGAME_POSITION[64] =
 {
     13, 10, 18, 15, 12,  12,   8,   5,
     11, 13, 13, 11, -3,   3,   8,   3,
@@ -164,7 +164,7 @@ const int ROOK_ENDGAME_POSITION[64] =
      However, a queen that can infiltrate the kingside is very strong. This bonus will be contradicted by other factors
      if the position is not as good as it seems.
 ******************/
-const int QUEEN_OPENING_POSITION[64] = 
+static const int QUEEN_OPENING_POSITION[64] = 
 {
     -28,   0,  29,  12,  59,  44,  43,  45,
     -24, -39,  -5,   1, -16,  57,  28,  54,
@@ -181,7 +181,7 @@ const int QUEEN_OPENING_POSITION[64] =
   2. The further up the board the queen is, the better due
      to helping pawns advance, cutting off the king, etc.
 ******************/
-const int QUEEN_ENDGAME_POSITION[64] =
+static const int QUEEN_ENDGAME_POSITION[64] =
 {
      -9,  22,  22,  27,  27,  19,  10,  20,
     -17,  20,  32,  41,  58,  25,  30,   0,
@@ -202,7 +202,7 @@ const int QUEEN_ENDGAME_POSITION[64] =
   3. Castling kingside is generally better than queenside, hence the extra bonus. 
   4. The further a king wanders up the board, the more dangerous the position is.
 *******************************/
-const int KING_OPENING_POSITION[64] = 
+static const int KING_OPENING_POSITION[64] = 
 {
     -65,  23,  16, -15, -56, -34,   2,  13,
      29,  -1, -20,  -7,  -8,  -4, -38, -29,
@@ -221,7 +221,7 @@ const int KING_OPENING_POSITION[64] =
   2. The king should try to advance up the board in the endgame
      vs remaining on their side of the board.
 ****************************/
-const int KING_ENDGAME_POSITION[64] =
+static const int KING_ENDGAME_POSITION[64] =
 {
     -74, -35, -18, -18, -11,  15,   4, -17,
     -12,  17,  14,  17,  17,  38,  23,  11,
@@ -267,8 +267,34 @@ const int KING_ENDGAME_POSITION[64] =
 ********************/
 
 // Material scores indexed by the piece type [P, N, B, R, Q, K, p, n, b, r, q, k]
-const int OPENING_MATERIAL_SCORE[12] = { 82, 337, 365, 477, 1025, 12000, -82, -337, -365, -477, -1025, -12000 };
-const int ENDGAME_MATERIAL_SCORE[12] = { 94, 281, 297, 512, 936, 12000, -94, -281, -297, -512,  -936, -12000 };
+static const int OPENING_MATERIAL_SCORE[12] = { 82, 337, 365, 477, 1025, 12000, -82, -337, -365, -477, -1025, -12000 };
+static const int ENDGAME_MATERIAL_SCORE[12] = { 94, 281, 297, 512, 936, 12000, -94, -281, -297, -512,  -936, -12000 };
+
+// Material scores adjusted based on the number of own pawns on the board.
+// Rooks are better as pawns are traded off, while knights are worse.
+static const int KNIGHT_ADJ[9] = { -20, -16, -12, -8, -4,  0,  4,  8, 12 };
+static const int ROOK_ADJ[9] = { 15,  12,   9,  6,  3,  0, -3, -6, -9 };
+
+static const int DOUBLE_PAWN_PENALTY = -10;
+static const int ISOLATED_PAWN_PENALTY = -10;
+static const int PASSED_PAWN_BONUS[8] = { 0, 10, 30, 50, 75, 100, 150, 200 }; 
+
+static const int HALF_OPEN_FILE_SCORE = 5;
+static const int OPEN_FILE_SCORE = 10;
+
+static const int KING_SAFETY_BONUS = 5;
+static const int BISHOP_PAIR_BONUS = 10;
+static const int KNIGHT_PAIR_BONUS = 2;
+static const int KNIGHT_PAIR_PENALTY = -3;
+static const int BISHOP_ENDGAME_BONUS = 15;
+
+// If the phase score is greater than this threshold, we are in the opening.
+static const int OPENING_PHASE_THRESHOLD = 6192;
+
+// If the phase score is less than this threshold, we are in the endgame.
+static const int ENDGAME_PHASE_THRESHOLD = 518;
+
+enum { OPENING, ENDGAME, MIDDLEGAME };
 
 Bitboard file_masks[64];
 Bitboard rank_masks[64];
@@ -326,7 +352,7 @@ void init_evaluation_masks() {
     }
 }
 
-const int square_to_rank[64] = {
+static const int square_to_rank[64] = {
     7, 7, 7, 7, 7, 7, 7, 7,
     6, 6, 6, 6, 6, 6, 6, 6,
     5, 5, 5, 5, 5, 5, 5, 5,
@@ -336,23 +362,6 @@ const int square_to_rank[64] = {
     1, 1, 1, 1, 1, 1, 1, 1,
 	0, 0, 0, 0, 0, 0, 0, 0
 };
-
-const int double_pawn_penalty = -10;
-const int isolated_pawn_penalty = -10;
-const int passed_pawn_bonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 }; 
-
-const int half_open_file_score = 10;
-const int open_file_score = 15;
-
-const int king_safety_bonus = 5;
-
-enum { OPENING, ENDGAME, MIDDLEGAME };
-
-// If the phase score is greater than this threshold, we are in the opening.
-const int opening_phase_threshold = 6192;
-
-// If the phase score is less than this threshold, we are in the endgame.
-const int endgame_phase_threshold = 518;
 
 /*
     Game phase is determined by the major and minor pieces currently on the board.
@@ -420,21 +429,25 @@ int evaluate(Board *board) {
 
             Bitboard file_mask = file_masks[square];
 
+            int white_pawns_on_file = board->bitboards[P] & file_mask;
+            int black_pawns_on_file = board->bitboards[p] & file_mask;
+            int any_pawn_on_file = white_pawns_on_file | black_pawns_on_file;
+
             // Position
             switch (piece) {
                 case P:
                     opening_score += PAWN_OPENING_POSITION[square];
                     endgame_score += PAWN_ENDGAME_POSITION[square];
 
-                    double_pawns = count_bits(board->bitboards[P] & file_mask);
+                    double_pawns = count_bits(white_pawns_on_file);
                     if (double_pawns > 1) {
-                        static_score += double_pawns * double_pawn_penalty;
+                        static_score += double_pawns * DOUBLE_PAWN_PENALTY;
                     }
                     if ((board->bitboards[P] & isolated_masks[square]) == 0) {
-                        static_score += isolated_pawn_penalty;
+                        static_score += ISOLATED_PAWN_PENALTY;
                     }
                     if ((white_passed_masks[square] & board->bitboards[p]) == 0) {
-                        static_score += passed_pawn_bonus[square_to_rank[square]];
+                        static_score += PASSED_PAWN_BONUS[square_to_rank[square]];
                     }
                     break;
                 case N: 
@@ -451,11 +464,11 @@ int evaluate(Board *board) {
                     endgame_score += ROOK_ENDGAME_POSITION[square];
 
                     // Bonus for rooks on open files
-                    if ((board->bitboards[P] & file_mask) == 0) {
-                       static_score += half_open_file_score;
+                    if (white_pawns_on_file == 0) {
+                       static_score += HALF_OPEN_FILE_SCORE;
                     }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
-                       static_score += open_file_score;
+                    if (any_pawn_on_file == 0) {
+                       static_score += OPEN_FILE_SCORE;
                     }
                     static_score += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board)); 
                     break;
@@ -480,17 +493,17 @@ int evaluate(Board *board) {
                 case p: 
                     opening_score -= PAWN_OPENING_POSITION[mirror_square];
                     endgame_score -= PAWN_ENDGAME_POSITION[mirror_square];
-                    double_pawns = count_bits(board->bitboards[p] & file_mask);
+                    double_pawns = count_bits(black_pawns_on_file);
                     if (double_pawns > 1) {
-                        static_score -= double_pawns * double_pawn_penalty;
+                        static_score -= double_pawns * DOUBLE_PAWN_PENALTY;
                     }
                     
                     if ((board->bitboards[p] & isolated_masks[square]) == 0) {
-                        static_score -= isolated_pawn_penalty;
+                        static_score -= ISOLATED_PAWN_PENALTY;
                     }
                     
                     if ((black_passed_masks[square] & board->bitboards[P]) == 0) {
-                        static_score -= passed_pawn_bonus[square_to_rank[mirror_square]];
+                        static_score -= PASSED_PAWN_BONUS[square_to_rank[mirror_square]];
                     }
                     break;
                 case n:
@@ -506,11 +519,11 @@ int evaluate(Board *board) {
                     opening_score -= ROOK_OPENING_POSITION[mirror_square];
                     endgame_score -= ROOK_ENDGAME_POSITION[mirror_square];
                     // Bonus for rooks on open files
-                    if ((board->bitboards[p] & file_mask) == 0) {
-                       static_score -= half_open_file_score;
+                    if (black_pawns_on_file == 0) {
+                       static_score -= HALF_OPEN_FILE_SCORE;
                     }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
-                       static_score -= open_file_score;
+                    if (any_pawn_on_file == 0) {
+                       static_score -= OPEN_FILE_SCORE;
                     }
                     static_score -= count_bits(get_rook_attacks(square, board->occupancies[BOTH], board)); 
                     break;
