@@ -3,6 +3,8 @@
 #include "move.h"
 
 #define MIRROR(square) ((square) ^ 56)
+#define FILE_ABC_MASK 0x0707070707070707ULL
+#define FILE_FGH_MASK 0xE0E0E0E0E0E0E0E0ULL
 
 /***** Position *****
  * These tables define bonuses (or penalties) for piece position.
@@ -417,6 +419,7 @@ int evaluate(Board *board) {
     */
     int static_score = 0, opening_score = 0, endgame_score = 0;
     int double_pawns;
+    
     for (int piece = P; piece <= k; piece++) {
         Bitboard bitboard = board->bitboards[piece];
         while (bitboard) {
