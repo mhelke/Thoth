@@ -382,7 +382,7 @@ static inline int calculate_game_phase_value(Board *board) {
 }
 
 static inline int interpolate(int opening_score, int endgame_score, int phase_value) {
-    return (opening_score * phase_value + endgame_score * (opening_phase_threshold - phase_value)) / opening_phase_threshold;
+    return (opening_score * phase_value + endgame_score * (OPENING_PHASE_THRESHOLD - phase_value)) / OPENING_PHASE_THRESHOLD;
 }
 
 int evaluate(Board *board) {
@@ -402,7 +402,7 @@ int evaluate(Board *board) {
     */
     if (game_phase_value > opening_phase_threshold) {
         game_phase = OPENING;
-    } else if (game_phase_value < endgame_phase_threshold) {
+    } else if (game_phase_value < ENDGAME_PHASE_THRESHOLD) {
         game_phase = ENDGAME;
     } else {
        game_phase = MIDDLEGAME;
