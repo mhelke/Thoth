@@ -481,14 +481,16 @@ int evaluate(Board *board) {
                     opening_score += KING_OPENING_POSITION[square];
                     endgame_score += KING_ENDGAME_POSITION[square];
                     // Penalty for kings on exposed files
-                    if ((board->bitboards[P] & file_mask) == 0) {
-                        static_score -= half_open_file_score;
+                    if (game_phase != ENDGAME) {
+                        if (white_pawns_on_file == 0) {
+                            static_score -= HALF_OPEN_FILE_SCORE;
+                        }
+                        if (any_pawn_on_file == 0) {
+                        static_score -= OPEN_FILE_SCORE;
+                        } 
+                        // Pieces in front of king protecting it
+                        static_score += count_bits(board->king_attacks[square] & board->occupancies[WHITE]) * KING_SAFETY_BONUS;
                     }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
-                       static_score -= open_file_score;
-                    } 
-                    // Pieces in front of king protecting it
-                    static_score += count_bits(board->king_attacks[square] & board->occupancies[WHITE]) * king_safety_bonus;
                     break;
                 case p: 
                     opening_score -= PAWN_OPENING_POSITION[mirror_square];
@@ -536,15 +538,17 @@ int evaluate(Board *board) {
                 case k:
                     opening_score -= KING_OPENING_POSITION[mirror_square];
                     endgame_score -= KING_ENDGAME_POSITION[mirror_square];
-                    // Penalty for kings on exposed files
-                    if ((board->bitboards[p] & file_mask) == 0) {
-                        static_score += half_open_file_score;
-                     }
-                    if (((board->bitboards[P] | board->bitboards[p]) & file_mask) == 0) {
-                       static_score += open_file_score;
-                    }  
-                    // Pieces in front of king protecting it
-                    static_score -= count_bits(board->king_attacks[square] & board->occupancies[BLACK]) * king_safety_bonus;
+                    if (game_phase != ENDGAME) {
+                        // Penalty for kings on exposed files
+                        if (black_pawns_on_file == 0) {
+                            static_score += HALF_OPEN_FILE_SCORE;
+                        }
+                        if (any_pawn_on_file == 0) {
+                            static_score += OPEN_FILE_SCORE;
+                        }  
+                        // Pieces in front of king protecting it
+                        static_score -= count_bits(board->king_attacks[square] & board->occupancies[BLACK]) * KING_SAFETY_BONUS;
+                    }
                     break;
             }
             POP_BIT(bitboard, square);
@@ -557,6 +561,6 @@ int evaluate(Board *board) {
         case ENDGAME: score = endgame_score; break;
         case MIDDLEGAME: score = interpolate(opening_score, endgame_score, game_phase_value); break; 
     }
-
-    return ((board->side == WHITE) ? score : -score) + static_score;
+    score += static_score;
+    return (board->side == WHITE) ? score : -score;
 }
