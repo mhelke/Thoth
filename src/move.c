@@ -487,7 +487,12 @@ int make_move(int move, int move_type, Board *board) {
 
 
 void print_move(int move) {
-    printf("%s%s%c", square[MOVE_SRC(move)], square[MOVE_TARGET(move)], promoted_pieces[MOVE_PROMOTED(move)]);
+    int promoted = MOVE_PROMOTED(move);
+    if (promoted) {
+        printf("%s%s%c", square[MOVE_SRC(move)], square[MOVE_TARGET(move)], promoted_pieces[promoted]);
+        return;
+    }
+    printf("%s%s", square[MOVE_SRC(move)], square[MOVE_TARGET(move)]);
 }
 
 void print_move_list(Moves *move_list) {
