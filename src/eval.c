@@ -625,24 +625,112 @@ int evaluate(Board *board) {
     // int pawns_on_abc_files = (board->bitboards[P] & FILE_ABC_MASK) || (board->bitboards[p] & FILE_ABC_MASK);
     // int pawns_on_fgh_files = (board->bitboards[P] & FILE_FGH_MASK) || (board->bitboards[p] & FILE_FGH_MASK);
 
-            if (pawns_on_abc_files && pawns_on_fgh_files) {
-                if (white_bishops > 0) {
-                    static_score += BISHOP_ENDGAME_BONUS;
-                }
-                if (black_bishops > 0) {
-                    static_score -= BISHOP_ENDGAME_BONUS;
-                }
-            }
+    // if (pawns_on_abc_files && pawns_on_fgh_files) {
+    //     if (white_bishops > 0) {
+    //         Score.positionMetrics[WHITE] += BISHOP_ENDGAME_BONUS;
+    //     }
+    //     if (black_bishops > 0) {
+    //         Score.positionMetrics[BLACK] += BISHOP_ENDGAME_BONUS;
+    //     }
+    // }
+
+    Score.openingMobility[WHITE] += 4 * (wKnightMob - 4);
+    Score.endgameMobility[WHITE] += 4 * (wKnightMob - 4);
+    Score.openingMobility[WHITE] += 3 * (wBishopMob - 7);
+    Score.endgameMobility[WHITE] += 3 * (wBishopMob - 7);
+    Score.openingMobility[WHITE] += 2 * (wRookMob - 7); 
+    Score.endgameMobility[WHITE] += 4 * (wRookMob - 7); 
+    Score.openingMobility[WHITE] += (wQueenMob - 14);
+    Score.endgameMobility[WHITE] += 2 * (wQueenMob - 14);
+    Score.openingMobility[BLACK] += 4 * (bKnightMob - 4);
+    Score.endgameMobility[BLACK] += 4 * (bKnightMob - 4);
+    Score.openingMobility[BLACK] += 3 * (bBishopMob - 7);
+    Score.endgameMobility[BLACK] += 3 * (bBishopMob - 7);
+    Score.openingMobility[BLACK] += 2 * (bRookMob - 7); 
+    Score.endgameMobility[BLACK] += 4 * (bRookMob - 7); 
+    Score.openingMobility[BLACK] += (bQueenMob - 14);
+    Score.endgameMobility[BLACK] += 2 * (bQueenMob - 14);
+        
+    /* 
+        Tapered Evaluation
+
+        Determine what phase of the game it is.
+        For opening and endgame phases, the respective material and position scores are used.
+        For the middle game, the respective opening and endgame scores are interpolated. The final material and position scores
+        are determined by how far along in each phase the game is. This provides a more accurate measure of material and position
+        during the middle game. e.g. - A pawn's position in the opening may be best in the center, while the end game is best on the 7th rank.
+        However, in the middle game, neither position may be 100% right. As the middle game advances, the scores slowly shift towards the endgame,
+        this allows the engine to make more precise decisions.
+    */
+    if (Score.phase > 24) {
+        Score.phase = 24;
+    }
+
+    int middle_game_weight = Score.phase;
+    int endgame_weight = 24 - middle_game_weight;
+
+    // Final score calculation
+    int score = 0;
+ 
+    // Add material, mobility, and PST scores. Interpolate for the middle game.
+    // King safety is included in the opening score, but as the game progresses, this metric is reduced until it doesn't matter in the endgame.
+    int opening_score = (Score.material[WHITE] + Score.openingPST[WHITE] + Score.openingMobility[WHITE] + Score.kingSafety[WHITE]) 
+        - (Score.material[BLACK] + Score.openingPST[BLACK] + Score.openingMobility[BLACK] + Score.kingSafety[BLACK]);
+    int endgame_score = (Score.material[WHITE] + Score.endgamePST[WHITE] + Score.endgameMobility[WHITE]) 
+        - (Score.material[BLACK] + Score.endgamePST[BLACK] + Score.endgameMobility[BLACK]);
+
+    score += ((opening_score * middle_game_weight) + (endgame_score * endgame_weight)) / 24;
+    
+    /* 
+        Game phase independent scores. These scores keep track of more complex positional evaluations such as pawn structure or positional metrics.
+        These values do not need to be interpolated as they are not dependent on the game phase.
+    */
+    score += (Score.pawnStructure[WHITE] - Score.pawnStructure[BLACK]);
+    score += (Score.positionMetrics[WHITE] - Score.positionMetrics[BLACK]);
+    score += (Score.materialAdj[WHITE] - Score.materialAdj[BLACK]);
+
+    /*                                                                  
+        Account of low material situations. Without this, the engine will think it is leading when it has insufficient material.
+
+        - 1 Minor cannot win                               
+        - 2 knights cannot win                      
+        - Rook vs Minor is drawish                           
+        - Rook + Minor vs Rook is drawish                        
+    */
+   int leading, trailing = 0;
+    if (score > 0) {
+        leading = WHITE;
+        trailing = BLACK;
+    } else {
+        leading = BLACK;
+        trailing = WHITE;
+    }
+
+    int leadingPawns = (leading == WHITE) ? wPawns : bPawns; 
+    if (leadingPawns == 0) {
+        if (Score.material[leading] < 400) {
+            return 0; // Cannot win
+        }
+        if (bPawns == 0 && Score.material[trailing] == 2 * MATERIAL_SCORE[N]) {
+            return 0; // Cannot win
+        }
+        if (Score.material[leading] == MATERIAL_SCORE[ROOK] && Score.material[trailing] == MATERIAL_SCORE[BISHOP]) {
+            score /= 2;
+        }
+        if (Score.material[leading] == MATERIAL_SCORE[ROOK] && Score.material[trailing] == MATERIAL_SCORE[KNIGHT]) {
+            score /= 2;
+        }
+        if (Score.material[leading] == MATERIAL_SCORE[ROOK] + MATERIAL_SCORE[BISHOP] && Score.material[trailing] == MATERIAL_SCORE[ROOK]) {
+            score /= 2;
+        }
+        if (Score.material[leading] == MATERIAL_SCORE[ROOK] + MATERIAL_SCORE[KNIGHT] && Score.material[trailing] == MATERIAL_SCORE[ROOK]) {
+            score /= 2;
         }
     }
 
-    // Calculate final score
-    int score = 0;
-    switch (game_phase) {
-        case OPENING: score = opening_score; break;
-        case ENDGAME: score = endgame_score; break;
-        case MIDDLEGAME: score = interpolate(opening_score, endgame_score, game_phase_value); break; 
-    }
-    score += static_score;
+     // Give the side that has a tempo a small bonus since that side can dictate the next position.
+    if (board->side == WHITE) score += TEMPO_BONUS;
+    else score -= TEMPO_BONUS;
+ 
     return (board->side == WHITE) ? score : -score;
 }
