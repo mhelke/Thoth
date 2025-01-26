@@ -579,10 +579,19 @@ int evaluate(Board *board) {
                     bRookMob += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board));
                     break;
                 case q:
-                    opening_score -= QUEEN_OPENING_POSITION[mirror_square];
-                    endgame_score -= QUEEN_ENDGAME_POSITION[mirror_square];
+                    Score.phase += 4;
+                    Score.material[BLACK] += MATERIAL_SCORE[QUEEN];
+                    Score.openingPST[BLACK] += QUEEN_OPENING_POSITION[mirror_square];
+                    Score.endgamePST[BLACK] += QUEEN_ENDGAME_POSITION[mirror_square];
+                    bQueenMob += count_bits(get_queen_attacks(square, board->occupancies[BOTH], board));
 
-                    static_score -= count_bits(get_queen_attacks(square, board->occupancies[BOTH], board)); 
+                    // Prevent the queen from developing too early
+                    if (rank_masks[square] < 7) {
+                        if (board->bitboards[N] & b8) Score.positionMetrics[BLACK] += QUEEN_DEVELOPMENT_PENALTY; 
+                        if (board->bitboards[N] & g8) Score.positionMetrics[BLACK] += QUEEN_DEVELOPMENT_PENALTY; 
+                        if (board->bitboards[B] & c8) Score.positionMetrics[BLACK] += QUEEN_DEVELOPMENT_PENALTY; 
+                        if (board->bitboards[B] & f8) Score.positionMetrics[BLACK] += QUEEN_DEVELOPMENT_PENALTY;
+                    }
                     break;
                 case k:
                     Score.material[BLACK] += MATERIAL_SCORE[KING];
