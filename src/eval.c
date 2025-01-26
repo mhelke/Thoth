@@ -449,9 +449,9 @@ int evaluate(Board *board) {
 
             Bitboard file_mask = file_masks[square];
 
-            int white_pawns_on_file = board->bitboards[P] & file_mask;
-            int black_pawns_on_file = board->bitboards[p] & file_mask;
-            int any_pawn_on_file = white_pawns_on_file | black_pawns_on_file;
+            Bitboard white_pawns_on_file = board->bitboards[P] & file_mask;
+            Bitboard black_pawns_on_file = board->bitboards[p] & file_mask;
+            Bitboard any_pawn_on_file = white_pawns_on_file | black_pawns_on_file;
 
             // Position
             switch (piece) {
