@@ -630,25 +630,28 @@ int evaluate(Board *board) {
     /** TODO: This metric only applies in the endgame and should not be weighted as much in the opening or middlegame  **/
     
     // If there are pawns on both sides of the board, bishops are better than knights in the endgame
-    // int pawns_on_abc_files = (board->bitboards[P] & FILE_ABC_MASK) || (board->bitboards[p] & FILE_ABC_MASK);
-    // int pawns_on_fgh_files = (board->bitboards[P] & FILE_FGH_MASK) || (board->bitboards[p] & FILE_FGH_MASK);
+    if (Score.phase <= 12) { // Only take effect starting in the middlegame
+        int pawns_on_abc_files = (board->bitboards[P] & FILE_ABC_MASK) || (board->bitboards[p] & FILE_ABC_MASK);
+        int pawns_on_fgh_files = (board->bitboards[P] & FILE_FGH_MASK) || (board->bitboards[p] & FILE_FGH_MASK);
 
-    // if (pawns_on_abc_files && pawns_on_fgh_files) {
-    //     if (white_bishops > 0) {
-    //         Score.positionMetrics[WHITE] += BISHOP_ENDGAME_BONUS;
-    //     }
-    //     if (black_bishops > 0) {
-    //         Score.positionMetrics[BLACK] += BISHOP_ENDGAME_BONUS;
-    //     }
-    // }
+        if (pawns_on_abc_files && pawns_on_fgh_files) {
+            if (white_bishops > 0) {
+                Score.positionMetrics[WHITE] += BISHOP_ENDGAME_BONUS;
+            }
+            if (black_bishops > 0) {
+                Score.positionMetrics[BLACK] += BISHOP_ENDGAME_BONUS;
+            }
+        }
+    }
 
+    // Mobility adjustments are made in such a way that a score of 0 is roughly "average" mobility for each piece in the given game phase. 
     Score.openingMobility[WHITE] += 4 * (wKnightMob - 4);
     Score.endgameMobility[WHITE] += 4 * (wKnightMob - 4);
     Score.openingMobility[WHITE] += 3 * (wBishopMob - 7);
     Score.endgameMobility[WHITE] += 3 * (wBishopMob - 7);
     Score.openingMobility[WHITE] += 2 * (wRookMob - 7); 
     Score.endgameMobility[WHITE] += 4 * (wRookMob - 7); 
-    Score.openingMobility[WHITE] += (wQueenMob - 14);
+    Score.openingMobility[WHITE] += 1 * (wQueenMob - 14);
     Score.endgameMobility[WHITE] += 2 * (wQueenMob - 14);
     Score.openingMobility[BLACK] += 4 * (bKnightMob - 4);
     Score.endgameMobility[BLACK] += 4 * (bKnightMob - 4);
@@ -656,7 +659,7 @@ int evaluate(Board *board) {
     Score.endgameMobility[BLACK] += 3 * (bBishopMob - 7);
     Score.openingMobility[BLACK] += 2 * (bRookMob - 7); 
     Score.endgameMobility[BLACK] += 4 * (bRookMob - 7); 
-    Score.openingMobility[BLACK] += (bQueenMob - 14);
+    Score.openingMobility[BLACK] += 1 * (bQueenMob - 14);
     Score.endgameMobility[BLACK] += 2 * (bQueenMob - 14);
         
     /* 
