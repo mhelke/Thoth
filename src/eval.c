@@ -203,14 +203,14 @@ static const int QUEEN_OPENING_POSITION[64] =
 ******************/
 static const int QUEEN_ENDGAME_POSITION[64] =
 {
-     -9,  22,  22,  27,  27,  19,  10,  20,
-    -17,  20,  32,  41,  58,  25,  30,   0,
-    -20,   6,   9,  49,  47,  35,  19,   9,
-      3,  22,  24,  45,  57,  40,  57,  36,
-    -18,  28,  19,  47,  31,  34,  39,  23,
-    -16, -27,  15,   6,   9,  17,  10,   5,
-    -22, -23, -30, -16, -16, -23, -36, -32,
-    -33, -28, -22, -43,  -5, -32, -20, -41,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 1, 1, 1, 1, 0, 0,
+    0, 0, 1, 2, 2, 1, 0, 0,
+    0, 0, 2, 3, 3, 2, 0, 0,
+    0, 0, 2, 3, 3, 2, 0, 0,
+    0, 0, 1, 2, 2, 1, 0, 0,
+    0, 0, 1, 1, 1, 1, 0, 0,
+    -5, -5, -5, -5, -5, -5, -5, -5
 };
 
 /***** Kings - Opening *****
@@ -224,14 +224,14 @@ static const int QUEEN_ENDGAME_POSITION[64] =
 *******************************/
 static const int KING_OPENING_POSITION[64] = 
 {
-    -65,  23,  16, -15, -56, -34,   2,  13,
-     29,  -1, -20,  -7,  -8,  -4, -38, -29,
-     -9,  24,   2, -16, -20,   6,  22, -22,
-    -17, -20, -12, -27, -30, -25, -14, -36,
-    -49,  -1, -27, -39, -46, -44, -33, -51,
-    -14, -14, -22, -46, -44, -30, -15, -27,
-      1,   7,  -8, -64, -43, -16,   9,   8,
-    -15,  36,  12, -54,   8, -28,  24,  14,
+  -40, -30, -50, -70, -70, -50, -30, -40,
+  -30, -20, -40, -60, -60, -40, -20, -30,
+  -20, -10, -30, -50, -50, -30, -10, -20,
+  -10,   0, -20, -40, -40, -20,   0, -10,
+  0,  10, -10, -30, -30, -10,  10,   0,
+  10,  20,   0, -20, -20,   0,  20,  10,
+  30,  40,  20,   0,   0,  20,  40,  30,
+  40,  50,  30,  10,  10,  30,  50,  40
 };
 
 /***** Kings - Endgame *****
@@ -243,14 +243,14 @@ static const int KING_OPENING_POSITION[64] =
 ****************************/
 static const int KING_ENDGAME_POSITION[64] =
 {
-    -74, -35, -18, -18, -11,  15,   4, -17,
-    -12,  17,  14,  17,  17,  38,  23,  11,
-     10,  17,  23,  15,  20,  45,  44,  13,
-     -8,  22,  24,  27,  26,  33,  26,   3,
-    -18,  -4,  21,  24,  27,  23,   9, -11,
-    -19,  -3,  11,  21,  23,  16,   7,  -9,
-    -27, -11,   4,  13,  14,   4,  -5, -17,
-    -53, -34, -21, -11, -28, -14, -24, -43
+  -72, -48, -36, -24, -24, -36, -48, -72,
+  -48, -24, -12,   0,   0, -12, -24, -48,
+  -36, -12,   0,  12,  12,   0, -12, -36,
+  -24,   0,  12,  24,  24,  12,   0, -24,
+  -24,   0,  12,  24,  24,  12,   0, -24,
+  -36, -12,   0,  12,  12,   0, -12, -36,
+  -48, -24, -12,   0,   0, -12, -24, -48,
+  -72, -48, -36, -24, -24, -36, -48, -72
 };
 
 /***** Material *****
@@ -309,7 +309,7 @@ static const int PASSED_PAWN_BONUS[8] = { 0, 10, 20, 40, 60, 80, 100, 200 };
 static const int HALF_OPEN_FILE_SCORE = 5;
 static const int OPEN_FILE_SCORE = 10;
 
-static const int KING_SAFETY_BONUS = 5;
+static const int KING_SAFETY_BONUS = 10;
 static const int BISHOP_PAIR_BONUS = 30;
 static const int KNIGHT_PAIR_BONUS = 8;
 static const int KNIGHT_PAIR_PENALTY = -8;
@@ -385,25 +385,6 @@ static const int square_to_rank[64] = {
 	0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static inline void calculate_material_adjustment(int piece, Board *board) {
-    switch (piece) {
-        case N: 
-            Score.materialAdj[WHITE] += KNIGHT_ADJ[count_bits(board->bitboards[P])];
-            break;
-        case n:
-            Score.materialAdj[BLACK] += KNIGHT_ADJ[count_bits(board->bitboards[p])];
-            break;
-        case R:
-            Score.materialAdj[WHITE] += ROOK_ADJ[count_bits(board->bitboards[P])];
-            break;
-        case r:
-            Score.materialAdj[BLACK] += ROOK_ADJ[count_bits(board->bitboards[p])];
-            break;
-        default:
-            break;
-    }
-}
-
 int evaluate(Board *board) {
     // Clear the scores
     Score.phase = 0;
@@ -436,6 +417,9 @@ int evaluate(Board *board) {
     int wQueenMob = 0;
     int bQueenMob = 0;
 
+    int wPawns = count_bits(board->bitboards[P]);
+    int bPawns = count_bits(board->bitboards[p]);
+
     for (int piece = P; piece <= k; piece++) {
         Bitboard bitboard = board->bitboards[piece];
         while (bitboard) {
@@ -443,11 +427,7 @@ int evaluate(Board *board) {
             int mirror_square = MIRROR(square);
             int double_pawns = 0;
 
-            // Material
-            calculate_material_adjustment(piece, board);
-
             Bitboard file_mask = file_masks[square];
-
             Bitboard white_pawns_on_file = board->bitboards[P] & file_mask;
             Bitboard black_pawns_on_file = board->bitboards[p] & file_mask;
             Bitboard any_pawn_on_file = white_pawns_on_file | black_pawns_on_file;
@@ -474,6 +454,7 @@ int evaluate(Board *board) {
                 case N: 
                     Score.phase += 1;
                     Score.material[WHITE] += MATERIAL_SCORE[KNIGHT];
+                    Score.materialAdj[WHITE] += KNIGHT_ADJ[wPawns];
                     Score.openingPST[WHITE]  += KNIGHT_OPENING_POSITION[square];
                     Score.endgamePST[WHITE]  += KNIGHT_ENDGAME_POSITION[square];
                     wKnightMob += count_bits(board->knight_attacks[square] & (~board->occupancies[WHITE]));
@@ -490,6 +471,7 @@ int evaluate(Board *board) {
                 case R:
                     Score.phase += 2;
                     Score.material[WHITE] += MATERIAL_SCORE[ROOK];
+                    Score.materialAdj[WHITE] += ROOK_ADJ[wPawns];
                     Score.openingPST[WHITE]  += ROOK_OPENING_POSITION[square];
                     Score.endgamePST[WHITE]  += ROOK_ENDGAME_POSITION[square];
 
@@ -551,6 +533,7 @@ int evaluate(Board *board) {
                 case n:
                     Score.phase += 1;
                     Score.material[BLACK] += MATERIAL_SCORE[KNIGHT];
+                    Score.materialAdj[BLACK] += KNIGHT_ADJ[bPawns];
                     Score.openingPST[BLACK] += KNIGHT_OPENING_POSITION[mirror_square];
                     Score.endgamePST[BLACK] += KNIGHT_ENDGAME_POSITION[mirror_square];
                     bKnightMob += count_bits(board->knight_attacks[square] & (~board->occupancies[BLACK]));
@@ -566,6 +549,7 @@ int evaluate(Board *board) {
                 case r:
                     Score.phase += 2;
                     Score.material[BLACK] += MATERIAL_SCORE[ROOK];
+                    Score.materialAdj[BLACK] += ROOK_ADJ[bPawns];
                     Score.openingPST[BLACK] += ROOK_OPENING_POSITION[mirror_square];
                     Score.endgamePST[BLACK] += ROOK_ENDGAME_POSITION[mirror_square];
                     // Bonus for rooks on open files
@@ -611,8 +595,6 @@ int evaluate(Board *board) {
         }
     }
 
-    int wPawns = count_bits(board->bitboards[P]);
-    int bPawns = count_bits(board->bitboards[p]);
     int pawns = wPawns + bPawns;
     int white_bishops = count_bits(board->bitboards[B]);
     int black_bishops = count_bits(board->bitboards[b]);
