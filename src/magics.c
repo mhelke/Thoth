@@ -108,12 +108,12 @@ void _init_magic_bitboards() {
     // Loops over board and check magic bitboard for each square
     // Rook
     for (int square = 0; square < 64; square++) {
-        _rook_magics[square] = _find_magic_bitboard(square, rook_relevant_bits[square], ROOK);
+        _rook_magics[square] = _find_magic_bitboard(square, rook_relevant_bits[square], sROOK);
     }
 
     // Bishop
     for (int square = 0; square < 64; square++) {
         // Bishop
-        _bishop_magics[square] = _find_magic_bitboard(square, bishop_relevant_bits[square], BISHOP);
+        _bishop_magics[square] = _find_magic_bitboard(square, bishop_relevant_bits[square], sBISHOP);
     }
 }

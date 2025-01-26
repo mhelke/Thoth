@@ -120,7 +120,7 @@ enum { P, N, B, R, Q, K, p, n, b, r, q, k };
 
 // Side to move
 enum { WHITE, BLACK, BOTH };
-enum { ROOK, BISHOP };
+enum { sROOK, sBISHOP };
 
 extern const Bitboard bishop_magics[64];
 extern const Bitboard rook_magics[64];
