@@ -5,6 +5,7 @@
 
 int evaluate(Board*);
 void init_evaluation_masks();
+void printEval(Board*);
 
 extern Bitboard file_masks[64];
 extern Bitboard rank_masks[64];

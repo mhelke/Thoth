@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "eval.h"
 #include "bitboard.h"
 #include "move.h"
@@ -739,4 +741,27 @@ int evaluate(Board *board) {
     else score -= TEMPO_BONUS;
  
     return (board->side == WHITE) ? score : -score;
+}
+
+void printEvalFactor(int wh, int bl) {
+  printf("white %4d, black %4d, total: %4d \n", wh, bl, wh - bl);
+}
+
+/**
+ * Prints all evaluation metrics for debugging purposes.
+ */
+void printEval(Board *board) {
+  printf("------------------------------------------\n");
+  printf("Total value (for side to move): %d \n", evaluate(board));
+  printf("Material balance:     %d \n", Score.material[WHITE] - Score.material[BLACK]);
+  printf("Material adj:         "); printEvalFactor(Score.materialAdj[WHITE], Score.materialAdj[BLACK]);
+  printf("Op PST:               "); printEvalFactor(Score.openingPST[WHITE], Score.openingPST[BLACK]);
+  printf("Eg PST:               "); printEvalFactor(Score.endgamePST[WHITE], Score.endgamePST[BLACK]);
+  printf("Op Mobility:          "); printEvalFactor(Score.openingMobility[WHITE], Score.openingMobility[BLACK]);
+  printf("eg Mobility:          "); printEvalFactor(Score.endgameMobility[WHITE], Score.endgameMobility[BLACK]);
+  printf("Pawn structure:       "); printEvalFactor(Score.pawnStructure[WHITE], Score.pawnStructure[BLACK]);
+  printf("Positional Metrics:   "); printEvalFactor(Score.positionMetrics[WHITE], Score.positionMetrics[BLACK]);
+  printf("King Safety:          "); printEvalFactor(Score.kingSafety[WHITE], Score.kingSafety[BLACK]);
+  printf("\n");
+  printf("------------------------------------------\n");
 }
