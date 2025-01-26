@@ -298,26 +298,23 @@ enum {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
 static const int KNIGHT_ADJ[9] = { -20, -16, -12, -8, -4,  0,  4,  8, 12 };
 static const int ROOK_ADJ[9] = { 15,  12,   9,  6,  3,  0, -3, -6, -9 };
 
-static const int DOUBLE_PAWN_PENALTY = -10;
-static const int ISOLATED_PAWN_PENALTY = -10;
-static const int PASSED_PAWN_BONUS[8] = { 0, 10, 30, 50, 75, 100, 150, 200 }; 
+static const int DOUBLE_PAWN_PENALTY = -20;
+static const int ISOLATED_PAWN_PENALTY = -15;
+
+// Passed pawn scores indexed by the rank.
+static const int PASSED_PAWN_BONUS[8] = { 0, 10, 20, 40, 60, 80, 100, 200 }; 
 
 static const int HALF_OPEN_FILE_SCORE = 5;
 static const int OPEN_FILE_SCORE = 10;
 
 static const int KING_SAFETY_BONUS = 5;
-static const int BISHOP_PAIR_BONUS = 10;
-static const int KNIGHT_PAIR_BONUS = 2;
-static const int KNIGHT_PAIR_PENALTY = -3;
-static const int BISHOP_ENDGAME_BONUS = 15;
-
-// If the phase score is greater than this threshold, we are in the opening.
-static const int OPENING_PHASE_THRESHOLD = 6192;
-
-// If the phase score is less than this threshold, we are in the endgame.
-static const int ENDGAME_PHASE_THRESHOLD = 518;
-
-enum { OPENING, ENDGAME, MIDDLEGAME };
+static const int BISHOP_PAIR_BONUS = 30;
+static const int KNIGHT_PAIR_BONUS = 8;
+static const int KNIGHT_PAIR_PENALTY = -8;
+static const int BISHOP_ENDGAME_BONUS = 10;
+static const int KNIGHT_BLOCK_C3_PENALTY = -5;
+static const int QUEEN_DEVELOPMENT_PENALTY = -2;
+static const int TEMPO_BONUS = 5;
 
 Bitboard file_masks[64];
 Bitboard rank_masks[64];
