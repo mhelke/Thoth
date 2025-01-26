@@ -386,26 +386,23 @@ static const int square_to_rank[64] = {
 	0, 0, 0, 0, 0, 0, 0, 0
 };
 
-/*
-    Game phase is determined by the major and minor pieces currently on the board.
-    This value is used to determine not only what phase the game is in, but also
-    how far along in the middle game the game is (see Tapered Evaluation comment below).
-*/
-static inline int calculate_game_phase_value(Board *board) {
-    int white_pieces = 0, black_pieces = 0;
-    
-    for (int piece = N; piece <= Q; piece++) {
-        white_pieces += count_bits(board->bitboards[piece]) * OPENING_MATERIAL_SCORE[piece];
+static inline void calculate_material_adjustment(int piece, Board *board) {
+    switch (piece) {
+        case N: 
+            Score.materialAdj[WHITE] += KNIGHT_ADJ[count_bits(board->bitboards[P])];
+            break;
+        case n:
+            Score.materialAdj[BLACK] += KNIGHT_ADJ[count_bits(board->bitboards[p])];
+            break;
+        case R:
+            Score.materialAdj[WHITE] += ROOK_ADJ[count_bits(board->bitboards[P])];
+            break;
+        case r:
+            Score.materialAdj[BLACK] += ROOK_ADJ[count_bits(board->bitboards[p])];
+            break;
+        default:
+            break;
     }
-    for (int piece = n; piece <= q; piece++) {
-        black_pieces += count_bits(board->bitboards[piece]) * -OPENING_MATERIAL_SCORE[piece];
-    }
-
-    return white_pieces + black_pieces;
-}
-
-static inline int interpolate(int opening_score, int endgame_score, int phase_value) {
-    return (opening_score * phase_value + endgame_score * (OPENING_PHASE_THRESHOLD - phase_value)) / OPENING_PHASE_THRESHOLD;
 }
 
 int evaluate(Board *board) {
