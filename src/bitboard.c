@@ -440,11 +440,9 @@ void init_tables(Board *board) {
         board->king_attacks[square] = mask_king_attacks(square);
     }
 
-    init_siders(BISHOP, board);
-    init_siders(ROOK, board);
+    init_siders(sBISHOP, board);
+    init_siders(sROOK, board);
 }
-
-
 
 void print_bitboard(Bitboard bitboard) {
 
