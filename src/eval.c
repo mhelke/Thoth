@@ -6,6 +6,22 @@
 #define FILE_ABC_MASK 0x0707070707070707ULL
 #define FILE_FGH_MASK 0xE0E0E0E0E0E0E0E0ULL
 
+
+// TODO: Might be weighting different things too much or too little now!
+// TODO: Also, check if the PST values should be changed back to the larger values? 
+struct {
+    int phase;
+    int material[2];
+    int openingPST[2];
+    int endgamePST[2];
+    int openingMobility[2];
+    int endgameMobility[2];
+    int pawnStructure[2];
+    int materialAdj[2];
+    int kingSafety[2];
+    int positionMetrics[2];
+} Score;
+
 /***** Position *****
  * These tables define bonuses (or penalties) for piece position.
  * The goal is to encourage all the pieces to be on the best squares 
@@ -22,14 +38,14 @@
 *****************/
 static const int PAWN_OPENING_POSITION[64] = 
 {
-    0,   0,   0,   0,   0,   0,  0,   0,
-    98, 134,  61,  95,  68, 126, 34, -11,
-    -6,   7,  26,  31,  65,  56, 25, -20,
-    -14,  13,   6,  21,  23,  12, 17, -23,
-    -27,  -2,  -5,  12,  17,   6, 10, -25,
-    -26,  -4,  -4, -10,   3,   3, 33, -12,
-    -35,  -1, -20, -23, -15,  24, 38, -22,
-    0,   0,   0,   0,   0,   0,  0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,
+  -6,  -4,   1,   1,   1,   1,  -4,  -6,
+  -6,  -4,   1,   2,   2,   1,  -4,  -6,
+  -6,  -4,   2,   8,   8,   2,  -4,  -6,
+  -6,  -4,   5,  10,  10,   5,  -4,  -6,
+  -4,  -4,   1,   5,   5,   1,  -4,  -4,
+  -6,  -4,   1, -24,  -24,  1,  -4,  -6,
+  0,   0,   0,   0,   0,   0,   0,   0
 };
 
 /***** Pawns - Endgame *****
