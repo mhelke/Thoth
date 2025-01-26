@@ -26,10 +26,10 @@ int main() {
         Moves move_list[1];
         generate_moves(move_list, board);
         print_board(board);
-        
-        search(7, board);
+        printEval(board);
+        search(10, board);
 
-        // perft_tests();
+        // // perft_tests();
         free_board(board);
 
         return 0;
