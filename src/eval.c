@@ -406,43 +406,43 @@ static inline void calculate_material_adjustment(int piece, Board *board) {
 }
 
 int evaluate(Board *board) {
-    int game_phase_value = calculate_game_phase_value(board);    
-    int game_phase = -1;
-    
-    /* 
-        Tapered Evaluation
+    // Clear the scores
+    Score.phase = 0;
+    Score.material[WHITE] = 0;
+    Score.material[BLACK] = 0;
+    Score.openingPST[WHITE] = 0;
+    Score.openingPST[BLACK] = 0;
+    Score.endgamePST[WHITE] = 0;
+    Score.endgamePST[BLACK] = 0;
+    Score.openingMobility[WHITE] = 0;
+    Score.openingMobility[BLACK] = 0;
+    Score.endgameMobility[WHITE] = 0;
+    Score.endgameMobility[BLACK] = 0;
+    Score.pawnStructure[WHITE] = 0;
+    Score.pawnStructure[BLACK] = 0;
+    Score.materialAdj[WHITE] = 0;
+    Score.materialAdj[BLACK] = 0;
+    Score.kingSafety[WHITE] = 0;
+    Score.kingSafety[BLACK] = 0;
+    Score.positionMetrics[WHITE] = 0;
+    Score.positionMetrics[BLACK] = 0;
 
-        Determine what phase of the game it is.
-        For opening and endgame phases, the respective material and position scores are used.
-        For the middle game, the respective opening and endgame scores are interpolated. The final material and position scores
-        are determined by how far along in each phase the game is. This provides a more accurate measure of material and position
-        during the middle game. e.g. - A pawn's position in the opening may be best in the center, while the end game is best on the 7th rank.
-        However, in the middle game, neither position may be 100% right. As the middle game advances, the scores slowly shift towards the endgame,
-        this allows the engine to make more precise decisions.
-    */
-    if (game_phase_value > opening_phase_threshold) {
-        game_phase = OPENING;
-    } else if (game_phase_value < ENDGAME_PHASE_THRESHOLD) {
-        game_phase = ENDGAME;
-    } else {
-       game_phase = MIDDLEGAME;
-    }
+    // Keep track of mobility
+    int wBishopMob = 0;
+    int bBishopMob = 0;
+    int wKnightMob = 0;
+    int bKnightMob = 0;
+    int wRookMob = 0;
+    int bRookMob = 0;
+    int wQueenMob = 0;
+    int bQueenMob = 0;
 
-    /* 
-        Static score keeps track of more complex positional evaluations such as pawn structure or king safety.
-        Those values do not need to be interpolated as they are not dependent on the game phase.
-        Opening/Endgame score keeps track of material and position and is calculated based on the game phase. 
-        These values are used to interpolate the material and position scores in the middle game phase.
-        The final evaluation score is a result of the static score and the respective game phase score (interpolated for middle game).
-    */
-    int static_score = 0, opening_score = 0, endgame_score = 0;
-    int double_pawns;
-    
     for (int piece = P; piece <= k; piece++) {
         Bitboard bitboard = board->bitboards[piece];
         while (bitboard) {
             int square = get_least_sig_bit_index(bitboard);
             int mirror_square = MIRROR(square);
+            int double_pawns = 0;
 
             // Material
             calculate_material_adjustment(piece, board);
