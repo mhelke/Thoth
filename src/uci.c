@@ -114,7 +114,7 @@ void parse_position(char *command) {
             if (move == 0) {
                 break;
             }
-            make_move(move, ALL_MOVES, board);
+            make_move(move, board);
 
             // Move pointer to next move
             while (*current && *current != ' ') {

@@ -174,7 +174,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         COPY_BOARD(board);
         search->ply++;
 
-        if (make_move(move_list->moves[i], ALL_MOVES, board) == 0) {
+        if (make_move(move_list->moves[i], board) == 0) {
             // illegal move
             search->ply--;
             continue;
@@ -363,10 +363,7 @@ int quiescence(int alpha, int beta, Search *search) {
         COPY_BOARD(board);
         search->ply++;
 
-        // Only search captures to prevent the horizon effect.
-        // Static evaluation should only be returned once the position has reached a quiet position.
-        if (make_move(move_list->moves[i], CAPTURES, board) == 0) {
-            // Not a capture
+        if (make_move(move_list->moves[i], board) == 0) {
             search->ply--;
             continue;
         }
