@@ -14,6 +14,7 @@
 #define NULL_REDUCTION 3
 #define ASPIRATION_WINDOW 50
 #define DRAW_SCORE 0
+#define DELTA_PRUNE_MARGIN 200
 
 typedef struct {
     int ply;
