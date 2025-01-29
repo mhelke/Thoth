@@ -29,7 +29,7 @@ int main() {
         printEval(board);
         search(10, board);
 
-        // // perft_tests();
+        // perft_tests();
         free_board(board);
 
         return 0;

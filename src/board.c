@@ -139,7 +139,6 @@ void load_fen(char* fen, Board *board) {
 
     board->hash_key = generate_hash_key(board);
     i++;
-    printf("50 move rule counter: %d\n", board->fifty_move_rule_counter);
 }
 
 /**
