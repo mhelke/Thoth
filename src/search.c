@@ -96,7 +96,8 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     }
 
     // If the move was already searched, return the score from the previous search
-    // Only read from the hash table if it is not the root ply and not the pv node.
+    // Only read from the hash table if it is not the root node and not the pv node.
+    // In PVS, the PV node is defined as beta - alpha > 1.
     int is_pv = beta-alpha > 1;
     if (search->ply && !is_pv && (score = probe_hash(board, alpha, beta, depth, search->ply)) != valueUNKNOWN) {
         hash_hits++;
@@ -144,7 +145,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         board->hash_key ^= side_key;
         
         // Search with reduced depth to find early beta-cutoffs.
-        score = -negamax(-beta, -beta+1, depth-1-REDUCTION, search);
+        score = -negamax(-beta, -beta+1, depth-NULL_REDUCTION, search);
 
         search->ply--;
         UNDO(board);
