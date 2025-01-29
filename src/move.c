@@ -336,153 +336,144 @@ void add_move(Moves *move_list, int move) {
     move_list->count++;
 }
 
-int make_move(int move, int move_type, Board *board) {
-    if (move_type == ALL_MOVES) {
-        COPY_BOARD(board);
+int make_move(int move, Board *board) {
+    COPY_BOARD(board);
 
-        int src = MOVE_SRC(move);
-        int target = MOVE_TARGET(move);
-        int piece = MOVE_PIECE(move);
+    int src = MOVE_SRC(move);
+    int target = MOVE_TARGET(move);
+    int piece = MOVE_PIECE(move);
 
-        // Move piece from source to target
-        POP_BIT(board->bitboards[piece], src);
-        SET_BIT(board->bitboards[piece], target);
+    // Move piece from source to target
+    POP_BIT(board->bitboards[piece], src);
+    SET_BIT(board->bitboards[piece], target);
 
-        // Update occupancy tables
-        POP_BIT(board->occupancies[board->side], src);
-        SET_BIT(board->occupancies[board->side], target);
+    // Update occupancy tables
+    POP_BIT(board->occupancies[board->side], src);
+    SET_BIT(board->occupancies[board->side], target);
 
-        board->hash_key ^= piece_keys[piece][src];
-        board->hash_key ^= piece_keys[piece][target];
+    board->hash_key ^= piece_keys[piece][src];
+    board->hash_key ^= piece_keys[piece][target];
 
-        // Increment 50 move rule counter.
-        board->fifty_move_rule_counter++;
+    // Increment 50 move rule counter.
+    board->fifty_move_rule_counter++;
 
-        // Pawn moves reset the 50 move rule.
-        if (piece == P || piece == p) {
-            board->fifty_move_rule_counter = 0;
-        }
-
-        // Capture moves
-        if (MOVE_CAPTURE(move)) {
-            // Captures reset the 50 move rule.
-            board->fifty_move_rule_counter = 0;
-            int captured_piece;
-            int start = (board->side == WHITE) ? p : P;
-            int end = (board->side == WHITE) ? k : K;
-
-            for (captured_piece = start; captured_piece <= end; captured_piece++) {
-                if (GET_BIT(board->bitboards[captured_piece], target)) {
-                    POP_BIT(board->bitboards[captured_piece], target);
-                    board->hash_key ^= piece_keys[captured_piece][target];
-                    break;
-                }
-            }
-            POP_BIT(board->occupancies[!board->side], target);
-        }
-
-        // Promotion Move
-        if (MOVE_PROMOTED(move)) {
-            int pawn_bb = (board->side == WHITE) ? P : p;
-            POP_BIT(board->bitboards[pawn_bb], target);
-            SET_BIT(board->bitboards[MOVE_PROMOTED(move)], target);
-            SET_BIT(board->occupancies[board->side], target);
-            board->hash_key ^= piece_keys[pawn_bb][target];
-            board->hash_key ^= piece_keys[MOVE_PROMOTED(move)][target];
-        }
-
-        // En passant
-        if (MOVE_ENPASSANT(move)) {
-            int pawn_bb = (board->side == WHITE) ? p : P;
-            int target_adj = (board->side == WHITE) ? 8 : -8;
-            POP_BIT(board->bitboards[pawn_bb], target + target_adj);
-            POP_BIT(board->occupancies[!board->side], target + target_adj);
-
-            board->hash_key ^= piece_keys[pawn_bb][(target + target_adj)];
-        }
-
-        if (board->enpassant != na) {
-            board->hash_key ^= enpassant_keys[board->enpassant];
-        }
-
-        // Reset En Passant Square
-        board->enpassant = na;
-
-        // Double Push - set en passant square
-        if (MOVE_DOUBLE(move)) {
-            board->enpassant = target + ((board->side == WHITE) ? 8 : -8);
-            board->hash_key ^= enpassant_keys[target + ((board->side == WHITE) ? 8 : -8)];
-        }
-
-        // Castling
-        if (MOVE_CASTLE(move)) {
-            int rook_src[4] = {h1, a1, h8, a8};
-            int rook_target[4] = {f1, d1, f8, d8};
-            int rook_pieces[4] = {R, R, r, r};
-            int targets[4] = {g1, c1, g8, c8};
-
-            for (int i = 0; i < 4; i++) {
-                if (target == targets[i]) {
-                    POP_BIT(board->bitboards[rook_pieces[i]], rook_src[i]);
-                    SET_BIT(board->bitboards[rook_pieces[i]], rook_target[i]);
-                    POP_BIT(board->occupancies[board->side], rook_src[i]);
-                    SET_BIT(board->occupancies[board->side], rook_target[i]);
-
-                    board->hash_key ^= piece_keys[rook_pieces[i]][rook_src[i]];
-                    board->hash_key ^= piece_keys[rook_pieces[i]][rook_target[i]];
-
-                    break;
-                }
-            }
-        }
-
-        board->hash_key ^= castling_keys[board->castle];
-
-        // Castling rights
-        board->castle &= castling_rights[src];
-        board->castle &= castling_rights[target];
-
-        board->hash_key ^= castling_keys[board->castle];
-
-        // Update overall occupancy table
-        board->occupancies[BOTH] = board->occupancies[WHITE] | board->occupancies[BLACK];
-
-        // Change side
-        board->side ^= 1;
-
-        board->hash_key ^= side_key;
-
-        // Debug hash key generation
-        /*
-        Bitboard expected_hash = generate_hash_key(board);
-        if (board->hash_key != expected_hash) {
-            printf("Within make_move...\n");
-            printf("Move: ");
-            print_move(move);
-            print_board(board);
-            printf("Expected hash key: %llx\n", expected_hash);
-            getchar();
-        }
-        */
-       
-        // Store position in repetition table to detect 3 fold repetition 
-        board->repetition_index++;
-        board->repetition_table[board->repetition_index] = board->hash_key;
-
-        // Ensure King is not in Check
-        if (is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[k] : board->bitboards[K]), board->side, board)) {
-            UNDO(board);
-            return 0;
-        }
-        return 1;
-    } else {
-        // Only return capture moves
-        if (!MOVE_CAPTURE(move)) {
-            return 0;
-        }
-        return make_move(move, ALL_MOVES, board);
+    // Pawn moves reset the 50 move rule.
+    if (piece == P || piece == p) {
+        board->fifty_move_rule_counter = 0;
     }
-    return 0;
+
+    // Capture moves
+    if (MOVE_CAPTURE(move)) {
+        // Captures reset the 50 move rule.
+        board->fifty_move_rule_counter = 0;
+        int captured_piece;
+        int start = (board->side == WHITE) ? p : P;
+        int end = (board->side == WHITE) ? k : K;
+
+        for (captured_piece = start; captured_piece <= end; captured_piece++) {
+            if (GET_BIT(board->bitboards[captured_piece], target)) {
+                POP_BIT(board->bitboards[captured_piece], target);
+                board->hash_key ^= piece_keys[captured_piece][target];
+                break;
+            }
+        }
+        POP_BIT(board->occupancies[!board->side], target);
+    }
+
+    // Promotion Move
+    if (MOVE_PROMOTED(move)) {
+        int pawn_bb = (board->side == WHITE) ? P : p;
+        POP_BIT(board->bitboards[pawn_bb], target);
+        SET_BIT(board->bitboards[MOVE_PROMOTED(move)], target);
+        SET_BIT(board->occupancies[board->side], target);
+        board->hash_key ^= piece_keys[pawn_bb][target];
+        board->hash_key ^= piece_keys[MOVE_PROMOTED(move)][target];
+    }
+
+    // En passant
+    if (MOVE_ENPASSANT(move)) {
+        int pawn_bb = (board->side == WHITE) ? p : P;
+        int target_adj = (board->side == WHITE) ? 8 : -8;
+        POP_BIT(board->bitboards[pawn_bb], target + target_adj);
+        POP_BIT(board->occupancies[!board->side], target + target_adj);
+
+        board->hash_key ^= piece_keys[pawn_bb][(target + target_adj)];
+    }
+
+    if (board->enpassant != na) {
+        board->hash_key ^= enpassant_keys[board->enpassant];
+    }
+
+    // Reset En Passant Square
+    board->enpassant = na;
+
+    // Double Push - set en passant square
+    if (MOVE_DOUBLE(move)) {
+        board->enpassant = target + ((board->side == WHITE) ? 8 : -8);
+        board->hash_key ^= enpassant_keys[target + ((board->side == WHITE) ? 8 : -8)];
+    }
+
+    // Castling
+    if (MOVE_CASTLE(move)) {
+        int rook_src[4] = {h1, a1, h8, a8};
+        int rook_target[4] = {f1, d1, f8, d8};
+        int rook_pieces[4] = {R, R, r, r};
+        int targets[4] = {g1, c1, g8, c8};
+
+        for (int i = 0; i < 4; i++) {
+            if (target == targets[i]) {
+                POP_BIT(board->bitboards[rook_pieces[i]], rook_src[i]);
+                SET_BIT(board->bitboards[rook_pieces[i]], rook_target[i]);
+                POP_BIT(board->occupancies[board->side], rook_src[i]);
+                SET_BIT(board->occupancies[board->side], rook_target[i]);
+
+                board->hash_key ^= piece_keys[rook_pieces[i]][rook_src[i]];
+                board->hash_key ^= piece_keys[rook_pieces[i]][rook_target[i]];
+
+                break;
+            }
+        }
+    }
+
+    board->hash_key ^= castling_keys[board->castle];
+
+    // Castling rights
+    board->castle &= castling_rights[src];
+    board->castle &= castling_rights[target];
+
+    board->hash_key ^= castling_keys[board->castle];
+
+    // Update overall occupancy table
+    board->occupancies[BOTH] = board->occupancies[WHITE] | board->occupancies[BLACK];
+
+    // Change side
+    board->side ^= 1;
+
+    board->hash_key ^= side_key;
+
+    // Debug hash key generation
+    /*
+    Bitboard expected_hash = generate_hash_key(board);
+    if (board->hash_key != expected_hash) {
+        printf("Within make_move...\n");
+        printf("Move: ");
+        print_move(move);
+        print_board(board);
+        printf("Expected hash key: %llx\n", expected_hash);
+        getchar();
+    }
+    */
+    
+    // Store position in repetition table to detect 3 fold repetition 
+    board->repetition_index++;
+    board->repetition_table[board->repetition_index] = board->hash_key;
+
+    // Ensure King is not in Check
+    if (is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[k] : board->bitboards[K]), board->side, board)) {
+        UNDO(board);
+        return 0;
+    }
+    return 1;
 }
 
 

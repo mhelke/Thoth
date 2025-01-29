@@ -20,7 +20,7 @@ void perft(int depth, Board* board) {
 
     for (int move_count = 0; move_count < move_list->count; move_count++) {   
         COPY_BOARD(board);
-        if (!make_move(move_list->moves[move_count], ALL_MOVES, board)) {
+        if (!make_move(move_list->moves[move_count], board)) {
             continue;
         }
         perft(depth - 1, board);
@@ -39,7 +39,7 @@ int perft_test(char *fen, int depth, const unsigned long long *expected_values, 
 
     for (int move_count = 0; move_count < move_list->count; move_count++) {
         COPY_BOARD(board);
-        if (make_move(move_list->moves[move_count], ALL_MOVES, board)) {
+        if (make_move(move_list->moves[move_count], board)) {
             perft(depth - 1, board);
             UNDO(board);
 
