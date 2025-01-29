@@ -287,13 +287,6 @@ static const int KING_ENDGAME_POSITION[64] =
  * 
 ********************/
 
-// Material scores indexed by the piece type [P, N, B, R, Q, K, p, n, b, r, q, k]
-// static const int OPENING_MATERIAL_SCORE[12] = { 82, 337, 365, 477, 1025, 12000, -82, -337, -365, -477, -1025, -12000 };
-// static const int ENDGAME_MATERIAL_SCORE[12] = { 94, 281, 297, 512, 936, 12000, -94, -281, -297, -512,  -936, -12000 };
-
-// Material scores indexed by the piece type [PAWN, KNIGHT, BISHIOP, ROOK, QUEEN, KING]
-static const int MATERIAL_SCORE[6] = { 100, 325, 335, 500, 975, 0 };
-
 enum {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING};
 
 // Material scores adjusted based on the number of own pawns on the board.
@@ -385,6 +378,15 @@ static const int square_to_rank[64] = {
     1, 1, 1, 1, 1, 1, 1, 1,
 	0, 0, 0, 0, 0, 0, 0, 0
 };
+
+// Returns the last evaluated material score for the given side.
+// Note: This function should only be called after an evaluation has been completed.
+int get_material(int side) {
+    if (Score.material[WHITE] == 0 || Score.material[BLACK] == 0) {
+        printf("    [ERROR] Material has not been calculated yet!\n");
+    }
+    return Score.material[side];
+}
 
 int evaluate(Board *board) {
     // Clear the scores
