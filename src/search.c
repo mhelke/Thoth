@@ -206,7 +206,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                 // This scenario actually wastes time by needing to search again, but it generally doesn't
                 // happen enough to cancel out the time saved when the assumption is correct.
                 // LMR failed. Re-search with regular alpha-beta search
-                if ((score > alpha) && (score < beta)) {
+                if (score > alpha && score < beta) {
                     total_researches++;
                     // Assumption was wrong - re-search the move with standard alpha-beta search.
                     score = -negamax(-beta, -alpha, depth-1, search);
@@ -267,6 +267,17 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     return alpha; // fails low
 }
 
+/**
+ * Quiescence Search
+ * 
+ * Quiescence search is a specialized search that ensures only quiet positions are evaluated.
+ * This is done to prevent the horizon effect, where the engine stops searching at a position that is unstable.
+ * The goal is to search through all sequences of captures until a quiet position is reached, and only then evaluate the position.
+ * 
+ * The hoizon effect must be handled to prevent inaccurate scores. For example:
+ * If the search stops after a capture, say PxQ, the evaluation function may think one side is up a pawn, but in reality, 
+ * if you were to search 1 move deeper, you would see the opponent can recaputre the queen with a pawn, leading to a loss of material.
+ */
 int quiescence(int alpha, int beta, Search *search) {
     Board *board = search->board;
 
@@ -277,27 +288,78 @@ int quiescence(int alpha, int beta, Search *search) {
 
     search->nodes++;
 
+    // Too deep in the search
     if (search->ply >= MAX_PLY) {
-        // Too deep in search
         return evaluate(board);
     }
 
     int score = evaluate(board);
+    int stand_pat = score;
 
     if (score > alpha) {
-        alpha = score; // PV 
+        alpha = score; // PV node 
     }
 
      // Fail-hard
     if (score >= beta) {
-        return beta; // fails high
+        return beta; // fails high cut-node
     }
 
     Moves move_list[1];
     generate_moves(move_list, board);
     sort_moves(move_list, search);
 
+    int opponent_material = get_material(!board->side);
+
     for (int i = 0; i < move_list->count; i++) {
+        // Only search captures       
+        if (!MOVE_CAPTURE(move_list->moves[i])) continue;
+
+        /*
+            Delta Cutoff
+
+            If the move gaurentees a score far below alpha, it is not worth searching.
+            This is determined by taking the evaluation + the value of the captured piece + a 200 centi-pawn margin. 
+            If that value is still not enough to raise alpha, the position is likely lost.
+
+            TODO: Add SEE (Static Exchange Evaluation) to further improve the delta cutoff.
+            
+            TODO: This technique should NOT be used in the endgame~! 
+
+        */
+
+        // Do not prune a capture on promotion. The position may be unstable.
+        if (!MOVE_PROMOTED(move_list->moves[i])) {
+            int captured_piece = -1;
+
+            if (MOVE_ENPASSANT(move_list->moves[i])) {
+                captured_piece = (board->side == WHITE) ? p : P;
+            } else {
+                int start = (board->side == WHITE) ? p : P;
+                int end = (board->side == WHITE) ? k : K;
+                int target = MOVE_TARGET(move_list->moves[i]);
+
+                for (int piece = start; piece <= end; piece++) {
+                    if (GET_BIT(board->bitboards[piece], target)) {
+                        captured_piece = piece;
+                        break;
+                    }
+                }
+            }
+
+            if (captured_piece == -1) {
+                printf("    [ERROR]: Captured piece not found\n");
+                continue;
+            }
+
+            int captured_piece_value = MATERIAL_SCORE[captured_piece % 6];
+
+            // Delta Cutoff - if the capture is guarenteed to not raise alpha, and it is not the endgame, prune the move.
+            if ((stand_pat + captured_piece_value + DELTA_PRUNE_MARGIN < alpha) && (opponent_material - captured_piece_value > ENDGAME_MATERIAL_THRESHOLD)) {
+                continue;
+            }
+        }
+
         COPY_BOARD(board);
         search->ply++;
 
