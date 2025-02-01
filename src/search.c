@@ -320,11 +320,8 @@ int quiescence(int alpha, int beta, Search *search) {
             If the move gaurentees a score far below alpha, it is not worth searching.
             This is determined by taking the evaluation + the value of the captured piece + a 200 centi-pawn margin. 
             If that value is still not enough to raise alpha, the position is likely lost.
-
-            TODO: Add SEE (Static Exchange Evaluation) to further improve the delta cutoff.
             
-            TODO: This technique should NOT be used in the endgame~! 
-
+            This technique should not be used in the endgame.
         */
 
         // Do not prune a capture on promotion. The position may be unstable.
