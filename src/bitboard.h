@@ -86,6 +86,15 @@ static inline int get_least_sig_bit_index(Bitboard bitboard) {
     return count_bits((bitboard & -bitboard) - 1);
 }
 
+static inline int get_piece_at_square(int square, Bitboard bitboards[]) {
+    for (int piece = 0; piece < 12; piece++) {
+        if (GET_BIT(bitboards[piece], square)) {
+            return piece;
+        }
+    }
+    return -1;
+}
+
 // Array representing each index as the human-readable chess board coordinate
 // Required to follow UCI guidelines for moves
 static const char *square[] = {
