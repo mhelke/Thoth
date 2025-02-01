@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "bitboard.h"
 #include "table.h"
 
@@ -465,8 +466,6 @@ void print_bitboard(Bitboard bitboard) {
     // print bitboard as unsigned decimal
     printf("Bitboard: %llud\n\n", bitboard);
 }
-
-#include <stdlib.h>
 
 Board* create_board() {
     Board *board = (Board *)malloc(sizeof(Board));
