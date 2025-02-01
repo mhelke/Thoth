@@ -331,16 +331,16 @@ int is_square_attacked(int square, int side, Board *board) {
     return 0;
 }
 
-Bitboard get_attackers_to_square(int target_square, int side, Bitboard occupancy, Bitboard bitboards[], Board *board) {
+Bitboard get_attackers_to_square(int target_square, int side, Bitboard occupancy[], Bitboard bitboards[], Board *board) {
     Bitboard attackers = 0ULL;
     int offset = (side == WHITE) ? 0 : 6;
 
     // Get attackers for the provided side to the target square
-    attackers |= board->pawn_attacks[side][target_square] & bitboards[P + offset];
+    attackers |= board->pawn_attacks[side][target_square] & occupancy[side^1];
     attackers |= board->knight_attacks[target_square] & bitboards[N + offset];
-    attackers |= get_bishop_attacks(target_square, occupancy, board) & bitboards[B + offset];
-    attackers |= get_rook_attacks(target_square, occupancy, board) & bitboards[R + offset];   
-    attackers |= get_queen_attacks(target_square, occupancy, board) & bitboards[Q + offset];
+    attackers |= get_bishop_attacks(target_square, occupancy[BOTH], board) & bitboards[B + offset];
+    attackers |= get_rook_attacks(target_square, occupancy[BOTH], board) & bitboards[R + offset];   
+    attackers |= get_queen_attacks(target_square, occupancy[BOTH], board) & bitboards[Q + offset];
     attackers |= board->king_attacks[target_square] & bitboards[K + offset];
 
     return attackers;

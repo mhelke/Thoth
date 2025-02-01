@@ -417,20 +417,32 @@ int see(Board *board, int target_square, int pieces, int from_sq) {
     for (int i = P; i <= k; i++) bitboards[i] = board->bitboards[i];
 
     do {
+
+        // // If the king can take, but there are other attackers, the king is not considered an attacker.
+        if (piece == (side == WHITE ? K : k) && get_attackers_to_square(target_square, !side, occupancies, bitboards, board) ) {
+            POP_BIT(attacks_and_defneds, src);
+            POP_BIT(bitboards[piece], src);
+            POP_BIT(occupancies[BOTH], src);
+            POP_BIT(occupancies[side^1], src);
+            POP_BIT(occupancies[side], src);
+            src = get_smallest_attacker(attacks_and_defneds, side, bitboards);
+            piece = get_piece_at_square(src, bitboards); 
+        }
+
         // Update pieces that can attack the target square to account for possible x-ray attacks
         attackers = get_attackers_to_square(target_square, side, occupancies, bitboards, board);
         defenders = get_attackers_to_square(target_square, side^1, occupancies, bitboards, board);
         attacks_and_defneds = attackers | defenders;
 
         d++;
-        side = !side;
+        side = side^1;
 
         gains[d] = MATERIAL_SCORE[piece % 6] - gains[d-1];
 
         POP_BIT(attacks_and_defneds, src);
         POP_BIT(bitboards[piece], src);
         POP_BIT(occupancies[BOTH], src);
-        POP_BIT(occupancies[!side], src);
+        POP_BIT(occupancies[side^1], src);
         POP_BIT(occupancies[side], src);
 
         // Find the least valuable attacker to capture next
