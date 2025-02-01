@@ -56,5 +56,6 @@ void generate_queen_moves(int, Moves*, Board*);
 void generate_king_moves(int, Moves*, Board*);
 
 int is_square_attacked(int, int, Board*);
+Bitboard get_attackers_to_square(int target_square, int side, Bitboard occupancy, Bitboard bitboards[], Board *board);
 
 #endif
