@@ -38,5 +38,10 @@ int sort_moves(Moves*, Search*);
 void pv_scoring(Moves*, Search*);
 int can_reduce(int, int);
 int is_repetition(Board*);
+int see(Board*, int, int, int);
+Bitboard generate_attacks(Board *board, int side);
+Bitboard get_attackers_to_square(int target_square, int side, Board *board);
+int get_piece_at_square(int square, Board *board) ;
+int get_smallest_attacker(Bitboard attackers, int side, Board *board);
 
 #endif
