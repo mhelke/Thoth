@@ -397,8 +397,8 @@ int see(Board *board, int target_square, int pieces, int from_sq) {
     int side = board->side;
     
     // All pieces that can attack the target square
-    Bitboard attackers = get_attackers_to_square(target_square, side, board->occupancies[BOTH], board->bitboards, board);
-    Bitboard defenders = get_attackers_to_square(target_square, side^1, board->occupancies[BOTH], board->bitboards, board);
+    Bitboard attackers = get_attackers_to_square(target_square, side, board->occupancies, board->bitboards, board);
+    Bitboard defenders = get_attackers_to_square(target_square, side^1, board->occupancies, board->bitboards, board);
     Bitboard attacks_and_defneds = attackers | defenders;
     
     // Gain array
@@ -411,14 +411,15 @@ int see(Board *board, int target_square, int pieces, int from_sq) {
     int piece = get_piece_at_square(src, board->bitboards);
 
     // Create copies of occupancy and bitboards
-    Bitboard occupancy = board->occupancies[BOTH];
+    Bitboard occupancies[3];
     Bitboard bitboards[12];
+    for (int i = 0; i < 3; i++) occupancies[i] = board->occupancies[i];
     for (int i = P; i <= k; i++) bitboards[i] = board->bitboards[i];
 
     do {
         // Update pieces that can attack the target square to account for possible x-ray attacks
-        attackers = get_attackers_to_square(target_square, side, occupancy, bitboards, board);
-        defenders = get_attackers_to_square(target_square, side^1, occupancy, bitboards, board);
+        attackers = get_attackers_to_square(target_square, side, occupancies, bitboards, board);
+        defenders = get_attackers_to_square(target_square, side^1, occupancies, bitboards, board);
         attacks_and_defneds = attackers | defenders;
 
         d++;
@@ -428,7 +429,9 @@ int see(Board *board, int target_square, int pieces, int from_sq) {
 
         POP_BIT(attacks_and_defneds, src);
         POP_BIT(bitboards[piece], src);
-        POP_BIT(occupancy, src);
+        POP_BIT(occupancies[BOTH], src);
+        POP_BIT(occupancies[!side], src);
+        POP_BIT(occupancies[side], src);
 
         // Find the least valuable attacker to capture next
         src = get_smallest_attacker(attacks_and_defneds, side, bitboards);
