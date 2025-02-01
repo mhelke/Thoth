@@ -358,7 +358,7 @@ int quiescence(int alpha, int beta, Search *search) {
                 continue;
             }
 
-            // Static Exchange Evaluation (SEE) - if the move does not improve the position, do not search it.
+            // Static Exchange Evaluation (SEE) - if a capture sequence loses material, prune the move.
             if (see(board, MOVE_TARGET(move_list->moves[i]), MOVE_PIECE(move_list->moves[i]), MOVE_SRC(move_list->moves[i])) < 0) {
                 continue;
             }
@@ -392,6 +392,7 @@ int quiescence(int alpha, int beta, Search *search) {
     return alpha; // fail low
 }
 
+// Static Exchange Evaluation (SEE)
 int see(Board *board, int target_square, int pieces, int from_sq) {
     int side = board->side;
     
