@@ -393,81 +393,20 @@ int quiescence(int alpha, int beta, Search *search) {
     return alpha; // fail low
 }
 
-Bitboard generate_attacks(Board *board, int side) {
-    int opponent = side ^ 1; // Assuming sides are 0 and 1
-    Bitboard occupancy = board->occupancies[WHITE] | board->occupancies[BLACK];// OCCUPANCY[BOTH] ???????
-    int offset = (side == WHITE) ? 0 : 6;
-    
-    // Array to store piece types
-    
-    // int piece_types[6] = {P, N, B, R, Q, K};
-
-
-    for (int i = P; i <= K; i++) {
-        // int piece = piece_types[i];
-        int piece = i;
-        Bitboard pieces = board->bitboards[piece + offset];
-
-        while (pieces) {
-            int src_square = get_least_sig_bit_index(pieces);
-            Bitboard attacks;
-
-            // Generate attacks based on piece type
-            switch (piece) {
-                case P:
-                    attacks = board->pawn_attacks[side][src_square] & board->occupancies[opponent];
-                    break;
-                case N:
-                    attacks = board->knight_attacks[src_square] & board->occupancies[opponent];
-                    break;
-                case B:
-                    // attacks = get_bishop_attacks(src_square, occupancy, board) & board->occupancies[opponent];
-                    attacks = get_bishop_attacks(src_square, board->occupancies[BOTH], board) & (~board->occupancies[opponent]);
-                    break;
-                case R:
-                    // attacks = get_rook_attacks(src_square, occupancy, board) & board->occupancies[opponent];
-                    attacks = get_rook_attacks(src_square, board->occupancies[BOTH], board) & (~board->occupancies[opponent]);
-                    break;
-                case Q:
-                    // attacks = get_queen_attacks(src_square, occupancy, board) & board->occupancies[opponent];
-                    Bitboard attacks = get_queen_attacks(src_square, board->occupancies[BOTH], board) & (~board->occupancies[opponent]);
-                    break;
-                case K:
-                    attacks = board->king_attacks[src_square] & (~board->occupancies[opponent]);
-                    break;
-            }
-
-            // Process each attack
-            while (attacks) {
-                int target_square = get_least_sig_bit_index(attacks);
-                // Process the attack from src_square to target_square
-                attacks &= attacks - 1; // Clear the least significant bit (TODO: pop bit instead????????)
-            }
-
-            pieces &= pieces - 1; // Clear the processed piece- dont this its needed????????
-        }
-    }
-}
-
-
-
-Bitboard get_attackers_to_square(int target_square, int side, Board *board) {
+Bitboard get_attackers_to_square(int target_square, int side, Bitboard occupancy, Bitboard bitboards[], Board *board) {
     Bitboard attackers = 0ULL;
-
-    // int opponent = (side == WHITE) ? BLACK : WHITE;
     int offset = (side == WHITE) ? 0 : 6;
 
     // Get attackers for the provided side to the target square
-    attackers |= board->pawn_attacks[side][target_square] & board->bitboards[P + offset];
-    attackers |= board->knight_attacks[target_square] & board->bitboards[N + offset];
-    attackers |= get_bishop_attacks(target_square, board->occupancies[BOTH], board) & board->bitboards[B + offset];
-    attackers |= get_rook_attacks(target_square, board->occupancies[BOTH], board) & board->bitboards[R + offset];   
-    attackers |= get_queen_attacks(target_square, board->occupancies[BOTH], board) & board->bitboards[Q + offset];
-    attackers |= board->king_attacks[target_square] & board->bitboards[K + offset];
+    attackers |= board->pawn_attacks[side][target_square] & bitboards[P + offset];
+    attackers |= board->knight_attacks[target_square] & bitboards[N + offset];
+    attackers |= get_bishop_attacks(target_square, occupancy, board) & bitboards[B + offset];
+    attackers |= get_rook_attacks(target_square, occupancy, board) & bitboards[R + offset];   
+    attackers |= get_queen_attacks(target_square, occupancy, board) & bitboards[Q + offset];
+    attackers |= board->king_attacks[target_square] & bitboards[K + offset];
 
     return attackers;
 }
-
 
 int see(Board *board, int target_square, int pieces, int fromSq) {
     // printf("    [DEBUG]: SEE called\n");
@@ -475,14 +414,11 @@ int see(Board *board, int target_square, int pieces, int fromSq) {
     // int gain = 0;
     int side = board->side;
     // printf("Side %d\n", side);
-    Bitboard attackers = get_attackers_to_square(target_square, board->side, board);
-    Bitboard defenders = get_attackers_to_square(target_square, board->side^1, board);
+    Bitboard attackers = get_attackers_to_square(target_square, side, board->occupancies[BOTH], board->bitboards, board);
+    Bitboard defenders = get_attackers_to_square(target_square, side^1, board->occupancies[BOTH], board->bitboards, board);
     
-
     // Gain array
     int gain_array[32], d = 0;
-    // int d = 0;
-    // Bitboard fromSet = 1ULL <<  fromSq;
 
     Bitboard attacks_and_defneds = attackers | defenders;
     // print_bitboard(attacks_and_defneds);
@@ -491,94 +427,55 @@ int see(Board *board, int target_square, int pieces, int fromSq) {
     // print_bitboard(attacks_and_defneds);
 
     // intial gain
-    gain_array[d] = MATERIAL_SCORE[get_piece_at_square(target_square, board) % 6];
-    // printf("    [DEBUG]: Piece: %d\n", get_piece_at_square(target_square, board)); // found 9 (r)
-    // printf("    [DEBUG]: Gain: %d\n", gain_array[d]); // 500
-
-        // printf("    [DEBUG]: Gain: %d\n", gain_array[d]);
-
+    gain_array[d] = MATERIAL_SCORE[get_piece_at_square(target_square, board->bitboards) % 6];
 
     int src = fromSq;
 
-    int piece = get_piece_at_square(src, board); // found 1 (N)
+    int piece = get_piece_at_square(src, board->bitboards);
 
-    // printf("attacking piece: %c at square %d\n", ascii_pieces[piece], src);
-    
-    // Save occupancy
-    // Bitboard occupancy = board->occupancies[BOTH];
-    
+    // Create copies of occupancies and bitboards
+    Bitboard occupancy = board->occupancies[BOTH];
+    Bitboard bitboards[12];
 
-    // POP_BIT(attacks_and_defneds, fromSq);
-
-        // Define a copy of borad
-    Board* temp_board = board;
+    for (int i = P; i <= k; i++) bitboards[i] = board->bitboards[i];
 
        do {
-        attackers = get_attackers_to_square(target_square, side, temp_board);
-        defenders = get_attackers_to_square(target_square, side^1, temp_board);
-
+        attackers = get_attackers_to_square(target_square, side, occupancy, bitboards, board);
+        defenders = get_attackers_to_square(target_square, side^1, occupancy, bitboards, board);
         attacks_and_defneds = attackers | defenders;
-        // printf("    [DEBUG]: d: %d\n", d);
+
         d++;
         side = !side;
-        // printf("Side %d\n", side);
 
         gain_array[d] = MATERIAL_SCORE[piece % 6] - gain_array[d-1];
 
-        // printf("    [DEBUG]: Gain: %d\n", gain_array[d]);
-        
-        // printf("    [DEBUG]: Gain: %d, PIECE: %d\n, square: %d", gain_array[d], piece, src);
-        // printf("    [DEBUG]: fromSet: ");
-        // print_bitboard(fromSet);
         POP_BIT(attacks_and_defneds, src);
-        POP_BIT(temp_board->bitboards[piece], src);
-        POP_BIT(temp_board->occupancies[side], src);
-        POP_BIT(temp_board->occupancies[BOTH], src);
+        POP_BIT(bitboards[piece], src);
+        POP_BIT(occupancy, src);
 
-        // attacks_and_defneds ^= fromSet;
-        // print_bitboard(attacks_and_defneds);
-
-        // set fromSet bitboard to the next attacker
-        src = get_smallest_attacker(attacks_and_defneds, side, temp_board);
-        piece = get_piece_at_square(src, temp_board);
+        src = get_smallest_attacker(attacks_and_defneds, side, bitboards);
+        piece = get_piece_at_square(src, bitboards);
         
-        // printf("    [DEBUG]: next piece: %c\n", ascii_pieces[piece]);
-
-
-
-        // fromSet = board->bitboards[piece] & fromSet;
-
-        // attackers = get_attackers_to_square(target_square, side, temp_board);
-        // defenders = get_attackers_to_square(target_square, side^1, temp_board);
-
-        // attacks_and_defneds = attackers | defenders;
-
-        // printf("    [DEBUG]: next piece: %d\n", piece);
-        //  printf("    [DEBUG]: LAST fromSet: ");
-        // print_bitboard(attacks_and_defneds);
     } while (attacks_and_defneds);
-
 
     // Gain propagation
     while (--d) {
         // printf("    [DEBUG]: max(%d, %d)\n", -gain_array[d-1], gain_array[d]);
         gain_array[d-1] = -MAX(-gain_array[d-1], gain_array[d]);
-        // d--;
     }
-    // printf("    [DEBUG]: SEE score: %d\n", gain_array[d]);
     return gain_array[0];
 }
 
-int get_piece_at_square(int square, Board *board) {
+int get_piece_at_square(int square, Bitboard bitboards[]) {
     for (int piece = P; piece <= k; piece++) {
-        if (GET_BIT(board->bitboards[piece], square)) {
+        if (GET_BIT(bitboards[piece], square)) {
             return piece;
         }
     }
     return -1;
 }
 
-int get_smallest_attacker(Bitboard attackers, int side, Board *board) {
+int get_smallest_attacker(Bitboard attackers, int side, Bitboard bitboards[]) {
 
     int smallest_value = 12000;
     int smallest_piece = -1;
@@ -588,13 +485,12 @@ int get_smallest_attacker(Bitboard attackers, int side, Board *board) {
     int start = (side == WHITE) ? P : p;
     int end = (side == WHITE) ? K : k;
 
-    // for (int piece = start; piece <= end; piece++) {
         Bitboard bitboard = attackers;
         while (bitboard) {
             int square = get_least_sig_bit_index(bitboard);
-            int piece = get_piece_at_square(square, board);
+            int piece = get_piece_at_square(square, bitboards);
 
-            // make sure the piece is the correct color
+            // Make sure the piece is the correct color
             if (side == BLACK && piece < p) {
                 POP_BIT(bitboard, square);
                 continue;
@@ -610,11 +506,7 @@ int get_smallest_attacker(Bitboard attackers, int side, Board *board) {
 
             int value = MATERIAL_SCORE[piece % 6];
 
-            // compare values
             if (value < smallest_value) {
-                // printf("    [DEBUG]: Smallest value: %d\n", value);
-                // printf("    [DEBUG]: Smallest piece: %d\n", piece);
-                // printf("    [DEBUG]: Smallest square: %d\n", square);  
                 smallest_value = value;
                 smallest_piece = piece;
                 smallest_square = square;
