@@ -39,8 +39,6 @@ void pv_scoring(Moves*, Search*);
 int can_reduce(int, int);
 int is_repetition(Board*);
 int see(Board*, int, int, int);
-Bitboard get_attackers_to_square(int target_square, int side, Bitboard, Bitboard[], Board *board);
-int get_piece_at_square(int square, Bitboard[]); ;
 int get_smallest_attacker(Bitboard attackers, int side, Bitboard[]);
 
 #endif
