@@ -469,9 +469,9 @@ Bitboard get_attackers_to_square(int target_square, int side, Board *board) {
 }
 
 
-
 int see(Board *board, int target_square, int pieces, int fromSq) {
     // printf("    [DEBUG]: SEE called\n");
+
     // int gain = 0;
     int side = board->side;
     // printf("Side %d\n", side);
@@ -485,6 +485,7 @@ int see(Board *board, int target_square, int pieces, int fromSq) {
     // Bitboard fromSet = 1ULL <<  fromSq;
 
     Bitboard attacks_and_defneds = attackers | defenders;
+    // print_bitboard(attacks_and_defneds);
 
     // printf("    [DEBUG]: ATTACK AND DEFEND:", attacks_and_defneds);
     // print_bitboard(attacks_and_defneds);
@@ -493,6 +494,8 @@ int see(Board *board, int target_square, int pieces, int fromSq) {
     gain_array[d] = MATERIAL_SCORE[get_piece_at_square(target_square, board) % 6];
     // printf("    [DEBUG]: Piece: %d\n", get_piece_at_square(target_square, board)); // found 9 (r)
     // printf("    [DEBUG]: Gain: %d\n", gain_array[d]); // 500
+
+        // printf("    [DEBUG]: Gain: %d\n", gain_array[d]);
 
 
     int src = fromSq;
@@ -507,41 +510,60 @@ int see(Board *board, int target_square, int pieces, int fromSq) {
 
     // POP_BIT(attacks_and_defneds, fromSq);
 
+        // Define a copy of borad
+    Board* temp_board = board;
 
        do {
+        attackers = get_attackers_to_square(target_square, side, temp_board);
+        defenders = get_attackers_to_square(target_square, side^1, temp_board);
+
+        attacks_and_defneds = attackers | defenders;
         // printf("    [DEBUG]: d: %d\n", d);
         d++;
         side = !side;
         // printf("Side %d\n", side);
 
         gain_array[d] = MATERIAL_SCORE[piece % 6] - gain_array[d-1];
+
+        // printf("    [DEBUG]: Gain: %d\n", gain_array[d]);
+        
         // printf("    [DEBUG]: Gain: %d, PIECE: %d\n, square: %d", gain_array[d], piece, src);
         // printf("    [DEBUG]: fromSet: ");
         // print_bitboard(fromSet);
         POP_BIT(attacks_and_defneds, src);
+        POP_BIT(temp_board->bitboards[piece], src);
+        POP_BIT(temp_board->occupancies[side], src);
+        POP_BIT(temp_board->occupancies[BOTH], src);
+
         // attacks_and_defneds ^= fromSet;
         // print_bitboard(attacks_and_defneds);
 
         // set fromSet bitboard to the next attacker
-        src = get_smallest_attacker(attacks_and_defneds, side, board);
-        piece = get_piece_at_square(src, board);
+        src = get_smallest_attacker(attacks_and_defneds, side, temp_board);
+        piece = get_piece_at_square(src, temp_board);
+        
+        // printf("    [DEBUG]: next piece: %c\n", ascii_pieces[piece]);
 
-        // int fromSet = get_smallest_attacker(attacks_and_defneds, side, board);
-        // printf("    [DEBUG]: next fromSet: ");
-        // print_bitboard(fromSet);
 
 
         // fromSet = board->bitboards[piece] & fromSet;
 
+        // attackers = get_attackers_to_square(target_square, side, temp_board);
+        // defenders = get_attackers_to_square(target_square, side^1, temp_board);
+
+        // attacks_and_defneds = attackers | defenders;
 
         // printf("    [DEBUG]: next piece: %d\n", piece);
         //  printf("    [DEBUG]: LAST fromSet: ");
         // print_bitboard(attacks_and_defneds);
     } while (attacks_and_defneds);
 
+
     // Gain propagation
     while (--d) {
-        gain_array[d-1] = MAX(-gain_array[d-1], gain_array[d]);
+        // printf("    [DEBUG]: max(%d, %d)\n", -gain_array[d-1], gain_array[d]);
+        gain_array[d-1] = -MAX(-gain_array[d-1], gain_array[d]);
+        // d--;
     }
     // printf("    [DEBUG]: SEE score: %d\n", gain_array[d]);
     return gain_array[0];
