@@ -19,7 +19,7 @@ SeeTest tests[NUM_TESTS] = {
     { "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - - 0 1 ", 100, 28, 60 }, // Rxe5
     { "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - - 0 1 ", -225, 28, 43 }, // Nxe5
     { "1k1r3q/1ppn3p/p4b2/4P3/8/P2N2P1/1PP1R1BP/2K1Q3 b - - 0 1 ", -225, 28, 11 }, // Nxe5
-    
+
     // Special case for promotion - the promoted piece value is not included
     {"8/4kp2/2npp3/1Nn5/1p2PQP1/7q/1PP1B3/4KR1r b - - 0 1;", 0, 61, 63 }, // Rxf1+
     
@@ -54,6 +54,6 @@ void test_see() {
             exit(EXIT_FAILURE);
         }
     }
-
+    printf("SEE tests passed\n");
     free_board(board);
 }
