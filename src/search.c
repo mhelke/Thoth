@@ -350,15 +350,19 @@ int quiescence(int alpha, int beta, Search *search) {
 
             int captured_piece_value = MATERIAL_SCORE[captured_piece % 6];
 
-            // Delta Cutoff - if the capture is guarenteed to not raise alpha, and it is not the endgame, prune the move.
-            if ((stand_pat + captured_piece_value + DELTA_PRUNE_MARGIN < alpha) && (opponent_material - captured_piece_value > ENDGAME_MATERIAL_THRESHOLD)) {
-                continue;
+            // Do not prune capturesin the endgame
+            if (opponent_material - captured_piece_value > ENDGAME_MATERIAL_THRESHOLD) {
+                // Delta Cutoff - if the capture is guarenteed to not raise alpha, and it is not the endgame, prune the move.
+                if ((stand_pat + captured_piece_value + DELTA_PRUNE_MARGIN < alpha)) {
+                    continue;
+                }
+
+                // Static Exchange Evaluation (SEE) - if a capture sequence loses material, prune the move.
+                if (see(board, MOVE_TARGET(move_list->moves[i]), MOVE_SRC(move_list->moves[i])) < 0) {
+                    continue;
+                }
             }
 
-            // Static Exchange Evaluation (SEE) - if a capture sequence loses material, prune the move.
-            if (see(board, MOVE_TARGET(move_list->moves[i]), MOVE_PIECE(move_list->moves[i]), MOVE_SRC(move_list->moves[i])) < 0) {
-                continue;
-            }
         }
 
         COPY_BOARD(board);
@@ -390,7 +394,7 @@ int quiescence(int alpha, int beta, Search *search) {
 }
 
 // Static Exchange Evaluation (SEE)
-int see(Board *board, int target_square, int pieces, int from_sq) {
+int see(Board *board, int target_square, int from_sq) {
     int side = board->side;
     
     // All pieces that can attack the target square
