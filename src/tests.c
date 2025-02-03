@@ -47,7 +47,7 @@ void test_see() {
 
     for (int i = 0; i < NUM_TESTS; i++) {
         load_fen(tests[i].fen, board);
-        int val = see(board, tests[i].to, 0, tests[i].from);
+        int val = see(board, tests[i].to, tests[i].from);
 
         if (val != tests[i].expected_result) {
             printf("[%d] FAILURE testing SEE: Expected %d, got %d\n", i, tests[i].expected_result, val);
