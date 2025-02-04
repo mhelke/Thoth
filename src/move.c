@@ -491,6 +491,69 @@ int make_move(int move, Board *board) {
     return 1;
 }
 
+int gives_check(Board *board, int move) {
+    int src = MOVE_SRC(move);
+    int target = MOVE_TARGET(move);
+    int piece = MOVE_PIECE(move);
+    int opponent = board->side;
+    int king_square = get_least_sig_bit_index(board->bitboards[(opponent == WHITE) ? k : K]);
+
+    // Check if the piece on the target square attacks the king
+    if (piece == P || piece == p) {
+        if (board->pawn_attacks[opponent][target] & (1ULL << king_square)) {
+            return 1;
+        }
+    } else if (piece == N || piece == n) {
+        if (board->knight_attacks[target] & (1ULL << king_square)) {
+            return 1;
+        }
+    } else if (piece == B || piece == b) {
+        if (get_bishop_attacks(target, board->occupancies[BOTH], board) & (1ULL << king_square)) {
+            return 1;
+        }
+    } else if (piece == R || piece == r) {
+        if (get_rook_attacks(target, board->occupancies[BOTH], board) & (1ULL << king_square)) {
+            return 1;
+        }
+    } else if (piece == Q || piece == q) {
+        if (get_queen_attacks(target, board->occupancies[BOTH], board) & (1ULL << king_square)) {
+            return 1;
+        }
+    } else if (piece == K || piece == k) {
+        if (board->king_attacks[target] & (1ULL << king_square)) {
+            return 1;
+        }
+    }
+
+    // Check for discovered checks
+    if (piece == P || piece == p) {
+        if (MOVE_ENPASSANT(move)) {
+            int ep_capture_square = target + ((opponent == WHITE) ? 8 : -8);
+            // Queen attacks are derived from rook and bishop attacks, so no need to check them.
+            if (get_rook_attacks(src, board->occupancies[BOTH] ^ (1ULL << ep_capture_square), board) & (1ULL << king_square)) {
+                return 1;
+            }
+            if (get_bishop_attacks(src, board->occupancies[BOTH] ^ (1ULL << ep_capture_square), board) & (1ULL << king_square)) {
+                return 1;
+            }
+        }
+    }
+
+    // Check if moving the piece opens an attack from a sliding piece
+    Bitboard occupancy_without_src = board->occupancies[BOTH] ^ (1ULL << src);
+    if (get_rook_attacks(king_square, occupancy_without_src, board) & board->bitboards[(opponent == WHITE) ? R : r]) {
+        return 1;
+    }
+    if (get_bishop_attacks(king_square, occupancy_without_src, board) & board->bitboards[(opponent == WHITE) ? B : b]) {
+        return 1;
+    }
+    if (get_queen_attacks(king_square, occupancy_without_src, board) & board->bitboards[(opponent == WHITE) ? Q : q]) {
+        return 1;
+    }
+
+    return 0;
+}
+
 
 void print_move(int move) {
     int promoted = MOVE_PROMOTED(move);
