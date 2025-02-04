@@ -13,7 +13,7 @@
 #include "eval.h"
 
 #include "perft.h"
-#include "see_tests.h"
+#include "tests.h"
 
 #define test_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
 #define mate_position "8/8/8/8/8/K7/Q7/7k w - 0 1 "
@@ -32,8 +32,9 @@ int main() {
         search(10, board);
 
         // perft_tests();
-        // test_see();
-        
+
+        test();
+
         free_board(board);
 
         return 0;

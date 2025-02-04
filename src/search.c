@@ -6,6 +6,7 @@
 #include "util.h"
 #include "uci.h"
 #include "table.h"
+
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 int total_researches = 0, hash_hits = 0, beta_cutoff_count = 0;
 
