@@ -13,7 +13,7 @@
 #define CASTLE 0x800000
 
 #define encode_move(src, target, piece, promoted, capture, double, enpassant, castle) \
-    (src) | (target << 6) | (piece << 12) | (promoted << 16) | (capture << 20) | (double << 21) | (enpassant << 22) | (castle << 23);
+    (src) | (target << 6) | (piece << 12) | (promoted << 16) | (capture << 20) | (double << 21) | (enpassant << 22) | (castle << 23)
 
 #define MOVE_SRC(move) (move & SOURCE)
 #define MOVE_TARGET(move) ((move & TARGET) >> 6)
@@ -54,6 +54,7 @@ void generate_bishop_moves(int, Moves*, Board*);
 void generate_rook_moves(int, Moves*, Board*);
 void generate_queen_moves(int, Moves*, Board*);
 void generate_king_moves(int, Moves*, Board*);
+int gives_check(Board*, int);
 
 int is_square_attacked(int, int, Board*);
 Bitboard get_attackers_to_square(int target_square, int side, Bitboard occupancy[], Bitboard bitboards[], Board *board);
