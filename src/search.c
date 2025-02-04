@@ -312,8 +312,8 @@ int quiescence(int alpha, int beta, Search *search) {
 
     int opponent_material = get_material(!board->side);
     for (int i = 0; i < move_list->count; i++) {
-        // Only search captures       
-        if (!MOVE_CAPTURE(move_list->moves[i])) continue;
+        // Only search captures and checks       
+        if (!MOVE_CAPTURE(move_list->moves[i]) && !gives_check(board, move_list->moves[i])) continue;
 
         /*
             Delta Cutoff
@@ -326,7 +326,7 @@ int quiescence(int alpha, int beta, Search *search) {
         */
 
         // Do not prune a capture on promotion. The position may be unstable.
-        if (!MOVE_PROMOTED(move_list->moves[i])) {
+        if (!MOVE_PROMOTED(move_list->moves[i]) && MOVE_CAPTURE(move_list->moves[i])) {
             int captured_piece = -1;
 
             if (MOVE_ENPASSANT(move_list->moves[i])) {
