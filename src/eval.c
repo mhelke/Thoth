@@ -380,10 +380,12 @@ static const int square_to_rank[64] = {
 };
 
 // Returns the last evaluated material score for the given side.
-// Note: This function should only be called after an evaluation has been completed.
+// If both sides have 0 material and the phase is > 0, then the material has not been calculated yet.
+// The caller should ensure that material has been calculated before calling this function.
 int get_material(int side) {
-    if (Score.material[WHITE] == 0 || Score.material[BLACK] == 0) {
+    if (Score.material[WHITE] == 0 && Score.material[BLACK] == 0 && Score.phase > 0) {
         printf("    [ERROR] Material has not been calculated yet!\n");
+        return 0; // Return 0 or some default value indicating an error
     }
     return Score.material[side];
 }
@@ -746,6 +748,7 @@ void printEval(Board *board) {
   printf("------------------------------------------\n");
   printf("Total value (for side to move): %d \n", evaluate(board));
   printf("Material balance:     %d \n", Score.material[WHITE] - Score.material[BLACK]);
+  printf("Material:             "); printEvalFactor(Score.material[WHITE], Score.material[BLACK]);
   printf("Material adj:         "); printEvalFactor(Score.materialAdj[WHITE], Score.materialAdj[BLACK]);
   printf("Op PST:               "); printEvalFactor(Score.openingPST[WHITE], Score.openingPST[BLACK]);
   printf("Eg PST:               "); printEvalFactor(Score.endgamePST[WHITE], Score.endgamePST[BLACK]);
