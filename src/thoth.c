@@ -32,8 +32,7 @@ int main() {
         search(10, board);
 
         // perft_tests();
-
-        test();
+        // test();
 
         free_board(board);
 
