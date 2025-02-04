@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "tests.h"
+#include "see_tests.h"
 #include "bitboard.h"
 #include "search.h"
 #include "board.h"
