@@ -12,8 +12,18 @@ int total_researches, hash_hits, beta_cutoff_count, delta_prune, see_prune;
 
 int search(int depth, Board *board) {
     int start = get_ms();
+    
+    // Debug statistics
+    total_researches = 0;
+    hash_hits = 0;
+    beta_cutoff_count = 0;
+    delta_prune = 0;
+    see_prune = 0;
+    
     int score = 0;
     Search search = {0};
+
+    search.ply = 0;
     search.nodes = 0;
     search.score_pv = 0;
     search.follow_pv = 0;
