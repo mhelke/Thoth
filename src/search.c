@@ -8,7 +8,7 @@
 #include "table.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
-int total_researches = 0, hash_hits = 0, beta_cutoff_count = 0;
+int total_researches, hash_hits, beta_cutoff_count, delta_prune, see_prune;
 
 int search(int depth, Board *board) {
     int start = get_ms();
@@ -72,7 +72,9 @@ int search(int depth, Board *board) {
     printf("    [DEBUG] Total Full Re-searches: %d\n", total_researches);
     printf("    [DEBUG] Hash hits: %d\n", hash_hits);
     printf("    [DEBUG] Beta Cut-offs: %d\n", beta_cutoff_count);
-
+    printf("    [DEBUG] Delta Prune: %d\n", delta_prune);
+    printf("    [DEBUG] SEE Prune: %d\n", see_prune);
+    
     return score;
 }
 
@@ -303,6 +305,7 @@ int quiescence(int alpha, int beta, Search *search) {
 
      // Fail-hard
     if (score >= beta) {
+        beta_cutoff_count++;
         return beta; // fails high cut-node
     }
 
@@ -355,11 +358,13 @@ int quiescence(int alpha, int beta, Search *search) {
             if (opponent_material - captured_piece_value > ENDGAME_MATERIAL_THRESHOLD) {
                 // Delta Cutoff - if the capture is guarenteed to not raise alpha, and it is not the endgame, prune the move.
                 if ((stand_pat + captured_piece_value + DELTA_PRUNE_MARGIN < alpha)) {
+                    delta_prune++;
                     continue;
                 }
 
                 // Static Exchange Evaluation (SEE) - if a capture sequence loses material, prune the move.
                 if (see(board, MOVE_TARGET(move_list->moves[i]), MOVE_SRC(move_list->moves[i])) < 0) {
+                    see_prune++;
                     continue;
                 }
             }
@@ -384,6 +389,7 @@ int quiescence(int alpha, int beta, Search *search) {
 
         // Fail-hard
         if (score >= beta) {
+            beta_cutoff_count++;
             return beta; // fails high
         }
 
