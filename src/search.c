@@ -301,13 +301,13 @@ int quiescence(int alpha, int beta, Search *search) {
 
     search->nodes++;
 
-    // Too deep in the search
-    if (search->ply >= MAX_PLY) {
-        return evaluate(board);
-    }
-
     int score = evaluate(board);
     int stand_pat = score;
+
+    // Too deep in the search
+    if (search->ply >= MAX_PLY) {
+        return score;
+    }
 
     if (score > alpha) {
         alpha = score; // PV node 
@@ -417,7 +417,7 @@ int see(Board *board, int target_square, int from_sq) {
     // All pieces that can attack the target square
     Bitboard attackers = get_attackers_to_square(target_square, side, board->occupancies, board->bitboards, board);
     Bitboard defenders = get_attackers_to_square(target_square, side^1, board->occupancies, board->bitboards, board);
-    Bitboard attacks_and_defneds = attackers | defenders;
+    Bitboard attacks_and_defends = attackers | defenders;
     
     // Gain array
     int gains[32], d = 0;
@@ -431,42 +431,41 @@ int see(Board *board, int target_square, int from_sq) {
     // Create copies of occupancy and bitboards
     Bitboard occupancies[3];
     Bitboard bitboards[12];
-    for (int i = 0; i < 3; i++) occupancies[i] = board->occupancies[i];
-    for (int i = P; i <= k; i++) bitboards[i] = board->bitboards[i];
+    memcpy(occupancies, board->occupancies, sizeof(occupancies));
+    memcpy(bitboards, board->bitboards, sizeof(bitboards));
 
     do {
-
-        // // If the king can take, but there are other attackers, the king is not considered an attacker.
-        if (piece == (side == WHITE ? K : k) && get_attackers_to_square(target_square, !side, occupancies, bitboards, board) ) {
-            POP_BIT(attacks_and_defneds, src);
+        // If the king can take, but there are other attackers, the king is not considered an attacker.
+        if (piece == (side == WHITE ? K : k) && get_attackers_to_square(target_square, !side, occupancies, bitboards, board)) {
+            POP_BIT(attacks_and_defends, src);
             POP_BIT(bitboards[piece], src);
             POP_BIT(occupancies[BOTH], src);
             POP_BIT(occupancies[side^1], src);
             POP_BIT(occupancies[side], src);
-            src = get_smallest_attacker(attacks_and_defneds, side, bitboards);
+            src = get_smallest_attacker(attacks_and_defends, side, bitboards);
             piece = get_piece_at_square(src, bitboards); 
         }
 
         // Update pieces that can attack the target square to account for possible x-ray attacks
         attackers = get_attackers_to_square(target_square, side, occupancies, bitboards, board);
         defenders = get_attackers_to_square(target_square, side^1, occupancies, bitboards, board);
-        attacks_and_defneds = attackers | defenders;
+        attacks_and_defends = attackers | defenders;
 
         d++;
-        side = side^1;
+        side ^= 1;
 
         gains[d] = MATERIAL_SCORE[piece % 6] - gains[d-1];
 
-        POP_BIT(attacks_and_defneds, src);
+        POP_BIT(attacks_and_defends, src);
         POP_BIT(bitboards[piece], src);
         POP_BIT(occupancies[BOTH], src);
         POP_BIT(occupancies[side^1], src);
         POP_BIT(occupancies[side], src);
 
         // Find the least valuable attacker to capture next
-        src = get_smallest_attacker(attacks_and_defneds, side, bitboards);
+        src = get_smallest_attacker(attacks_and_defends, side, bitboards);
         piece = get_piece_at_square(src, bitboards); 
-    } while (attacks_and_defneds);
+    } while (attacks_and_defends);
 
     // Gain propagation
     while (--d) {

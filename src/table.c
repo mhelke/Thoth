@@ -31,7 +31,6 @@ void init_hash_table(int mb) {
     hash_entries = hash_size / sizeof(TranspositionTable);
 
     if (transposition_table != NULL) {
-        printf("    [DEBUG] Freeing transposition table\n", mb);
         free(transposition_table);
     }
 
@@ -77,15 +76,7 @@ Bitboard generate_hash_key(Board* board) {
 
 void clear_transposition_table() {
     printf("    [DEBUG] Clearing transposition table\n");
-    TranspositionTable *entry;
-
-    for (entry = transposition_table; entry < transposition_table + hash_entries; entry++) {
-        entry->key = 0;
-        entry->depth = 0;
-        entry->flag = 0;
-        entry->score = 0;
-        entry -> best_move = 0;
-    }
+    memset(transposition_table, 0, hash_entries * sizeof(TranspositionTable));
 }
 
 void record_hash(Board* board, int score, int depth, int ply, int flag) {
