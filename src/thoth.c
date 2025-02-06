@@ -25,8 +25,6 @@ int main() {
     if (debug) {
         Board* board = create_board();
         load_fen(test_position, board);
-        Moves move_list[1];
-        generate_moves(move_list, board);
         print_board(board);
         printEval(board);
         search(10, board);
