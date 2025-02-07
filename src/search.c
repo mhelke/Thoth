@@ -8,7 +8,7 @@
 #include "table.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
-int total_researches, hash_hits, beta_cutoff_count, delta_prune, see_prune;
+int total_researches, hash_hits, beta_cutoff_count, delta_prune, see_prune, total_full_researches;
 
 int search(int depth, Board *board) {
     int start = get_ms();
@@ -19,6 +19,7 @@ int search(int depth, Board *board) {
     beta_cutoff_count = 0;
     delta_prune = 0;
     see_prune = 0;
+    total_full_researches = 0;
     
     int score = 0;
     Search search = {0};
@@ -47,14 +48,18 @@ int search(int depth, Board *board) {
         // Note - watch for search instability with this and adjust as needed.
         // Assume the score in the next iteration is not likely to be much different from this iteration's score.
         // This produces more beta cutoffs, leading to reduced nodes searched.
-
-        // Score falls outside the window. Search again at full depth.
-        if ((score <= alpha) || (score >= beta)) {
-            alpha = -INT_MAX;
-            beta = INT_MAX;
-            total_researches++;
+        
+        // Score falls outside the window. Search again at full depth. Gradually widen the bound that failed.
+        if (score <= alpha) {
+            alpha = score - ASPIRATION_WINDOW;
+            total_full_researches++;
+            continue;
+        } else if (score >= beta) {
+            beta = score + ASPIRATION_WINDOW;
+            total_full_researches++;
             continue;
         }
+
         // Apply aspiration window
         alpha = score - ASPIRATION_WINDOW;
         beta = score + ASPIRATION_WINDOW;
@@ -79,7 +84,8 @@ int search(int depth, Board *board) {
     print_move(search.pv_table[0][0]);
     printf("\n");
     printf("    [DEBUG] Total Time: %d\n", (get_ms() - start));
-    printf("    [DEBUG] Total Full Re-searches: %d\n", total_researches);
+    printf("    [DEBUG] Total Full Re-searches: %d\n", total_full_researches);
+    printf("    [DEBUG] Total Re-searches: %d\n", total_researches);
     printf("    [DEBUG] Hash hits: %d\n", hash_hits);
     printf("    [DEBUG] Beta Cut-offs: %d\n", beta_cutoff_count);
     printf("    [DEBUG] Delta Prune: %d\n", delta_prune);
