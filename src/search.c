@@ -190,6 +190,11 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     sort_moves(move_list, search);
 
     for (int i = 0; i < move_list->count; i++) {
+        // Singular Reply Extension
+        // If there is only one legal move, extend the search by 1 ply.
+        if (move_list->count == 1) {
+            depth++;
+        }
         COPY_BOARD(board);
         search->ply++;
 
