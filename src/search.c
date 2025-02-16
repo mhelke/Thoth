@@ -82,8 +82,10 @@ int search(int depth, Board *board) {
     }
     printf("bestmove ");
     print_move(search.pv_table[0][0]);
+    int time = get_ms() - start;
     printf("\n");
-    printf("    [DEBUG] Total Time: %d\n", (get_ms() - start));
+    printf("    [DEBUG] Total Time: %d\n", time);
+    printf("    [DEBUG] Nodes/s: %d\n", (int)(search.nodes / ((float)time / 1000)));
     printf("    [DEBUG] Total Full Re-searches: %d\n", total_full_researches);
     printf("    [DEBUG] Total Re-searches: %d\n", total_researches);
     printf("    [DEBUG] Hash hits: %d\n", hash_hits);
@@ -337,7 +339,7 @@ int quiescence(int alpha, int beta, Search *search) {
     int opponent_material = get_material(!board->side);
     for (int i = 0; i < move_list->count; i++) {
         // Only search captures and checks       
-        if (!MOVE_CAPTURE(move_list->moves[i]) && !gives_check(board, move_list->moves[i])) continue;
+        if (!MOVE_CAPTURE(move_list->moves[i])) continue;
 
         /*
             Delta Cutoff
@@ -350,7 +352,7 @@ int quiescence(int alpha, int beta, Search *search) {
         */
 
         // Do not prune a capture on promotion. The position may be unstable.
-        if (!MOVE_PROMOTED(move_list->moves[i]) && MOVE_CAPTURE(move_list->moves[i])) {
+        if (!MOVE_PROMOTED(move_list->moves[i])) {
             int captured_piece = -1;
 
             if (MOVE_ENPASSANT(move_list->moves[i])) {
