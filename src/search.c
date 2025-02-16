@@ -635,6 +635,42 @@ void print_move_scores(Moves* move_list) {
     }
 }
 
+void quick_sort_moves(int *moves, int *scores, int low, int high) {
+    if (low < high) {
+        int pivot = scores[high];
+        int i = low - 1;
+
+        for (int j = low; j < high; j++) {
+            if (scores[j] > pivot) {
+                i++;
+                // Swap scores
+                int temp_score = scores[i];
+                scores[i] = scores[j];
+                scores[j] = temp_score;
+
+                // Swap moves
+                int temp_move = moves[i];
+                moves[i] = moves[j];
+                moves[j] = temp_move;
+            }
+        }
+        // Swap scores
+        int temp_score = scores[i + 1];
+        scores[i + 1] = scores[high];
+        scores[high] = temp_score;
+
+        // Swap moves
+        int temp_move = moves[i + 1];
+        moves[i + 1] = moves[high];
+        moves[high] = temp_move;
+
+        int pi = i + 1;
+
+        quick_sort_moves(moves, scores, low, pi - 1);
+        quick_sort_moves(moves, scores, pi + 1, high);
+    }
+}
+
 /**
  * 1. PV move
  * 2. Captures with MVV/LVA
@@ -655,21 +691,8 @@ int sort_moves(Moves *move_list, Search *search) {
         scores[i] = score_move(move_list->moves[i], search);
     }
 
-    for (int i = 0; i < count; i++) {
-        for (int j = i + 1; j < count; j++) {
-            if (scores[i] < scores[j]) {
-                // Swap scores
-                int temp_score = scores[i];
-                scores[i] = scores[j];
-                scores[j] = temp_score;
+    quick_sort_moves(move_list->moves, scores, 0, count - 1);
 
-                // Swap moves
-                int temp_move = move_list->moves[i];
-                move_list->moves[i] = move_list->moves[j];
-                move_list->moves[j] = temp_move;
-            }
-        }
-    }
     free(scores);
     return 0;
 }
