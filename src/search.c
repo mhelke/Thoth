@@ -133,6 +133,14 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     int moves_searched = 0;
 
     search->pv_length[search->ply] = search->ply;
+
+    int check = is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[K] : board->bitboards[k]), board->side ^ 1, board);
+    int gives_check = is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[k] : board->bitboards[K]), board->side, board);
+
+    // Extend the search if in check to prevent the horizon effect. This only needs to be done on the last ply.
+    if ((check || gives_check) && depth <= 1) {
+        depth++;
+    }
     
     if (depth == 0) {
         return quiescence(alpha, beta, search);
@@ -146,11 +154,9 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     search->nodes++;
 
     int legal_move_count = 0;
-    int check = is_square_attacked(get_least_sig_bit_index((board->side == WHITE) ? board->bitboards[K] : board->bitboards[k]), board->side ^ 1, board);
 
-    if (check) {
-        depth++;
-    }
+    int static_eval = evaluate(board);
+
 
     // Null Move Pruning
     if (depth >= REDUCTION_LIMIT && !check && search->ply) {
@@ -338,7 +344,7 @@ int quiescence(int alpha, int beta, Search *search) {
 
     int opponent_material = get_material(!board->side);
     for (int i = 0; i < move_list->count; i++) {
-        // Only search captures and checks       
+        // Only search captures
         if (!MOVE_CAPTURE(move_list->moves[i])) continue;
 
         /*
