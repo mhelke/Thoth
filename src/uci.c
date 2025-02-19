@@ -240,6 +240,7 @@ int parse_line() {
         return 1;
     }
     if (strncmp(input, "ucinewgame", 10) == 0) {
+        clear_transposition_table();
         parse_position("position startpos");
         return 1;
     }
