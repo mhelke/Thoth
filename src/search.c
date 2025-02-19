@@ -8,7 +8,9 @@
 #include "table.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
-int total_researches, hash_hits, beta_cutoff_count, delta_prune, see_prune, total_full_researches;
+
+int total_researches, hash_hits, beta_cutoff_count, delta_prune, 
+    see_prune, total_full_researches, razor_prune;
 
 int search(int depth, Board *board) {
     int start = get_ms();
@@ -20,6 +22,7 @@ int search(int depth, Board *board) {
     delta_prune = 0;
     see_prune = 0;
     total_full_researches = 0;
+    razor_prune = 0;
     
     int score = 0;
     Search search = {0};
@@ -92,7 +95,8 @@ int search(int depth, Board *board) {
     printf("    [DEBUG] Beta Cut-offs: %d\n", beta_cutoff_count);
     printf("    [DEBUG] Delta Prune: %d\n", delta_prune);
     printf("    [DEBUG] SEE Prune: %d\n", see_prune);
-    
+    printf("    [DEBUG] Razor Prune: %d\n", razor_prune);
+
     return score;
 }
 
@@ -185,6 +189,18 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             // Node fails high beta-cutoff
             beta_cutoff_count++;
             return beta;
+        }
+    }
+
+    // Razoring
+    if (!is_pv && !check && depth <= 2) {
+        int margin = 125 + 75 * depth;
+        if (static_eval + margin < beta) {
+            int razor_score = quiescence(alpha, beta, search);
+            if (razor_score < beta) {
+                razor_prune++;
+                return MAX(razor_score, static_eval + margin);
+            }
         }
     }
 
