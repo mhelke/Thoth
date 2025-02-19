@@ -308,7 +308,7 @@ static const int BISHOP_PAIR_BONUS = 30;
 static const int KNIGHT_PAIR_BONUS = 8;
 static const int KNIGHT_PAIR_PENALTY = -8;
 static const int BISHOP_ENDGAME_BONUS = 10;
-static const int KNIGHT_BLOCK_C3_PENALTY = -5;
+static const int KNIGHT_BLOCK_C3_PENALTY = -10;
 static const int QUEEN_DEVELOPMENT_PENALTY = -2;
 static const int TEMPO_BONUS = 5;
 
