@@ -432,18 +432,13 @@ int evaluate(Board *board) {
             int mirror_square = MIRROR(square);
             int double_pawns = 0;
 
-            Bitboard file_mask = file_masks[square];
-            Bitboard white_pawns_on_file = board->bitboards[P] & file_mask;
-            Bitboard black_pawns_on_file = board->bitboards[p] & file_mask;
-            Bitboard any_pawn_on_file = white_pawns_on_file | black_pawns_on_file;
-
             // Position
             switch (piece) {
                 case P:
                     Score.material[WHITE] += MATERIAL_SCORE[PAWN];
                     Score.openingPST[WHITE] += PAWN_OPENING_POSITION[square];
                     Score.endgamePST[WHITE] += PAWN_ENDGAME_POSITION[square];
-                    double_pawns = count_bits(white_pawns_on_file);
+                    double_pawns = count_bits(board->bitboards[P] & file_masks[square]);
                     if (double_pawns > 1) {
                         Score.pawnStructure[WHITE] += double_pawns * DOUBLE_PAWN_PENALTY;
                     }
@@ -481,10 +476,10 @@ int evaluate(Board *board) {
                     Score.openingPST[WHITE] += ROOK_OPENING_POSITION[square];
                     Score.endgamePST[WHITE] += ROOK_ENDGAME_POSITION[square];
                     // Bonus for rooks on open and half-open files
-                    if (white_pawns_on_file == 0) {
+                    if ((board->bitboards[P] & file_masks[square]) == 0) {
                         Score.positionMetrics[WHITE] += HALF_OPEN_FILE_SCORE;
                     }
-                    if (any_pawn_on_file == 0) {
+                    if (((board->bitboards[P] & file_masks[square]) | (board->bitboards[p] & file_masks[square])) == 0) {
                         Score.positionMetrics[WHITE] += OPEN_FILE_SCORE;
                     }
                     wRookMob += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board));
@@ -510,10 +505,10 @@ int evaluate(Board *board) {
                     Score.endgamePST[WHITE] += KING_ENDGAME_POSITION[square];
 
                     // Penalty for kings on exposed files
-                    if (white_pawns_on_file == 0) {
+                    if ((board->bitboards[P] & file_masks[square]) == 0) {
                         Score.kingSafety[WHITE] -= HALF_OPEN_FILE_SCORE;
                     }
-                    if (any_pawn_on_file == 0) {
+                    if (((board->bitboards[P] & file_masks[square]) | (board->bitboards[p] & file_masks[square])) == 0) {
                         Score.kingSafety[WHITE] -= OPEN_FILE_SCORE;
                     }
                     
@@ -524,7 +519,7 @@ int evaluate(Board *board) {
                     Score.material[BLACK] += MATERIAL_SCORE[PAWN];
                     Score.openingPST[BLACK] += PAWN_OPENING_POSITION[mirror_square];
                     Score.endgamePST[BLACK] += PAWN_ENDGAME_POSITION[mirror_square];
-                    double_pawns = count_bits(black_pawns_on_file);
+                    double_pawns = count_bits(board->bitboards[p] & file_masks[square]);
                     if (double_pawns > 1) {
                         Score.pawnStructure[BLACK] += double_pawns * DOUBLE_PAWN_PENALTY;
                     }
@@ -561,10 +556,10 @@ int evaluate(Board *board) {
                     Score.endgamePST[BLACK] += ROOK_ENDGAME_POSITION[mirror_square];
 
                     // Bonus for rooks on open and half-open files
-                    if (black_pawns_on_file == 0) {
+                    if ((board->bitboards[p] & file_masks[square]) == 0) {
                         Score.positionMetrics[BLACK] += HALF_OPEN_FILE_SCORE;
                     }
-                    if (any_pawn_on_file == 0) {
+                    if (((board->bitboards[P] & file_masks[square]) | (board->bitboards[p] & file_masks[square])) == 0) {
                         Score.positionMetrics[BLACK] += OPEN_FILE_SCORE;
                     }
                     bRookMob += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board));
@@ -590,10 +585,10 @@ int evaluate(Board *board) {
                     Score.endgamePST[BLACK] += KING_ENDGAME_POSITION[mirror_square];
 
                     // Penalty for kings on exposed files
-                    if (black_pawns_on_file == 0) {
+                    if ((board->bitboards[p] & file_masks[square]) == 0) {
                         Score.kingSafety[BLACK] -= HALF_OPEN_FILE_SCORE;
                     }
-                    if (any_pawn_on_file == 0) {
+                    if (((board->bitboards[P] & file_masks[square]) | (board->bitboards[p] & file_masks[square])) == 0) {
                         Score.kingSafety[BLACK] -= OPEN_FILE_SCORE;
                     }
                     
@@ -618,8 +613,6 @@ int evaluate(Board *board) {
     // Knight pair
     if (count_bits(board->bitboards[N]) > 1) Score.positionMetrics[WHITE] += pawns > 10 ? KNIGHT_PAIR_BONUS : -KNIGHT_PAIR_PENALTY;
     if (count_bits(board->bitboards[n]) > 1) Score.positionMetrics[BLACK] += pawns > 10 ? KNIGHT_PAIR_BONUS : -KNIGHT_PAIR_PENALTY;
-
-    /** TODO: This metric only applies in the endgame and should not be weighted as much in the opening or middlegame  **/
     
     // If there are pawns on both sides of the board, bishops are better than knights in the endgame
     if (Score.phase <= 12) { // Only take effect starting in the middlegame
