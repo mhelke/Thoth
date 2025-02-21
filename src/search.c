@@ -165,7 +165,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     search->nodes++;
 
     int legal_move_count = 0;
-
     int static_eval = evaluate(board);
 
 
@@ -200,13 +199,13 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     }
 
     // Razoring
-    if (!is_pv && !check && depth <= 2) {
-        int margin = 125 + 75 * depth;
+    if (!is_pv && !check && depth < REDUCTION_LIMIT) {
+        int margin = RAZOR_MARGIN * depth;
         if (static_eval + margin < beta) {
             int razor_score = quiescence(alpha, beta, search);
             if (razor_score < beta) {
                 razor_prune++;
-                return MAX(razor_score, static_eval + margin);
+                return razor_score; 
             }
         }
     }

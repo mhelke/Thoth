@@ -15,6 +15,8 @@
 #define ASPIRATION_WINDOW 50
 #define DRAW_SCORE 0
 #define DELTA_PRUNE_MARGIN 200
+#define FUTILITY_MARGIN 200
+#define RAZOR_MARGIN 100
 
 typedef struct {
     int ply;
