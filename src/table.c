@@ -27,6 +27,11 @@ void init_hash_keys() {
 }
 
 void init_hash_table(int mb) {
+    if (mb <= 0) {
+        printf("    [ERROR] Invalid memory size for hash table allocation!\n");
+        mb = 64;
+    }
+
     int hash_size = 0x100000 * mb;
     hash_entries = hash_size / sizeof(TranspositionTable);
 
@@ -38,7 +43,7 @@ void init_hash_table(int mb) {
     
     if (transposition_table == NULL) {
         printf("    [ERROR] Error allocating hash table with %dMB!\n", mb);
-        init_hash_table(mb/2);
+        init_hash_table(mb / 2);
         return;
     }
     clear_transposition_table();
