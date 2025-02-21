@@ -7,10 +7,13 @@
 #include "uci.h"
 #include "table.h"
 
+#define inf 1000000
+
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 int total_researches, hash_hits, beta_cutoff_count, delta_prune, 
-    see_prune, total_full_researches, razor_prune;
+    see_prune, total_full_researches, null_prune, razor_prune,
+    futility_prune;
 
 int search(int depth, Board *board) {
     int start = get_ms();
@@ -22,7 +25,9 @@ int search(int depth, Board *board) {
     delta_prune = 0;
     see_prune = 0;
     total_full_researches = 0;
+    null_prune = 0;
     razor_prune = 0;
+    futility_prune = 0;
     
     int score = 0;
     Search search = {0};
@@ -34,8 +39,8 @@ int search(int depth, Board *board) {
     search.stopped = 0;
     search.board = board;
 
-    int alpha = -INT_MAX;
-    int beta = INT_MAX;
+    int alpha = -inf;
+    int beta = inf;
     int current_depth = 1;
     // Iterative deepening
     while (current_depth <= depth) {
@@ -95,7 +100,9 @@ int search(int depth, Board *board) {
     printf("    [DEBUG] Beta Cut-offs: %d\n", beta_cutoff_count);
     printf("    [DEBUG] Delta Prune: %d\n", delta_prune);
     printf("    [DEBUG] SEE Prune: %d\n", see_prune);
+    printf("    [DEBUG] Null Prune: %d\n", null_prune);
     printf("    [DEBUG] Razor Prune: %d\n", razor_prune);
+    printf("    [DEBUG] Futility Prune: %d\n", futility_prune);
 
     return score;
 }
@@ -187,7 +194,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
 
         if (score >= beta) {
             // Node fails high beta-cutoff
-            beta_cutoff_count++;
+            null_prune++;
             return beta;
         }
     }
@@ -219,6 +226,21 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         if (move_list->count == 1) {
             depth++;
         }
+
+         // Futility Pruning
+        // If the static evaluation is much lower than alpha, it is unlikely that the position will be better than alpha.
+        // This is because the position is already bad, and the search is unlikely to find a move that will improve the position.
+        // This is only done at leaf nodes to avoid going into quiescence search.
+        if (!is_pv 
+            && !check 
+            && !gives_check 
+            && depth == 1 
+            && MOVE_CAPTURE(move_list->moves[i]) == 0
+            && static_eval + FUTILITY_MARGIN <= alpha) {
+                futility_prune++;
+                continue;
+        }
+
         COPY_BOARD(board);
         search->ply++;
 
