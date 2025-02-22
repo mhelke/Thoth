@@ -236,11 +236,11 @@ Bitboard mask_bishop_attacks(int square) {
 
     // relevent bishop occupancy bits
     for (rank = target_rank + 1, file = target_file + 1; rank <= 6 && file <= 6; rank++, file++) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, file)));
+        attacks |= (1ULL << SQUARE_INDEX(rank, file));
     }
 
     for (rank = target_rank - 1, file = target_file + 1; rank >= 1 && file <= 6; rank--, file++) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, file)));
+        attacks |= (1ULL << SQUARE_INDEX(rank, file));
     }
 
     for (rank = target_rank + 1, file = target_file - 1; rank <= 6 && file >= 1; rank++, file--) {
@@ -248,7 +248,7 @@ Bitboard mask_bishop_attacks(int square) {
     }
 
      for (rank = target_rank - 1, file = target_file - 1; rank >= 1 && file >= 1; rank--, file--) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, file)));
+        attacks |= (1ULL << SQUARE_INDEX(rank, file));
     }
     return attacks;
 }
@@ -262,31 +262,35 @@ Bitboard generate_bishop_attacks(int square, Bitboard block) {
 
     // generate attacks
     for (rank = target_rank + 1, file = target_file + 1; rank <= 7 && file <= 7; rank++, file++) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, file)));
+        Bitboard target_square = (1ULL << SQUARE_INDEX(rank, file));
+        attacks |= target_square;
         // If the piece runs into another piece, the squares after that are unreachable, so the piece cannot move any further. Break the loop.
         // This function assumes the "blocking" piece can be captured. This will be decided by the move generator.
-        if ((1ULL << (SQUARE_INDEX(rank, file))) & block) {
+        if (target_square & block) {
             break;
         }
     }
 
     for (rank = target_rank - 1, file = target_file + 1; rank >= 0 && file <= 7; rank--, file++) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, file)));
-        if ((1ULL << (SQUARE_INDEX(rank, file))) & block) {
+        Bitboard target_square = (1ULL << SQUARE_INDEX(rank, file));
+        attacks |= target_square;
+        if (target_square & block) {
             break;
         }
     }
 
     for (rank = target_rank + 1, file = target_file - 1; rank <= 7 && file >= 0; rank++, file--) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, file)));
-        if ((1ULL << (SQUARE_INDEX(rank, file))) & block) {
+        Bitboard target_square = (1ULL << SQUARE_INDEX(rank, file));
+        attacks |= target_square;
+        if (target_square & block) {
             break;
         }
     }
 
      for (rank = target_rank - 1, file = target_file - 1; rank >= 0 && file >= 0; rank--, file--) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, file)));
-        if ((1ULL << (SQUARE_INDEX(rank, file))) & block) {
+        Bitboard target_square = (1ULL << SQUARE_INDEX(rank, file));
+        attacks |= target_square;
+        if (target_square & block) {
             break;
         }
     }
@@ -304,16 +308,16 @@ Bitboard mask_rook_attacks(int square) {
     
     // relevent rook occupancy bits
     for (rank = target_rank + 1; rank <= 6; rank++) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, target_file)));
+        attacks |= (1ULL << SQUARE_INDEX(rank, target_file));
     }
     for (rank = target_rank - 1; rank >= 1; rank--) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, target_file)));
+        attacks |= (1ULL << SQUARE_INDEX(rank, target_file));
     }
     for (file = target_file + 1; file <= 6; file++) {
-        attacks |= (1ULL << (SQUARE_INDEX(target_rank, file)));
+        attacks |= (1ULL << SQUARE_INDEX(target_rank, file));
     }
     for (file = target_file - 1; file >= 1; file--) {
-        attacks |= (1ULL << (SQUARE_INDEX(target_rank, file)));
+        attacks |= (1ULL << SQUARE_INDEX(target_rank, file));
     }    
     return attacks;
 }
@@ -328,28 +332,32 @@ Bitboard generate_rook_attacks(int square, Bitboard block) {
     
     //generate attacks
     for (rank = target_rank + 1; rank <= 7; rank++) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, target_file)));
+        Bitboard target_square = (1ULL << SQUARE_INDEX(rank, target_file));
+        attacks |= target_square;
         // If the piece runs into another piece, the squares after that are unreachable, so the piece cannot move any further. Break the loop.
         // This function assumes the "blocking" piece can be captured. This will be decided by the move generator.
-        if ((1ULL << (SQUARE_INDEX(rank, target_file))) & block) {
+        if (target_square & block) {
             break;
         }
     }
     for (rank = target_rank - 1; rank >= 0; rank--) {
-        attacks |= (1ULL << (SQUARE_INDEX(rank, target_file)));
-         if ((1ULL << (SQUARE_INDEX(rank, target_file))) & block) {
+        Bitboard target_square = (1ULL << SQUARE_INDEX(rank, target_file));
+        attacks |= target_square;
+         if (target_square & block) {
             break;
         }
     }
     for (file = target_file + 1; file <= 7; file++) {
-        attacks |= (1ULL << (SQUARE_INDEX(target_rank, file)));
-         if ((1ULL << (SQUARE_INDEX(target_rank, file))) & block) {
+        Bitboard target_square = (1ULL << SQUARE_INDEX(target_rank, file));
+        attacks |= target_square;
+         if (target_square & block) {
             break;
         }
     }
     for (file = target_file - 1; file >= 0; file--) {
-        attacks |= (1ULL << (SQUARE_INDEX(target_rank, file)));
-         if ((1ULL << (SQUARE_INDEX(target_rank, file))) & block) {
+        Bitboard target_square = (1ULL << SQUARE_INDEX(target_rank, file));
+        attacks |= target_square;
+         if (target_square & block) {
             break;
         }
     }    

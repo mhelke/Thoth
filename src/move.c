@@ -51,7 +51,6 @@ void generate_pawn_moves(int side, Moves *moves, Board *board) {
     int enpassant_rank = (side == WHITE) ? a5 : a4;
     int double_move_rank_start = (side == WHITE) ? a2 : a7;
     int double_move_rank_end = (side == WHITE) ? h2 : h7;
-    const char *side_name = (side == WHITE) ? "White" : "Black";
 
     const int *pieces;
     if (side == WHITE) {
@@ -61,7 +60,6 @@ void generate_pawn_moves(int side, Moves *moves, Board *board) {
         static const int black_pieces[] = {q, r, b, n};
         pieces = black_pieces;
     }
-
 
     while (bitboard) {
         src = get_least_sig_bit_index(bitboard);
@@ -126,8 +124,7 @@ void generate_pawn_moves(int side, Moves *moves, Board *board) {
 }
 
 void generate_castling_moves(int side, Moves *moves, Board *board) {
-    const char *side_name = (side == WHITE) ? "White" : "Black";
-    int piece = (side == WHITE)  ? K : k;
+    int piece = (side == WHITE) ? K : k;
     int src = (side == WHITE) ? e1 : e8;
     int k_target = (side == WHITE) ? g1 : g8;
     int q_target = (side == WHITE) ? c1 : c8;
@@ -161,7 +158,6 @@ void generate_knight_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? N : n;
     int src, target;
     int opponent = 1 - side;
-    const char *side_name = (side == WHITE) ? "White" : "Black";
 
     Bitboard bitboard = board->bitboards[piece];
 
@@ -193,7 +189,6 @@ void generate_bishop_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? B : b;
     int src, target;
     int opponent = 1 - side;
-    const char *side_name = (side == WHITE) ? "White" : "Black";
 
     Bitboard bitboard = board->bitboards[piece];
 
@@ -225,7 +220,6 @@ void generate_rook_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? R : r;
     int src, target;
     int opponent = 1 - side;
-    const char *side_name = (side == WHITE) ? "White" : "Black";
 
     Bitboard bitboard = board->bitboards[piece];
 
@@ -257,7 +251,6 @@ void generate_queen_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? Q : q;
     int src, target;
     int opponent = 1 - side;
-    const char *side_name = (side == WHITE) ? "White" : "Black";
 
     Bitboard bitboard = board->bitboards[piece];
 
@@ -289,7 +282,6 @@ void generate_king_moves(int side, Moves *moves, Board *board) {
     int piece = (side == WHITE) ? K : k;
     int src, target;
     int opponent = 1 - side;
-    const char *side_name = (side == WHITE) ? "White" : "Black";
 
     Bitboard bitboard = board->bitboards[piece];
 
