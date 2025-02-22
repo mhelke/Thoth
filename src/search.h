@@ -38,7 +38,6 @@ int quiescence(int, int, Search*);
 void print_move_scores(Moves*);
 int sort_moves(Moves*, Search*);
 void pv_scoring(Moves*, Search*);
-int can_reduce(int, int);
 int is_repetition(Board*);
 int see(Board*, int, int);
 int get_smallest_attacker(Bitboard, int, Bitboard[]);

@@ -42,6 +42,7 @@ int search(int depth, Board *board) {
     int alpha = -inf;
     int beta = inf;
     int current_depth = 1;
+
     // Iterative deepening
     while (current_depth <= depth) {
 
@@ -167,7 +168,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     int legal_move_count = 0;
     int static_eval = evaluate(board);
 
-
     // Null Move Pruning
     if (depth >= REDUCTION_LIMIT && !check && search->ply) {
         COPY_BOARD(board);
@@ -257,7 +257,11 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             score = -negamax(-beta, -alpha, depth-1, search);
         } else {
             // Late Move Reduction (LMR)
-            if (moves_searched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && can_reduce(check, move_list->moves[i])) {
+            if (moves_searched >= FULL_DEPTH_MOVES 
+                    && depth >= REDUCTION_LIMIT 
+                    && !check 
+                    && !MOVE_CAPTURE(move_list->moves[i]) 
+                    && !MOVE_PROMOTED(move_list->moves[i])) {
                 // Search with a reduced depth
                 score = -negamax(-alpha-1, -alpha, depth-REDUCTION, search);
             } else {
@@ -469,12 +473,12 @@ int quiescence(int alpha, int beta, Search *search) {
 // Static Exchange Evaluation (SEE)
 int see(Board *board, int target_square, int from_sq) {
     int side = board->side;
-    
+
     // All pieces that can attack the target square
     Bitboard attackers = get_attackers_to_square(target_square, side, board->occupancies, board->bitboards, board);
-    Bitboard defenders = get_attackers_to_square(target_square, side^1, board->occupancies, board->bitboards, board);
+    Bitboard defenders = get_attackers_to_square(target_square, side ^ 1, board->occupancies, board->bitboards, board);
     Bitboard attacks_and_defends = attackers | defenders;
-    
+
     // Gain array
     int gains[32], d = 0;
 
@@ -485,9 +489,8 @@ int see(Board *board, int target_square, int from_sq) {
     int piece = get_piece_at_square(src, board->bitboards);
 
     // Create copies of occupancy and bitboards
-    Bitboard occupancies[3];
+    Bitboard occupancies[3] = {board->occupancies[WHITE], board->occupancies[BLACK], board->occupancies[BOTH]};
     Bitboard bitboards[12];
-    memcpy(occupancies, board->occupancies, sizeof(occupancies));
     memcpy(bitboards, board->bitboards, sizeof(bitboards));
 
     do {
@@ -496,79 +499,63 @@ int see(Board *board, int target_square, int from_sq) {
             POP_BIT(attacks_and_defends, src);
             POP_BIT(bitboards[piece], src);
             POP_BIT(occupancies[BOTH], src);
-            POP_BIT(occupancies[side^1], src);
             POP_BIT(occupancies[side], src);
             src = get_smallest_attacker(attacks_and_defends, side, bitboards);
-            piece = get_piece_at_square(src, bitboards); 
+            piece = get_piece_at_square(src, bitboards);
         }
 
         // Update pieces that can attack the target square to account for possible x-ray attacks
         attackers = get_attackers_to_square(target_square, side, occupancies, bitboards, board);
-        defenders = get_attackers_to_square(target_square, side^1, occupancies, bitboards, board);
+        defenders = get_attackers_to_square(target_square, side ^ 1, occupancies, bitboards, board);
         attacks_and_defends = attackers | defenders;
 
         d++;
         side ^= 1;
 
-        gains[d] = MATERIAL_SCORE[piece % 6] - gains[d-1];
+        gains[d] = MATERIAL_SCORE[piece % 6] - gains[d - 1];
 
         POP_BIT(attacks_and_defends, src);
         POP_BIT(bitboards[piece], src);
         POP_BIT(occupancies[BOTH], src);
-        POP_BIT(occupancies[side^1], src);
+        POP_BIT(occupancies[side ^ 1], src);
         POP_BIT(occupancies[side], src);
 
         // Find the least valuable attacker to capture next
         src = get_smallest_attacker(attacks_and_defends, side, bitboards);
-        piece = get_piece_at_square(src, bitboards); 
+        piece = get_piece_at_square(src, bitboards);
     } while (attacks_and_defends);
 
     // Gain propagation
     while (--d) {
-        gains[d-1] = -MAX(-gains[d-1], gains[d]);
+        gains[d - 1] = -MAX(-gains[d - 1], gains[d]);
     }
     return gains[0];
 }
 
 // Get the least valuable attacker to a square
-int get_smallest_attacker(Bitboard attackers, int side, Bitboard bitboards[]) {
-
+inline int get_smallest_attacker(Bitboard attackers, int side, Bitboard bitboards[]) {
     int smallest_value = 12000;
-    int smallest_piece = -1;
     int smallest_square = -1;
 
-    int start = (side == WHITE) ? P : p;
-    int end = (side == WHITE) ? K : k;
+    while (attackers) {
+        int square = get_least_sig_bit_index(attackers);
+        int piece = get_piece_at_square(square, bitboards);
 
-        Bitboard bitboard = attackers;
-        while (bitboard) {
-            int square = get_least_sig_bit_index(bitboard);
-            int piece = get_piece_at_square(square, bitboards);
-
-            // Make sure the piece is the correct color
-            if (side == BLACK && piece < p) {
-                POP_BIT(bitboard, square);
-                continue;
-            } else if (side == WHITE && piece > K) {
-                POP_BIT(bitboard, square);
-                continue;
-            }
-
-            if (piece == -1) {
-                POP_BIT(bitboard, square);
-                continue;
-            }
-
-            int value = MATERIAL_SCORE[piece % 6];
-
-            if (value < smallest_value) {
-                smallest_value = value;
-                smallest_piece = piece;
-                smallest_square = square;
-            }
-
-            bitboard &= bitboard - 1;
+        // Make sure the piece is the correct color
+        if ((side == BLACK && piece < p) || (side == WHITE && piece > K)) {
+            POP_BIT(attackers, square);
+            continue;
         }
+
+        int value = MATERIAL_SCORE[piece % 6];
+
+        if (value < smallest_value) {
+            smallest_value = value;
+            smallest_square = square;
+        }
+
+        POP_BIT(attackers, square);
+    }
     return smallest_square;
 }
 
@@ -738,9 +725,4 @@ int sort_moves(Moves *move_list, Search *search) {
 
     free(scores);
     return 0;
-}
-
-// Whether LMR can occur. See https://www.chessprogramming.org/Late_Move_Reductions
-int can_reduce(int is_check, int move) {
-    return !is_check &&  !MOVE_CAPTURE(move) && !MOVE_PROMOTED(move);
 }
