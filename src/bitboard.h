@@ -2,6 +2,7 @@
 #define BITBOARD_H
 
 #include <string.h>
+#include <stdint.h>
 
 typedef unsigned long long Bitboard;
 
@@ -66,20 +67,11 @@ void print_bitboard(Bitboard);
 
 // count total bits in the bitboard  
 static inline int count_bits(Bitboard bitboard) {
-    // bit counter
-    int count = 0;
-
-    while (bitboard > 0) {
-        count++;
-        // reset least significant 1st bit
-        bitboard &= bitboard - 1;
-    }
-    return count;
+    return __builtin_popcountll(bitboard);
 }
 
 // get least significant 1st bit index
 static inline int get_least_sig_bit_index(Bitboard bitboard) {
-    // (block_board & -block_board) - 1
     if (!bitboard) {
         return -1; // illegal index
     }
