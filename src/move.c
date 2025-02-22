@@ -349,14 +349,16 @@ int make_move(int move, Board *board) {
     int src = MOVE_SRC(move);
     int target = MOVE_TARGET(move);
     int piece = MOVE_PIECE(move);
+    int side = board->side;
+    int opponent = side ^ 1;
 
     // Move piece from source to target
     POP_BIT(board->bitboards[piece], src);
     SET_BIT(board->bitboards[piece], target);
 
     // Update occupancy tables
-    POP_BIT(board->occupancies[board->side], src);
-    SET_BIT(board->occupancies[board->side], target);
+    POP_BIT(board->occupancies[side], src);
+    SET_BIT(board->occupancies[side], target);
 
     board->hash_key ^= piece_keys[piece][src];
     board->hash_key ^= piece_keys[piece][target];
@@ -374,8 +376,8 @@ int make_move(int move, Board *board) {
         // Captures reset the 50 move rule.
         board->fifty_move_rule_counter = 0;
         int captured_piece;
-        int start = (board->side == WHITE) ? p : P;
-        int end = (board->side == WHITE) ? k : K;
+        int start = (side == WHITE) ? p : P;
+        int end = (side == WHITE) ? k : K;
 
         for (captured_piece = start; captured_piece <= end; captured_piece++) {
             if (GET_BIT(board->bitboards[captured_piece], target)) {
@@ -384,27 +386,27 @@ int make_move(int move, Board *board) {
                 break;
             }
         }
-        POP_BIT(board->occupancies[!board->side], target);
+        POP_BIT(board->occupancies[opponent], target);
     }
 
     // Promotion Move
     if (MOVE_PROMOTED(move)) {
-        int pawn_bb = (board->side == WHITE) ? P : p;
+        int pawn_bb = (side == WHITE) ? P : p;
+        int promoted_piece = MOVE_PROMOTED(move);
         POP_BIT(board->bitboards[pawn_bb], target);
-        SET_BIT(board->bitboards[MOVE_PROMOTED(move)], target);
-        SET_BIT(board->occupancies[board->side], target);
+        SET_BIT(board->bitboards[promoted_piece], target);
         board->hash_key ^= piece_keys[pawn_bb][target];
-        board->hash_key ^= piece_keys[MOVE_PROMOTED(move)][target];
+        board->hash_key ^= piece_keys[promoted_piece][target];
     }
 
     // En passant
     if (MOVE_ENPASSANT(move)) {
-        int pawn_bb = (board->side == WHITE) ? p : P;
-        int target_adj = (board->side == WHITE) ? 8 : -8;
-        POP_BIT(board->bitboards[pawn_bb], target + target_adj);
-        POP_BIT(board->occupancies[!board->side], target + target_adj);
-
-        board->hash_key ^= piece_keys[pawn_bb][(target + target_adj)];
+        int pawn_bb = (side == WHITE) ? p : P;
+        int target_adj = (side == WHITE) ? 8 : -8;
+        int ep_capture_square = target + target_adj;
+        POP_BIT(board->bitboards[pawn_bb], ep_capture_square);
+        POP_BIT(board->occupancies[opponent], ep_capture_square);
+        board->hash_key ^= piece_keys[pawn_bb][ep_capture_square];
     }
 
     if (board->enpassant != na) {
@@ -416,30 +418,28 @@ int make_move(int move, Board *board) {
 
     // Double Push - set en passant square
     if (MOVE_DOUBLE(move)) {
-        board->enpassant = target + ((board->side == WHITE) ? 8 : -8);
-        board->hash_key ^= enpassant_keys[target + ((board->side == WHITE) ? 8 : -8)];
+        board->enpassant = target + ((side == WHITE) ? 8 : -8);
+        board->hash_key ^= enpassant_keys[board->enpassant];
     }
 
     // Castling
     if (MOVE_CASTLE(move)) {
-        int rook_src[4] = {h1, a1, h8, a8};
-        int rook_target[4] = {f1, d1, f8, d8};
-        int rook_pieces[4] = {R, R, r, r};
-        int targets[4] = {g1, c1, g8, c8};
-
-        for (int i = 0; i < 4; i++) {
-            if (target == targets[i]) {
-                POP_BIT(board->bitboards[rook_pieces[i]], rook_src[i]);
-                SET_BIT(board->bitboards[rook_pieces[i]], rook_target[i]);
-                POP_BIT(board->occupancies[board->side], rook_src[i]);
-                SET_BIT(board->occupancies[board->side], rook_target[i]);
-
-                board->hash_key ^= piece_keys[rook_pieces[i]][rook_src[i]];
-                board->hash_key ^= piece_keys[rook_pieces[i]][rook_target[i]];
-
-                break;
-            }
+        int rook_src, rook_target, rook_piece;
+        if (target == g1 || target == g8) { // King-side castling
+            rook_src = (side == WHITE) ? h1 : h8;
+            rook_target = (side == WHITE) ? f1 : f8;
+            rook_piece = (side == WHITE) ? R : r;
+        } else { // Queen-side castling
+            rook_src = (side == WHITE) ? a1 : a8;
+            rook_target = (side == WHITE) ? d1 : d8;
+            rook_piece = (side == WHITE) ? R : r;
         }
+        POP_BIT(board->bitboards[rook_piece], rook_src);
+        SET_BIT(board->bitboards[rook_piece], rook_target);
+        POP_BIT(board->occupancies[side], rook_src);
+        SET_BIT(board->occupancies[side], rook_target);
+        board->hash_key ^= piece_keys[rook_piece][rook_src];
+        board->hash_key ^= piece_keys[rook_piece][rook_target];
     }
 
     board->hash_key ^= castling_keys[board->castle];
@@ -458,19 +458,6 @@ int make_move(int move, Board *board) {
 
     board->hash_key ^= side_key;
 
-    // Debug hash key generation
-    /*
-    Bitboard expected_hash = generate_hash_key(board);
-    if (board->hash_key != expected_hash) {
-        printf("Within make_move...\n");
-        printf("Move: ");
-        print_move(move);
-        print_board(board);
-        printf("Expected hash key: %llx\n", expected_hash);
-        getchar();
-    }
-    */
-    
     // Store position in repetition table to detect 3 fold repetition 
     board->repetition_index++;
     board->repetition_table[board->repetition_index] = board->hash_key;
@@ -489,45 +476,43 @@ int gives_check(Board *board, int move) {
     int piece = MOVE_PIECE(move);
     int opponent = board->side;
     int king_square = get_least_sig_bit_index(board->bitboards[(opponent == WHITE) ? k : K]);
+    Bitboard king_bit = 1ULL << king_square;
 
     // Check if the piece on the target square attacks the king
-    if (piece == P || piece == p) {
-        if (board->pawn_attacks[opponent][target] & (1ULL << king_square)) {
-            return 1;
-        }
-    } else if (piece == N || piece == n) {
-        if (board->knight_attacks[target] & (1ULL << king_square)) {
-            return 1;
-        }
-    } else if (piece == B || piece == b) {
-        if (get_bishop_attacks(target, board->occupancies[BOTH], board) & (1ULL << king_square)) {
-            return 1;
-        }
-    } else if (piece == R || piece == r) {
-        if (get_rook_attacks(target, board->occupancies[BOTH], board) & (1ULL << king_square)) {
-            return 1;
-        }
-    } else if (piece == Q || piece == q) {
-        if (get_queen_attacks(target, board->occupancies[BOTH], board) & (1ULL << king_square)) {
-            return 1;
-        }
-    } else if (piece == K || piece == k) {
-        if (board->king_attacks[target] & (1ULL << king_square)) {
-            return 1;
-        }
+    switch (piece) {
+        case P:
+        case p:
+            if (board->pawn_attacks[opponent][target] & king_bit) return 1;
+            break;
+        case N:
+        case n:
+            if (board->knight_attacks[target] & king_bit) return 1;
+            break;
+        case B:
+        case b:
+            if (get_bishop_attacks(target, board->occupancies[BOTH], board) & king_bit) return 1;
+            break;
+        case R:
+        case r:
+            if (get_rook_attacks(target, board->occupancies[BOTH], board) & king_bit) return 1;
+            break;
+        case Q:
+        case q:
+            if (get_queen_attacks(target, board->occupancies[BOTH], board) & king_bit) return 1;
+            break;
+        case K:
+        case k:
+            if (board->king_attacks[target] & king_bit) return 1;
+            break;
     }
 
     // Check for discovered checks
     if (piece == P || piece == p) {
         if (MOVE_ENPASSANT(move)) {
             int ep_capture_square = target + ((opponent == WHITE) ? 8 : -8);
-            // Queen attacks are derived from rook and bishop attacks, so no need to check them.
-            if (get_rook_attacks(src, board->occupancies[BOTH] ^ (1ULL << ep_capture_square), board) & (1ULL << king_square)) {
-                return 1;
-            }
-            if (get_bishop_attacks(src, board->occupancies[BOTH] ^ (1ULL << ep_capture_square), board) & (1ULL << king_square)) {
-                return 1;
-            }
+            Bitboard occupancy_without_ep = board->occupancies[BOTH] ^ (1ULL << ep_capture_square);
+            if (get_rook_attacks(src, occupancy_without_ep, board) & king_bit) return 1;
+            if (get_bishop_attacks(src, occupancy_without_ep, board) & king_bit) return 1;
         }
     }
 
