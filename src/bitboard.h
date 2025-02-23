@@ -75,7 +75,7 @@ static inline int get_least_sig_bit_index(Bitboard bitboard) {
     if (!bitboard) {
         return -1; // illegal index
     }
-    return count_bits((bitboard & -bitboard) - 1);
+    return __builtin_ctzll(bitboard);
 }
 
 static inline int get_piece_at_square(int square, Bitboard bitboards[]) {
