@@ -421,6 +421,8 @@ int evaluate(Board *board) {
     int bRookMob = 0;
     int wQueenMob = 0;
     int bQueenMob = 0;
+    int wKingMob = 0;
+    int bKingMob = 0;
 
     int wPawns = count_bits(board->bitboards[P]);
     int bPawns = count_bits(board->bitboards[p]);
@@ -514,6 +516,7 @@ int evaluate(Board *board) {
                     
                     // Pieces in front of king protecting it
                     Score.kingSafety[WHITE] += count_bits(board->king_attacks[square] & board->occupancies[WHITE]) * KING_SAFETY_BONUS;
+                    wKingMob += count_bits(board->king_attacks[square] & (~board->occupancies[WHITE]));
                     break;
                 case p:
                     Score.material[BLACK] += MATERIAL_SCORE[PAWN];
@@ -594,6 +597,7 @@ int evaluate(Board *board) {
                     
                     // Pieces in front of king protecting it
                     Score.kingSafety[BLACK] += count_bits(board->king_attacks[square] & board->occupancies[BLACK]) * KING_SAFETY_BONUS;
+                    bKingMob += count_bits(board->king_attacks[square] & (~board->occupancies[BLACK]));
                     break;
             }
             POP_BIT(bitboard, square);
@@ -638,6 +642,7 @@ int evaluate(Board *board) {
     Score.endgameMobility[WHITE] += 4 * (wRookMob - 7); 
     Score.openingMobility[WHITE] += 1 * (wQueenMob - 14);
     Score.endgameMobility[WHITE] += 2 * (wQueenMob - 14);
+    Score.endgameMobility[WHITE] += 1 * (wKingMob - 1);
     Score.openingMobility[BLACK] += 4 * (bKnightMob - 4);
     Score.endgameMobility[BLACK] += 4 * (bKnightMob - 4);
     Score.openingMobility[BLACK] += 3 * (bBishopMob - 7);
@@ -646,6 +651,7 @@ int evaluate(Board *board) {
     Score.endgameMobility[BLACK] += 4 * (bRookMob - 7); 
     Score.openingMobility[BLACK] += 1 * (bQueenMob - 14);
     Score.endgameMobility[BLACK] += 2 * (bQueenMob - 14);
+    Score.endgameMobility[BLACK] += 1 * (bKingMob - 1);
         
     /* 
         Tapered Evaluation
