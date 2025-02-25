@@ -10,7 +10,7 @@
 #define MAX_PLY 64
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
-#define REDUCTION 2
+#define MAX_REDUCTION 4
 #define NULL_REDUCTION 3
 #define ASPIRATION_WINDOW 50
 #define DRAW_SCORE 0
@@ -41,5 +41,6 @@ void pv_scoring(Moves*, Search*);
 int is_repetition(Board*);
 int see(Board*, int, int);
 int get_smallest_attacker(Bitboard, int, Bitboard[]);
+int get_reduction(int check, int capture, int promoted);
 
 #endif
