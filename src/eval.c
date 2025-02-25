@@ -611,8 +611,8 @@ int evaluate(Board *board) {
     if (black_bishops > 1) Score.positionMetrics[BLACK] += BISHOP_PAIR_BONUS;
 
     // Knight pair
-    if (count_bits(board->bitboards[N]) > 1) Score.positionMetrics[WHITE] += pawns > 10 ? KNIGHT_PAIR_BONUS : -KNIGHT_PAIR_PENALTY;
-    if (count_bits(board->bitboards[n]) > 1) Score.positionMetrics[BLACK] += pawns > 10 ? KNIGHT_PAIR_BONUS : -KNIGHT_PAIR_PENALTY;
+    if (count_bits(board->bitboards[N]) > 1) Score.positionMetrics[WHITE] += pawns > 10 ? KNIGHT_PAIR_BONUS : KNIGHT_PAIR_PENALTY;
+    if (count_bits(board->bitboards[n]) > 1) Score.positionMetrics[BLACK] += pawns > 10 ? KNIGHT_PAIR_BONUS : KNIGHT_PAIR_PENALTY;
     
     // If there are pawns on both sides of the board, bishops are better than knights in the endgame
     if (Score.phase <= 12) { // Only take effect starting in the middlegame
