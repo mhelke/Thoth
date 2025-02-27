@@ -310,7 +310,6 @@ static const int KNIGHT_PAIR_PENALTY = -8;
 static const int BISHOP_ENDGAME_BONUS = 1;
 static const int KNIGHT_BLOCK_C3_PENALTY = -10;
 static const int QUEEN_DEVELOPMENT_PENALTY = -2;
-static const int TEMPO_BONUS = 5;
 
 Bitboard file_masks[64];
 Bitboard rank_masks[64];
@@ -733,11 +732,6 @@ int evaluate(Board *board) {
             score /= 2;
         }
     }
-
-    // Give the side that has a tempo a small bonus since that side dictates the game flow.
-    if (board->side == WHITE) score += TEMPO_BONUS;
-    else score -= TEMPO_BONUS;
- 
     return (board->side == WHITE) ? score : -score;
 }
 

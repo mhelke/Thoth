@@ -361,7 +361,14 @@ int quiescence(int alpha, int beta, Search *search) {
 
     search->nodes++;
 
-    int score = evaluate(board);
+    /*
+        Adding a small bonus for the side to move is a common technique to prevent to Odd-Even Effect.
+        In some cases Score Oscillation can occur where scores are unstable between even and odd plies,
+        but appear stable when only looking at even or odd plies.
+    */
+    int tempo = search->ply % 2 == 0 ? TEMPO_BONUS : -TEMPO_BONUS;
+    
+    int score = evaluate(board) + tempo;
     int stand_pat = score;
 
     // Too deep in the search
