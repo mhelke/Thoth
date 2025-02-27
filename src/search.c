@@ -168,8 +168,17 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     int legal_move_count = 0;
     int static_eval = evaluate(board);
 
+    /*
+        Parity pruning - https://www.chessprogramming.org/Odd-Even_Effect
+        If the parity of the ply to the root is even, Thoth has the tempo. If odd, the opponent has the tempo.
+        The idea is to prune more aggressively on even plies. This is applied in forward pruning cases:
+        null move pruning and LMR.
+        The Odd-Even Effect can cause even plies to grow faster than odd plies.
+    */
+    int should_parity_prune = search->ply % 2 == 0;
+
     // Null Move Pruning
-    if (depth >= REDUCTION_LIMIT && !check && search->ply) {
+    if (depth >= NULL_REDUCTION_LIMIT && !check && search->ply) {
         COPY_BOARD(board);
         search->ply++;
         board->repetition_index++;
@@ -181,8 +190,10 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         board->side ^= 1;
         board->hash_key ^= side_key;
         
+        int reduction = should_parity_prune ? NULL_REDUCTION + 1 : NULL_REDUCTION;
+
         // Search with reduced depth to find early beta-cutoffs.
-        score = -negamax(-beta, -beta+1, depth-NULL_REDUCTION, search);
+        score = -negamax(-beta, -beta+1, depth-reduction, search);
 
         search->ply--;
         UNDO(board);
@@ -226,7 +237,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             depth++;
         }
 
-         // Futility Pruning
+        // Futility Pruning
         // If the static evaluation is much lower than alpha, it is unlikely that the position will be better than alpha.
         // This is because the position is already bad, and the search is unlikely to find a move that will improve the position.
         // This is only done at leaf nodes to avoid going into quiescence search.
@@ -262,8 +273,10 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                     && !check 
                     && !MOVE_CAPTURE(move_list->moves[i]) 
                     && !MOVE_PROMOTED(move_list->moves[i])) {
+
+                int reduction = should_parity_prune ? REDUCTION + 1 : REDUCTION;
                 // Search with a reduced depth
-                score = -negamax(-alpha-1, -alpha, depth-REDUCTION, search);
+                score = -negamax(-alpha-1, -alpha, depth-reduction, search);
             } else {
                 // Ensures search is performed below
                 score = alpha + 1;

@@ -16,7 +16,7 @@
 #include "tests.h"
 
 #define test_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
-#define mate_position "8/8/8/8/8/K7/Q7/7k w - 0 1 "
+#define mate_position "6K1/8/1r6/8/4k3/6b1/8/8 b - - 13 75"
 
 int debug_mode() {
     Board* board = create_board();

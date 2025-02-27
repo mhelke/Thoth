@@ -10,6 +10,7 @@
 #define MAX_PLY 64
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
+#define NULL_REDUCTION_LIMIT 4
 #define REDUCTION 2
 #define NULL_REDUCTION 3
 #define ASPIRATION_WINDOW 50
@@ -17,6 +18,7 @@
 #define DELTA_PRUNE_MARGIN 200
 #define FUTILITY_MARGIN 200
 #define RAZOR_MARGIN 100
+#define TEMPO_BONUS 10
 
 typedef struct {
     int ply;
