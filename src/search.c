@@ -257,10 +257,13 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             score = -negamax(-beta, -alpha, depth-1, search);
         } else {
             // Late Move Reduction (LMR)
-            if (depth >= 5 && moves_searched >= FULL_DEPTH_MOVES) {
+            if (moves_searched >= FULL_DEPTH_MOVES 
+                    && depth >= REDUCTION_LIMIT 
+                    && !check 
+                    && !MOVE_CAPTURE(move_list->moves[i]) 
+                    && !MOVE_PROMOTED(move_list->moves[i])) {
                 // Search with a reduced depth
-                int reduction = get_reduction((gives_check || check), MOVE_CAPTURE(move_list->moves[i]), MOVE_PROMOTED(move_list->moves[i]));
-                score = -negamax(-alpha-1, -alpha, depth-reduction, search);
+                score = -negamax(-alpha-1, -alpha, depth-REDUCTION, search);
             } else {
                 // Ensures search is performed below
                 score = alpha + 1;
@@ -722,16 +725,4 @@ int sort_moves(Moves *move_list, Search *search) {
 
     free(scores);
     return 0;
-}
-
-int get_reduction(int check, int capture, int promoted) {
-    int R;
-
-    if (capture || promoted) {
-        R = check ? MAX_REDUCTION-2 : MAX_REDUCTION-1;
-    } else {
-        R = MAX_REDUCTION;
-    }
-    if (R < 1) R = 1;
-    return R;
 }
