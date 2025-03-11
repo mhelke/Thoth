@@ -170,15 +170,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
     int legal_move_count = 0;
     int static_eval = evaluate(board);
 
-    /*
-        Parity pruning - https://www.chessprogramming.org/Odd-Even_Effect
-        If the parity of the ply to the root is even, Thoth has the tempo. If odd, the opponent has the tempo.
-        The idea is to prune more aggressively on even plies. This is applied in forward pruning cases:
-        null move pruning and LMR.
-        The Odd-Even Effect can cause even plies to grow faster than odd plies.
-    */
-    int should_parity_prune = search->ply % 2 == 0;
-
     // Eval Pruning (Static Null Move Pruning)
     // If the static evaluation is much higher than beta, it is unlikely that the position will be better than beta. 
     if (depth < 3
@@ -207,7 +198,6 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         
         // Reduce more as depth increases
         int reduction = (depth > 6) ? 3 : 2;
-        // int reduction = should_parity_prune ? adaptive_reduction + 1 : adaptive_reduction;
 
         // Search with reduced depth to find early beta-cutoffs.
         score = -negamax(-beta, -beta+1, depth - 1 - reduction, search);
