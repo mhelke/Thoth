@@ -259,6 +259,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         // This is because the position is already bad, and the search is unlikely to find a move that will improve the position.
         // This is only done at leaf nodes to avoid going into quiescence search.
         
+        int futility_margin[4] = {0, 200, 300, 500};
         
         if (depth <= REDUCTION_LIMIT
             && !check 
@@ -266,7 +267,7 @@ int negamax(int alpha, int beta, int depth, Search *search) {
             && abs(alpha) < MATE_SCORE
             && !MOVE_CAPTURE(move_list->moves[i])
             && !MOVE_PROMOTED(move_list->moves[i])
-            && static_eval + 200 <= alpha) {
+            && static_eval + futility_margin[depth] <= alpha) {
                 futility_prune++;
                 continue;
         }
