@@ -311,6 +311,16 @@ static const int BISHOP_ENDGAME_BONUS = 1;
 static const int KNIGHT_BLOCK_C3_PENALTY = -10;
 static const int QUEEN_DEVELOPMENT_PENALTY = -2;
 
+static const int MINOR_PHASE_VALUE = 1;
+static const int ROOK_PHASE_VALUE = 2;
+static const int QUEEN_PHASE_VALUE = 4; 
+
+static const int KIGHT_MOB_ADJ = 4;
+static const int BISHOP_MOB_ADJ = 7;
+static const int ROOK_MOB_ADJ = 7;
+static const int QUEEN_MOB_ADJ = 14;
+static const int KING_MOB_ADJ = 1;
+
 Bitboard file_masks[64];
 Bitboard rank_masks[64];
 Bitboard isolated_masks[64];
@@ -451,7 +461,7 @@ int evaluate(Board *board) {
                     }
                     break;
                 case N: 
-                    Score.phase += 1;
+                    Score.phase += MINOR_PHASE_VALUE;
                     Score.material[WHITE] += MATERIAL_SCORE[KNIGHT];
                     Score.materialAdj[WHITE] += KNIGHT_ADJ[wPawns];
                     Score.openingPST[WHITE] += KNIGHT_OPENING_POSITION[square];
@@ -464,14 +474,14 @@ int evaluate(Board *board) {
                     }
                     break;
                 case B: 
-                    Score.phase += 1;
+                    Score.phase += MINOR_PHASE_VALUE;
                     Score.material[WHITE] += MATERIAL_SCORE[BISHOP];
                     Score.openingPST[WHITE] += BISHOP_OPENING_POSITION[square];
                     Score.endgamePST[WHITE] += BISHOP_ENDGAME_POSITION[square];
                     wBishopMob += count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board));
                     break;
                 case R:
-                    Score.phase += 2;
+                    Score.phase += ROOK_PHASE_VALUE;
                     Score.material[WHITE] += MATERIAL_SCORE[ROOK];
                     Score.materialAdj[WHITE] += ROOK_ADJ[wPawns];
                     Score.openingPST[WHITE] += ROOK_OPENING_POSITION[square];
@@ -486,7 +496,7 @@ int evaluate(Board *board) {
                     wRookMob += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board));
                     break;
                 case Q:
-                    Score.phase += 4;
+                    Score.phase += QUEEN_PHASE_VALUE;
                     Score.material[WHITE] += MATERIAL_SCORE[QUEEN];
                     Score.openingPST[WHITE] += QUEEN_OPENING_POSITION[square];
                     Score.endgamePST[WHITE] += QUEEN_ENDGAME_POSITION[square];
@@ -533,7 +543,7 @@ int evaluate(Board *board) {
                     }
                     break;
                 case n:
-                    Score.phase += 1;
+                    Score.phase += MINOR_PHASE_VALUE;
                     Score.material[BLACK] += MATERIAL_SCORE[KNIGHT];
                     Score.materialAdj[BLACK] += KNIGHT_ADJ[bPawns];
                     Score.openingPST[BLACK] += KNIGHT_OPENING_POSITION[mirror_square];
@@ -544,14 +554,14 @@ int evaluate(Board *board) {
                     }
                     break;
                 case b:
-                    Score.phase += 1;
+                    Score.phase += MINOR_PHASE_VALUE;
                     Score.material[BLACK] += MATERIAL_SCORE[BISHOP];
                     Score.openingPST[BLACK] += BISHOP_OPENING_POSITION[mirror_square]; 
                     Score.endgamePST[BLACK] += BISHOP_ENDGAME_POSITION[mirror_square];
                     bBishopMob += count_bits(get_bishop_attacks(square, board->occupancies[BOTH], board)); 
                     break;
                 case r:
-                    Score.phase += 2;
+                    Score.phase += ROOK_PHASE_VALUE;
                     Score.material[BLACK] += MATERIAL_SCORE[ROOK];
                     Score.materialAdj[BLACK] += ROOK_ADJ[bPawns];
                     Score.openingPST[BLACK] += ROOK_OPENING_POSITION[mirror_square];
@@ -567,7 +577,7 @@ int evaluate(Board *board) {
                     bRookMob += count_bits(get_rook_attacks(square, board->occupancies[BOTH], board));
                     break;
                 case q:
-                    Score.phase += 4;
+                    Score.phase += QUEEN_PHASE_VALUE;
                     Score.material[BLACK] += MATERIAL_SCORE[QUEEN];
                     Score.openingPST[BLACK] += QUEEN_OPENING_POSITION[mirror_square];
                     Score.endgamePST[BLACK] += QUEEN_ENDGAME_POSITION[mirror_square];
@@ -633,24 +643,26 @@ int evaluate(Board *board) {
     }
 
     // Mobility adjustments are made in such a way that a score of 0 is roughly "average" mobility for each piece in the given game phase. 
-    Score.openingMobility[WHITE] += 4 * (wKnightMob - 4);
-    Score.endgameMobility[WHITE] += 4 * (wKnightMob - 4);
-    Score.openingMobility[WHITE] += 3 * (wBishopMob - 7);
-    Score.endgameMobility[WHITE] += 3 * (wBishopMob - 7);
-    Score.openingMobility[WHITE] += 2 * (wRookMob - 7); 
-    Score.endgameMobility[WHITE] += 4 * (wRookMob - 7); 
-    Score.openingMobility[WHITE] += 1 * (wQueenMob - 14);
-    Score.endgameMobility[WHITE] += 2 * (wQueenMob - 14);
-    Score.endgameMobility[WHITE] += 1 * (wKingMob - 1);
-    Score.openingMobility[BLACK] += 4 * (bKnightMob - 4);
-    Score.endgameMobility[BLACK] += 4 * (bKnightMob - 4);
-    Score.openingMobility[BLACK] += 3 * (bBishopMob - 7);
-    Score.endgameMobility[BLACK] += 3 * (bBishopMob - 7);
-    Score.openingMobility[BLACK] += 2 * (bRookMob - 7); 
-    Score.endgameMobility[BLACK] += 4 * (bRookMob - 7); 
-    Score.openingMobility[BLACK] += 1 * (bQueenMob - 14);
-    Score.endgameMobility[BLACK] += 2 * (bQueenMob - 14);
-    Score.endgameMobility[BLACK] += 1 * (bKingMob - 1);
+
+    
+    Score.openingMobility[WHITE] += 4 * (wKnightMob - KIGHT_MOB_ADJ);
+    Score.endgameMobility[WHITE] += 4 * (wKnightMob - KIGHT_MOB_ADJ);
+    Score.openingMobility[WHITE] += 3 * (wBishopMob - BISHOP_MOB_ADJ);
+    Score.endgameMobility[WHITE] += 3 * (wBishopMob - BISHOP_MOB_ADJ);
+    Score.openingMobility[WHITE] += 2 * (wRookMob - ROOK_MOB_ADJ); 
+    Score.endgameMobility[WHITE] += 4 * (wRookMob - ROOK_MOB_ADJ); 
+    Score.openingMobility[WHITE] += 1 * (wQueenMob - QUEEN_MOB_ADJ);
+    Score.endgameMobility[WHITE] += 2 * (wQueenMob - QUEEN_MOB_ADJ);
+    Score.endgameMobility[WHITE] += 1 * (wKingMob - KING_MOB_ADJ);
+    Score.openingMobility[BLACK] += 4 * (bKnightMob - KIGHT_MOB_ADJ);
+    Score.endgameMobility[BLACK] += 4 * (bKnightMob - KIGHT_MOB_ADJ);
+    Score.openingMobility[BLACK] += 3 * (bBishopMob - BISHOP_MOB_ADJ);
+    Score.endgameMobility[BLACK] += 3 * (bBishopMob - BISHOP_MOB_ADJ);
+    Score.openingMobility[BLACK] += 2 * (bRookMob - ROOK_MOB_ADJ); 
+    Score.endgameMobility[BLACK] += 4 * (bRookMob - ROOK_MOB_ADJ); 
+    Score.openingMobility[BLACK] += 1 * (bQueenMob - QUEEN_MOB_ADJ);
+    Score.endgameMobility[BLACK] += 2 * (bQueenMob - QUEEN_MOB_ADJ);
+    Score.endgameMobility[BLACK] += 1 * (bKingMob - KING_MOB_ADJ);
         
     /* 
         Tapered Evaluation
