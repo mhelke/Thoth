@@ -13,7 +13,7 @@
 
 int total_researches, hash_hits, beta_cutoff_count, delta_prune, 
     see_prune, total_full_researches, null_prune, razor_prune,
-    futility_prune;
+    futility_prune, eval_prune;
 
 int search(int depth, Board *board) {
     int start = get_ms();
@@ -28,6 +28,7 @@ int search(int depth, Board *board) {
     null_prune = 0;
     razor_prune = 0;
     futility_prune = 0;
+    eval_prune = 0;
     
     int score = 0;
     Search search = {0};
@@ -104,6 +105,7 @@ int search(int depth, Board *board) {
     printf("    [DEBUG] Null Prune: %d\n", null_prune);
     printf("    [DEBUG] Razor Prune: %d\n", razor_prune);
     printf("    [DEBUG] Futility Prune: %d\n", futility_prune);
+    printf("    [DEBUG] Eval Prune: %d\n", eval_prune);
 
     return score;
 }
@@ -176,6 +178,19 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         The Odd-Even Effect can cause even plies to grow faster than odd plies.
     */
     int should_parity_prune = search->ply % 2 == 0;
+
+    // Eval Pruning (Static Null Move Pruning)
+    // If the static evaluation is much higher than beta, it is unlikely that the position will be better than beta. 
+    if (depth < 3
+        && !is_pv
+        && !check
+        && abs(beta - 1) > -inf + 100) {
+        int margin = 120 * depth;
+        if (static_eval - margin >= beta) {
+            eval_prune++;
+            return static_eval - margin;
+        }
+    }
 
     // Null Move Pruning
     if (depth >= NULL_REDUCTION_LIMIT && !check && search->ply) {
