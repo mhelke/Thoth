@@ -274,7 +274,8 @@ int negamax(int alpha, int beta, int depth, Search *search) {
                     && !MOVE_CAPTURE(move_list->moves[i]) 
                     && !MOVE_PROMOTED(move_list->moves[i])) {
 
-                int reduction = should_parity_prune ? REDUCTION + 1 : REDUCTION;
+                int reduction = (moves_searched > 8) ? 3 : 2;
+
                 // Search with a reduced depth
                 score = -negamax(-alpha-1, -alpha, depth-reduction, search);
             } else {
