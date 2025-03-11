@@ -166,14 +166,14 @@ static const int ROOK_OPENING_POSITION[64] =
 *****************/
 static const int ROOK_ENDGAME_POSITION[64] =
 {
-  5,   5,   5,   5,   5,   5,   5,   5,
-  20,  20,  20,  20,  20,  20,  20,  20,
-  -5,   0,   0,   0,   0,   0,   0,  -5,
-  -5,   0,   0,   0,   0,   0,   0,  -5,
-  -5,   0,   0,   0,   0,   0,   0,  -5,
-  -5,   0,   0,   0,   0,   0,   0,  -5,
-  -5,   0,   0,   0,   0,   0,   0,  -5,
-  0,   0,   0,   2,   2,   0,   0,   0
+    13, 10, 18, 15, 12,  12,   8,   5,
+    11, 13, 13, 11, -3,   3,   8,   3,
+     7,  7,  7,  5,  4,  -3,  -5,  -3,
+     4,  3, 13,  1,  2,   1,  -1,   2,
+     3,  5,  8,  4, -5,  -6,  -8, -11,
+    -4,  0, -5, -1, -7, -12,  -8, -16,
+    -6, -6,  0,  2, -9,  -9, -11,  -3,
+    -9,  2,  3, -1, -5, -13,   4, -20,
 
 };
 
@@ -643,8 +643,6 @@ int evaluate(Board *board) {
     }
 
     // Mobility adjustments are made in such a way that a score of 0 is roughly "average" mobility for each piece in the given game phase. 
-
-    
     Score.openingMobility[WHITE] += 4 * (wKnightMob - KIGHT_MOB_ADJ);
     Score.endgameMobility[WHITE] += 4 * (wKnightMob - KIGHT_MOB_ADJ);
     Score.openingMobility[WHITE] += 3 * (wBishopMob - BISHOP_MOB_ADJ);
