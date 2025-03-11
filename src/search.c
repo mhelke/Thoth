@@ -190,10 +190,12 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         board->side ^= 1;
         board->hash_key ^= side_key;
         
-        int reduction = should_parity_prune ? NULL_REDUCTION + 1 : NULL_REDUCTION;
+        // Reduce more as depth increases
+        int reduction = (depth > 6) ? 3 : 2;
+        // int reduction = should_parity_prune ? adaptive_reduction + 1 : adaptive_reduction;
 
         // Search with reduced depth to find early beta-cutoffs.
-        score = -negamax(-beta, -beta+1, depth-reduction, search);
+        score = -negamax(-beta, -beta+1, depth - 1 - reduction, search);
 
         search->ply--;
         UNDO(board);
@@ -241,12 +243,15 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         // If the static evaluation is much lower than alpha, it is unlikely that the position will be better than alpha.
         // This is because the position is already bad, and the search is unlikely to find a move that will improve the position.
         // This is only done at leaf nodes to avoid going into quiescence search.
-        if (!is_pv 
+        
+        
+        if (depth <= REDUCTION_LIMIT
             && !check 
-            && !gives_check 
-            && depth == 1 
-            && MOVE_CAPTURE(move_list->moves[i]) == 0
-            && static_eval + FUTILITY_MARGIN <= alpha) {
+            && !gives_check
+            && abs(alpha) < MATE_SCORE
+            && !MOVE_CAPTURE(move_list->moves[i])
+            && !MOVE_PROMOTED(move_list->moves[i])
+            && static_eval + 200 <= alpha) {
                 futility_prune++;
                 continue;
         }
@@ -269,10 +274,13 @@ int negamax(int alpha, int beta, int depth, Search *search) {
         } else {
             // Late Move Reduction (LMR)
             if (moves_searched >= FULL_DEPTH_MOVES 
-                    && depth >= REDUCTION_LIMIT 
-                    && !check 
+                    && depth >= REDUCTION_LIMIT
+                    && !check
+                    && !is_pv
                     && !MOVE_CAPTURE(move_list->moves[i]) 
-                    && !MOVE_PROMOTED(move_list->moves[i])) {
+                    && !MOVE_PROMOTED(move_list->moves[i])
+                    && move_list->moves[i] != search->killer_moves[0][search->ply]
+                    && move_list->moves[i] != search->killer_moves[1][search->ply]) {
 
                 int reduction = (moves_searched > 8) ? 3 : 2;
 
