@@ -10,6 +10,7 @@
 #define inf 1000000
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define INSERTION_SORT_THRESHOLD 16
 
 int total_researches, hash_hits, beta_cutoff_count, delta_prune, 
     see_prune, total_full_researches, null_prune, razor_prune,
@@ -700,39 +701,67 @@ void print_move_scores(Moves* move_list) {
     }
 }
 
-void quick_sort_moves(int *moves, int *scores, int low, int high) {
-    if (low < high) {
-        int pivot = scores[high];
-        int i = low - 1;
+static inline void insertion_sort(int *moves, int *scores, int low, int high) {
+    for (int i = low + 1; i <= high; i++) {
+        int key_score = scores[i];
+        int key_move = moves[i];
+        int j = i - 1;
+        while (j >= low && scores[j] < key_score) {
+            scores[j + 1] = scores[j];
+            moves[j + 1] = moves[j];
+            j--;
+        }
+        scores[j + 1] = key_score;
+        moves[j + 1] = key_move;
+    }
+}
 
-        for (int j = low; j < high; j++) {
-            if (scores[j] > pivot) {
-                i++;
-                // Swap scores
-                int temp_score = scores[i];
-                scores[i] = scores[j];
-                scores[j] = temp_score;
+static inline int partition(int *moves, int *scores, int low, int high) {
+    int pivot = scores[high];
+    int i = low - 1;
 
-                // Swap moves
-                int temp_move = moves[i];
-                moves[i] = moves[j];
-                moves[j] = temp_move;
+    for (int j = low; j < high; j++) {
+        if (scores[j] > pivot) {
+            i++;
+            // Swap scores
+            int temp_score = scores[i];
+            scores[i] = scores[j];
+            scores[j] = temp_score;
+
+            // Swap moves
+            int temp_move = moves[i];
+            moves[i] = moves[j];
+            moves[j] = temp_move;
+        }
+    }
+    // Swap scores
+    int temp_score = scores[i + 1];
+    scores[i + 1] = scores[high];
+    scores[high] = temp_score;
+
+    // Swap moves
+    int temp_move = moves[i + 1];
+    moves[i + 1] = moves[high];
+    moves[high] = temp_move;
+
+    return i + 1;
+}
+
+static inline void quick_sort_moves(int *moves, int *scores, int low, int high) {
+    while (low < high) {
+        if (high - low < INSERTION_SORT_THRESHOLD) {
+            insertion_sort(moves, scores, low, high);
+            break;
+        } else {
+            int pi = partition(moves, scores, low, high);
+            if (pi - low < high - pi) {
+                quick_sort_moves(moves, scores, low, pi - 1);
+                low = pi + 1;
+            } else {
+                quick_sort_moves(moves, scores, pi + 1, high);
+                high = pi - 1;
             }
         }
-        // Swap scores
-        int temp_score = scores[i + 1];
-        scores[i + 1] = scores[high];
-        scores[high] = temp_score;
-
-        // Swap moves
-        int temp_move = moves[i + 1];
-        moves[i + 1] = moves[high];
-        moves[high] = temp_move;
-
-        int pi = i + 1;
-
-        quick_sort_moves(moves, scores, low, pi - 1);
-        quick_sort_moves(moves, scores, pi + 1, high);
     }
 }
 
