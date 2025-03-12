@@ -3,3 +3,8 @@
 
 # executables
 *.exe
+
+# profile
+gmon.out
+gmon.sum
+profile.txt
