@@ -8,9 +8,6 @@
 #define FILE_ABC_MASK 0x0707070707070707ULL
 #define FILE_FGH_MASK 0xE0E0E0E0E0E0E0E0ULL
 
-
-// TODO: Might be weighting different things too much or too little now!
-// TODO: Also, check if the PST values should be changed back to the larger values? 
 struct {
     int phase;
     int material[2];
@@ -311,10 +308,12 @@ static const int BISHOP_ENDGAME_BONUS = 1;
 static const int KNIGHT_BLOCK_C3_PENALTY = -10;
 static const int QUEEN_DEVELOPMENT_PENALTY = -2;
 
+// Phase values
 static const int MINOR_PHASE_VALUE = 1;
 static const int ROOK_PHASE_VALUE = 2;
 static const int QUEEN_PHASE_VALUE = 4; 
 
+// Mobility adjustments
 static const int KIGHT_MOB_ADJ = 4;
 static const int BISHOP_MOB_ADJ = 7;
 static const int ROOK_MOB_ADJ = 7;
@@ -624,11 +623,11 @@ int evaluate(Board *board) {
     if (black_bishops > 1) Score.positionMetrics[BLACK] += BISHOP_PAIR_BONUS;
 
     // Knight pair
-    if (count_bits(board->bitboards[N]) > 1) Score.positionMetrics[WHITE] += pawns > 10 ? KNIGHT_PAIR_BONUS : KNIGHT_PAIR_PENALTY;
-    if (count_bits(board->bitboards[n]) > 1) Score.positionMetrics[BLACK] += pawns > 10 ? KNIGHT_PAIR_BONUS : KNIGHT_PAIR_PENALTY;
+    if (white_knights > 1) Score.positionMetrics[WHITE] += pawns > 10 ? KNIGHT_PAIR_BONUS : KNIGHT_PAIR_PENALTY;
+    if (black_knights > 1) Score.positionMetrics[BLACK] += pawns > 10 ? KNIGHT_PAIR_BONUS : KNIGHT_PAIR_PENALTY;
     
     // If there are pawns on both sides of the board, bishops are better than knights in the endgame
-    if (Score.phase <= 12) { // Only take effect starting in the middlegame
+    if (Score.phase <= 16) { // Only take effect starting in the middlegame
         int pawns_on_abc_files = (board->bitboards[P] & FILE_ABC_MASK) || (board->bitboards[p] & FILE_ABC_MASK);
         int pawns_on_fgh_files = (board->bitboards[P] & FILE_FGH_MASK) || (board->bitboards[p] & FILE_FGH_MASK);
 
