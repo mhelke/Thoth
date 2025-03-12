@@ -490,7 +490,7 @@ Board* create_board() {
     board->fifty_move_rule_counter = 0;
 
     init_tables(board);
-    init_hash_table(64); // 64MB
+    init_hash_table(128); // 128MB
     return board;
 }
 
