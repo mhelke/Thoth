@@ -13,10 +13,11 @@ Thoth is a UCI-compatible chess engine written in C.
   * UCI-compatible PV lines, including mate scores
   * Move ordering with Killer and History Heuristics
   * Delta pruning in quiescence search
-  * Static Exchange Evaluation using the Swap Algorithm
+  * Static Exchange Evaluation (SEE) using the Swap Algorithm
   * Zobrist hashing and transposition tables with dynamic memory allocation
   * 3-fold repetition and 50-move rule draw detection
   * Tapered evaluation for game phase transitions
+  * Futility pruning
 
 ## Evaluation Metrics
  * Material scores
