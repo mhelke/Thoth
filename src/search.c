@@ -417,7 +417,19 @@ int quiescence(int alpha, int beta, Search *search) {
 
     Moves move_list[1];
     generate_moves(move_list, board);
-    sort_moves(move_list, search); // remove?
+
+    // Remove non-captures from move list
+    int capture_count = 0;
+    for (int i = 0; i < move_list->count; i++) {
+        if (MOVE_CAPTURE(move_list->moves[i])) {
+            if (i != capture_count) {
+                move_list->moves[capture_count] = move_list->moves[i];
+            }
+            capture_count++;
+        }
+    }
+    move_list->count = capture_count;
+    sort_moves(move_list, search);
 
     int opponent_material = get_material(!board->side);
     for (int i = 0; i < move_list->count; i++) {
@@ -460,7 +472,7 @@ int quiescence(int alpha, int beta, Search *search) {
 
             int captured_piece_value = MATERIAL_SCORE[captured_piece % 6];
 
-            // Do not prune capturesin the endgame
+            // Do not prune captures in the endgame
             if (opponent_material - captured_piece_value > ENDGAME_MATERIAL_THRESHOLD) {
                 // Delta Cutoff - if the capture is guarenteed to not raise alpha, and it is not the endgame, prune the move.
                 if ((stand_pat + captured_piece_value + DELTA_PRUNE_MARGIN < alpha)) {
