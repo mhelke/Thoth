@@ -481,9 +481,12 @@ int quiescence(int alpha, int beta, Search *search) {
                 }
 
                 // Static Exchange Evaluation (SEE) - if a capture sequence loses material, prune the move.
-                if (see(board, MOVE_TARGET(move_list->moves[i]), MOVE_SRC(move_list->moves[i])) < 0) {
-                    see_prune++;
-                    continue;
+                // SEE is skipped for pawn captures as they do not lose material, so not worth the overhead of SEE. 
+                if (MOVE_PIECE(move_list->moves[i]) != (board->side == WHITE ? P : p)) {
+                    if (see(board, MOVE_TARGET(move_list->moves[i]), MOVE_SRC(move_list->moves[i])) < 0) {
+                        see_prune++;
+                        continue;
+                    }
                 }
             }
 
