@@ -646,20 +646,20 @@ int evaluate(Board *board) {
     Score.endgameMobility[WHITE] += 4 * (wKnightMob - KIGHT_MOB_ADJ);
     Score.openingMobility[WHITE] += 3 * (wBishopMob - BISHOP_MOB_ADJ);
     Score.endgameMobility[WHITE] += 3 * (wBishopMob - BISHOP_MOB_ADJ);
-    Score.openingMobility[WHITE] += 2 * (wRookMob - ROOK_MOB_ADJ); 
-    Score.endgameMobility[WHITE] += 4 * (wRookMob - ROOK_MOB_ADJ); 
-    Score.openingMobility[WHITE] += 1 * (wQueenMob - QUEEN_MOB_ADJ);
-    Score.endgameMobility[WHITE] += 2 * (wQueenMob - QUEEN_MOB_ADJ);
-    Score.endgameMobility[WHITE] += 1 * (wKingMob - KING_MOB_ADJ);
+    Score.openingMobility[WHITE] += 2 * (wRookMob   - ROOK_MOB_ADJ); 
+    Score.endgameMobility[WHITE] += 4 * (wRookMob   - ROOK_MOB_ADJ); 
+    Score.openingMobility[WHITE] += 1 * (wQueenMob  - QUEEN_MOB_ADJ);
+    Score.endgameMobility[WHITE] += 2 * (wQueenMob  - QUEEN_MOB_ADJ);
+    Score.endgameMobility[WHITE] += 1 * (wKingMob   - KING_MOB_ADJ);
     Score.openingMobility[BLACK] += 4 * (bKnightMob - KIGHT_MOB_ADJ);
     Score.endgameMobility[BLACK] += 4 * (bKnightMob - KIGHT_MOB_ADJ);
     Score.openingMobility[BLACK] += 3 * (bBishopMob - BISHOP_MOB_ADJ);
     Score.endgameMobility[BLACK] += 3 * (bBishopMob - BISHOP_MOB_ADJ);
-    Score.openingMobility[BLACK] += 2 * (bRookMob - ROOK_MOB_ADJ); 
-    Score.endgameMobility[BLACK] += 4 * (bRookMob - ROOK_MOB_ADJ); 
-    Score.openingMobility[BLACK] += 1 * (bQueenMob - QUEEN_MOB_ADJ);
-    Score.endgameMobility[BLACK] += 2 * (bQueenMob - QUEEN_MOB_ADJ);
-    Score.endgameMobility[BLACK] += 1 * (bKingMob - KING_MOB_ADJ);
+    Score.openingMobility[BLACK] += 2 * (bRookMob   - ROOK_MOB_ADJ); 
+    Score.endgameMobility[BLACK] += 4 * (bRookMob   - ROOK_MOB_ADJ); 
+    Score.openingMobility[BLACK] += 1 * (bQueenMob  - QUEEN_MOB_ADJ);
+    Score.endgameMobility[BLACK] += 2 * (bQueenMob  - QUEEN_MOB_ADJ);
+    Score.endgameMobility[BLACK] += 1 * (bKingMob   - KING_MOB_ADJ);
         
     /* 
         Tapered Evaluation
@@ -684,10 +684,23 @@ int evaluate(Board *board) {
  
     // Add material, mobility, and PST scores. Interpolate for the middle game.
     // King safety is included in the opening score, but as the game progresses, this metric is reduced until it doesn't matter in the endgame.
-    int opening_score = (Score.material[WHITE] + Score.openingPST[WHITE] + Score.openingMobility[WHITE] + Score.kingSafety[WHITE]) 
-        - (Score.material[BLACK] + Score.openingPST[BLACK] + Score.openingMobility[BLACK] + Score.kingSafety[BLACK]);
-    int endgame_score = (Score.material[WHITE] + Score.endgamePST[WHITE] + Score.endgameMobility[WHITE]) 
-        - (Score.material[BLACK] + Score.endgamePST[BLACK] + Score.endgameMobility[BLACK]);
+    int opening_score = 
+        (Score.material[WHITE] 
+            + Score.openingPST[WHITE] 
+            + Score.openingMobility[WHITE] 
+            + Score.kingSafety[WHITE]) 
+        - (Score.material[BLACK] 
+            + Score.openingPST[BLACK] 
+            + Score.openingMobility[BLACK] 
+            + Score.kingSafety[BLACK]);
+
+    int endgame_score = 
+        (Score.material[WHITE] 
+            + Score.endgamePST[WHITE] 
+            + Score.endgameMobility[WHITE]) 
+        - (Score.material[BLACK] 
+            + Score.endgamePST[BLACK] 
+            + Score.endgameMobility[BLACK]);
 
     score += ((opening_score * middle_game_weight) + (endgame_score * endgame_weight)) / 24;
     
