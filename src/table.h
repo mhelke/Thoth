@@ -12,10 +12,9 @@
 
 typedef struct {
     Bitboard key;
-    int depth;
-    int flag;
-    int score;
-    int best_move;
+    int16_t depth;
+    int8_t flag;
+    int32_t score;
 } TranspositionTable;
 
 void init_hash_keys();
