@@ -21,17 +21,16 @@
 #define TEMPO_BONUS 10
 
 typedef struct {
-    int ply;
-    // int best_move;
     unsigned long long nodes;
-    int killer_moves[2][MAX_PLY]; // TODO: Increase plys for higher depths 
-    int history[12][64]; // [piece][square]
-    int pv_length[MAX_PLY]; // TODO: Increase plys for higher depths
-    int pv_table[MAX_PLY][MAX_PLY]; // TODO: Increase plys for higher depth
+    Board *board;
+    int ply;
     int follow_pv;
     int score_pv;
     int stopped;
-    Board *board;
+    int pv_length[MAX_PLY];
+    int killer_moves[2][MAX_PLY]; 
+    int history[12][64]; // [piece][square]
+    int pv_table[MAX_PLY][MAX_PLY];
 } Search;
 
 int search(int, Board*);

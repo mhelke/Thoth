@@ -381,10 +381,10 @@ void init_siders(int is_bishop, Board *board) {
             Bitboard occupancy = set_occupancy(i, relevant_bit_count, attack_mask);
             if (is_bishop) {
                 int magic_index = (occupancy * bishop_magics[s]) >> (64 - bishop_relevant_bits[s]);
-                board->bishop_attacks[s][magic_index] = generate_bishop_attacks(s, occupancy);
+                board->bishop_attacks[s * 512 + magic_index] = generate_bishop_attacks(s, occupancy);
             } else {
                 int magic_index = (occupancy * rook_magics[s]) >> (64 - rook_relevant_bits[s]);
-                board->rook_attacks[s][magic_index] = generate_rook_attacks(s, occupancy);
+                board->rook_attacks[s * 4096 + magic_index] = generate_rook_attacks(s, occupancy);
             }
          }
     }
@@ -394,14 +394,14 @@ Bitboard get_bishop_attacks(int square, Bitboard occupancy, Board *board) {
     occupancy &= bishop_masks[square];
     occupancy *= bishop_magics[square];
     occupancy >>= 64 - bishop_relevant_bits[square];
-    return board->bishop_attacks[square][occupancy];
+    return board->bishop_attacks[square * 512 + occupancy];
 }
 
 Bitboard get_rook_attacks(int square, Bitboard occupancy, Board *board) {
     occupancy &= rook_masks[square];
     occupancy *= rook_magics[square];
     occupancy >>= 64 - rook_relevant_bits[square];
-    return board->rook_attacks[square][occupancy];
+    return board->rook_attacks[square * 4096 + occupancy];
 }
 
 Bitboard get_queen_attacks(int square, Bitboard occupancy, Board *board) {
@@ -482,6 +482,8 @@ Board* create_board() {
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
+    board->bishop_attacks = malloc(64 * 512 * sizeof(Bitboard));
+    board->rook_attacks = malloc(64 * 4096 * sizeof(Bitboard));
     board->side = -1;
     board->enpassant = na;
     board->castle = 0;
@@ -491,9 +493,17 @@ Board* create_board() {
 
     init_tables(board);
     init_hash_table(128); // 128MB
+
+    if (board->bishop_attacks == NULL || board->rook_attacks == NULL) {
+        fprintf(stderr, "Memory allocation for attack tables failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     return board;
 }
 
 void free_board(Board *board) {
+    free(board->bishop_attacks);
+    free(board->rook_attacks);
     free(board);
 }

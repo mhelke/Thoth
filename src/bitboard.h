@@ -17,15 +17,15 @@ typedef struct {
     Bitboard pawn_attacks[2][64];
     Bitboard knight_attacks[64];
     Bitboard king_attacks[64];
-    Bitboard bishop_attacks[64][512];
-    Bitboard rook_attacks[64][4096];
+    Bitboard *bishop_attacks;
+    Bitboard *rook_attacks;
     Bitboard bishop_masks[64];
     Bitboard rook_masks[64];
+    Bitboard hash_key;
+    Bitboard repetition_table[1000];
     int side;
     int enpassant;
     int castle;
-    Bitboard hash_key;
-    Bitboard repetition_table[1000];
     int repetition_index; // Keep track of 3-fold repetition
     int fifty_move_rule_counter; // Keep track of the 50 move rule for draw (100 plys)
 } Board;
