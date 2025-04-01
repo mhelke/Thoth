@@ -3,7 +3,4 @@
 
 void test();
 
-// void test_see();
-// void test_gives_check();
-
 #endif
