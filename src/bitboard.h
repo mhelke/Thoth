@@ -9,6 +9,7 @@ typedef unsigned long long Bitboard;
 #define SET_BIT(bitboard, square) ((bitboard |= (1ULL << square)))
 #define GET_BIT(bitboard, square) ((bitboard & (1ULL <<  square)))
 #define POP_BIT(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
+#define count_bits(bitboard) __builtin_popcountll(bitboard)
 #define SQUARE_INDEX(rank, file) ((rank) * 8 + (file))
 
 typedef struct {
@@ -64,11 +65,6 @@ void free_board(Board *board);
 void init_siders(int, Board*);
 void init_tables(Board*);
 void print_bitboard(Bitboard);
-
-// count total bits in the bitboard  
-static inline int count_bits(Bitboard bitboard) {
-    return __builtin_popcountll(bitboard);
-}
 
 // get least significant 1st bit index
 static inline int get_least_sig_bit_index(Bitboard bitboard) {
