@@ -1,6 +1,6 @@
 /*
     Thoth Engine
-    © Matthew Helke 2024
+    © Matthew Helke 2025
 */
 #include <stdio.h>
 
@@ -17,6 +17,8 @@
 
 #define test_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
 #define mate_position "6K1/8/1r6/8/4k3/6b1/8/8 b - - 13 75"
+#define test_arg "test"
+#define debug_arg "debug"
 
 int debug_mode() {
     Board* board = create_board();
@@ -39,11 +41,9 @@ void initialize() {
     init_evaluation_masks();
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     initialize();
-    int debug = 0;
-    int tests = 0;
-    if (tests) return run_tests();
-    if (debug) return debug_mode();
+    if (argc > 1 && strcmp(argv[1], test_arg) == 0) return run_tests();
+    if (argc > 1 && strcmp(argv[1], debug_arg) == 0) return debug_mode();
     uci_main();
 }
