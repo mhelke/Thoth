@@ -15,14 +15,13 @@
 #include "perft.h"
 #include "tests.h"
 
-#define test_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
-#define mate_position "6K1/8/1r6/8/4k3/6b1/8/8 b - - 13 75"
+#define debug_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
 #define test_arg "test"
 #define debug_arg "debug"
 
-int debug_mode() {
+int debug_mode(char* fen) {
     Board* board = create_board();
-    load_fen(test_position, board);
+    load_fen(fen, board);
     print_board(board);
     printEval(board);
     search(10, board);
@@ -43,7 +42,9 @@ void initialize() {
 
 int main(int argc, char* argv[]) {
     initialize();
-    if (argc > 1 && strcmp(argv[1], test_arg) == 0) return run_tests();
-    if (argc > 1 && strcmp(argv[1], debug_arg) == 0) return debug_mode();
+    if (argc > 1) {
+        if (strcmp(argv[1], test_arg) == 0) return run_tests();
+        if (strcmp(argv[1], debug_arg) == 0) return debug_mode(argc > 2 ? argv[2] : debug_position);
+    }
     uci_main();
 }
