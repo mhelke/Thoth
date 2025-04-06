@@ -18,10 +18,10 @@ jobs:
     - name: make debug
       run: | 
         make debug
-        thoth-debug debug
+        ./thoth-debug debug
     - name: test
       run: |
         make test
-        thoth test
+        ./thoth test
     - name: clean
       run: make clean
