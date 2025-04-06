@@ -29,7 +29,8 @@ profile:
 	$(PROFILER) $(DEBUG_OUTPUT) gmon.out > $(PROFILE_OUTPUT)
 
 clean:
-	if exist $(OUTPUT) del $(OUTPUT)
-	if exist $(DEBUG_OUTPUT) del $(DEBUG_OUTPUT)
-	if exist gmon.out del gmon.out
-	if exist $(PROFILE_OUTPUT) del $(PROFILE_OUTPUT) 
+ifeq ($(OS),Windows_NT)
+	del /F /Q $(OUTPUT) $(DEBUG_OUTPUT) gmon.out $(PROFILE_OUTPUT)
+else
+	rm -f $(OUTPUT) $(DEBUG_OUTPUT) gmon.out $(PROFILE_OUTPUT)
+endif
