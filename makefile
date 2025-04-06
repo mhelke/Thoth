@@ -5,6 +5,8 @@ PROFILER = gprof
 PROFILE_OUTPUT = profile.txt
 PROFILE = -pg -no-pie
 
+DEBUG_ARG = debug
+
 # src directory path
 SRC_PATH = src
 
@@ -23,7 +25,7 @@ debug:
 
 profile:
 	$(C) -O2 $(PROFILE) $(SRC_PATH)/*.$(INCLUDE_EXT) -o $(DEBUG_OUTPUT)
-	./$(DEBUG_OUTPUT)
+	./$(DEBUG_OUTPUT) DEBUG_ARG
 	$(PROFILER) $(DEBUG_OUTPUT) gmon.out > $(PROFILE_OUTPUT)
 
 clean:
