@@ -14,14 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: build
-      run: make
-    - name: make debug
-      run: | 
-        make debug
-        ./thoth-debug.exe debug
+      run: make debug
+    - name: run
+      run: ./thoth-debug.exe debug
     - name: test
-      run: |
-        make test
-        ./thoth test
+      run: ./thoth-debug.exe test
     - name: clean
       run: make clean
