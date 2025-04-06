@@ -28,8 +28,8 @@ profile:
 	./$(DEBUG_OUTPUT) DEBUG_ARG
 	$(PROFILER) $(DEBUG_OUTPUT) gmon.out > $(PROFILE_OUTPUT)
 
-clean-all:
-	del $(OUTPUT) $(DEBUG_OUTPUT) gmon.out
-
-clean-debug:
-	del $(DEBUG_OUTPUT)
+clean:
+	if exist $(OUTPUT) del $(OUTPUT)
+	if exist $(DEBUG_OUTPUT) del $(DEBUG_OUTPUT)
+	if exist gmon.out del gmon.out
+	if exist $(PROFILE_OUTPUT) del $(PROFILE_OUTPUT) 

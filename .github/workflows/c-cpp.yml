@@ -18,4 +18,4 @@ jobs:
     - name: test
       run: ./thoth-debug.exe test
     - name: clean
-      run: make clean-debug
+      run: make clean
