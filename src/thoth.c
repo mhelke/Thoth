@@ -19,12 +19,12 @@
 #define test_arg "test"
 #define debug_arg "debug"
 
-int debug_mode(char* fen) {
+int debug_mode(char* fen, int depth) {
     Board* board = create_board();
     load_fen(fen, board);
     print_board(board);
     printEval(board);
-    search(10, board);
+    search(depth, board);
     free_board(board);
     return 0;
 }
@@ -44,7 +44,10 @@ int main(int argc, char* argv[]) {
     initialize();
     if (argc > 1) {
         if (strcmp(argv[1], test_arg) == 0) return run_tests();
-        if (strcmp(argv[1], debug_arg) == 0) return debug_mode(argc > 2 ? argv[2] : debug_position);
+        if (strcmp(argv[1], debug_arg) == 0) {
+            int depth = argc > 3 ? atoi(argv[3]) : 10;
+            return debug_mode(argc > 2 ? argv[2] : debug_position, depth);
+        }
     }
     uci_main();
 }
