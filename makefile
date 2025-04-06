@@ -29,4 +29,4 @@ profile:
 	$(PROFILER) $(DEBUG_OUTPUT) gmon.out > $(PROFILE_OUTPUT)
 
 clean:
-	del $(OUTPUT) gmon.out
+	del $(OUTPUT) $(DEBUG_OUTPUT) gmon.out
