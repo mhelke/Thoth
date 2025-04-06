@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <limits.h>
+
 #include "bitboard.h"
 
 #define valueUNKNOWN INT_MAX
