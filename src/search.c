@@ -18,7 +18,6 @@ int total_researches, hash_hits, beta_cutoff_count, delta_prune,
     futility_prune, eval_prune;
 
 int search(int depth, Board *board) {
-    printf("running at depth %d\n", depth);
     int start = get_ms();
     
     // Debug statistics
