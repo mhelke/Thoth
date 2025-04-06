@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #endif
 
+#include <stddef.h>
+
 int get_ms() {
     #if defined(_WIN32) || defined(_WIN64)
         return GetTickCount();
