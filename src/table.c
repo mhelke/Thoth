@@ -80,7 +80,6 @@ Bitboard generate_hash_key(Board* board) {
 }
 
 void clear_transposition_table() {
-    printf("    [DEBUG] Clearing transposition table\n");
     memset(transposition_table, 0, hash_entries * sizeof(TranspositionTable));
 }
 
