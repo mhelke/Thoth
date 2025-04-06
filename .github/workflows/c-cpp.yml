@@ -18,7 +18,7 @@ jobs:
     - name: make debug
       run: | 
         make debug
-        ./thoth-debug debug
+        ./thoth-debug.exe debug
     - name: test
       run: |
         make test
