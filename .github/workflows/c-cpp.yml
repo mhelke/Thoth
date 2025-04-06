@@ -15,8 +15,6 @@ jobs:
     - uses: actions/checkout@v4
     - name: build
       run: make debug
-    - name: run
-      run: ./thoth-debug.exe debug
     - name: test
       run: ./thoth-debug.exe test
     - name: clean
