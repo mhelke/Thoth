@@ -43,7 +43,7 @@ Thoth is a UCI-compatible chess engine written in C.
 1. From the root directory, run `make` to generate the executable.
 2. Run the executable from the command line, specifying debug mode, an FEN, and search depth
 
-       `thoth.exe debug <FEN> <DEPTH>`
+       thoth.exe debug <FEN> <DEPTH>
    If an FEN is not provided, a default position with a depth of 10 is used.
 3. The PV lines and a static evaluation will output to the terminal.
 
