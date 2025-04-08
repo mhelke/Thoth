@@ -1,5 +1,7 @@
 # Thoth
-Thoth is a UCI-compatible chess engine written in C.
+Named after the Egyptian god of the moon, knowledge, and wisdom, Thoth is an open-source chess engine written in C.
+
+Thoth supports the Universal Chess Interface (UCI) protocol. It can be run with a UCI-compatible chess GUI such as [Arena](http://www.playwitharena.de/).
 
 ## Performance
   * Elo:
@@ -28,7 +30,7 @@ Thoth is a UCI-compatible chess engine written in C.
  * Rook placement
  * King safety
   
-## Running the Engine
+## Installation 
 
 #### Option 1 - Download the release
 1. Download the latest release and import into a program such as [Arena](http://www.playwitharena.de/).
@@ -64,4 +66,4 @@ Please add your request to the [issues page](https://github.com/mhelke/Thoth/iss
 
 ## License
 
-Copyright (c) 2025 Matthew Helke
+This project is [MIT licensed](https://github.com/mhelke/Thoth/blob/master/LICENSE)
