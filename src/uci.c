@@ -27,7 +27,7 @@
 #include "util.h"
 #include "table.h"
 
-#define version "0.1"
+#define version "1.0.0"
 #define MAX_HASH 128
 #define MIN_HASH 4
 int hash_size = 64;
